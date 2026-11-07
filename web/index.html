@@ -6,172 +6,372 @@
 <title>LED Ekran Video</title>
 <link rel="icon" href="/logo.svg" type="image/svg+xml">
 <style>
-:root{--bg:#0e1015;--panel:#161922;--kenar:#262b38;--yazi:#e8e6df;--soluk:#9aa0ad;--altin:#ffce30;--altin2:#7f6718;--hata:#ff7a6b;--ok:#7bd88f}
+:root{color-scheme:dark;--bg:#0b0d12;--panel:#12151c;--panel2:#171b24;--line:#232937;--tx:#e8eaf0;--mut:#8b93a7;--ac:#ffce30;--ac2:#4cc9f0;--ok:#4ade80;--uy:#fb923c;--r:12px}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--yazi);font:15px/1.5 "Segoe UI",system-ui,sans-serif}
-header{display:flex;align-items:center;gap:14px;padding:12px 20px;border-bottom:1px solid var(--kenar)}
-header img{height:44px}
-header h1{font-size:20px;margin:0;color:var(--altin);letter-spacing:.5px}
-header .sur{color:var(--soluk);font-size:13px}
-header .bos{flex:1}
-main{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:18px;padding:18px 20px;max-width:1200px;margin:0 auto}
-@media(max-width:820px){main{grid-template-columns:1fr}}
-section{background:var(--panel);border:1px solid var(--kenar);border-radius:10px;padding:14px}
-h2{font-size:14px;margin:0 0 10px;color:var(--soluk);text-transform:uppercase;letter-spacing:1px;font-weight:600}
-textarea{width:100%;height:340px;background:#0b0d12;color:#f3efe2;border:1px solid var(--kenar);border-radius:8px;padding:10px;font:13px/1.5 Consolas,monospace;resize:vertical}
-label{display:block;font-size:13px;color:var(--soluk);margin:8px 0 3px}
-input,select{background:#0b0d12;color:var(--yazi);border:1px solid var(--kenar);border-radius:6px;padding:7px 9px;font:inherit;max-width:100%}
-button{background:var(--altin);color:#1b1500;border:0;border-radius:7px;padding:8px 16px;font:600 14px inherit;cursor:pointer}
-button.ikinci{background:#262b38;color:var(--yazi)}
-button:disabled{opacity:.5;cursor:default}
-.satir{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.izgara{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:4px 10px}
-.onizle{background:#000;border:1px solid var(--kenar);border-radius:8px;width:100%;aspect-ratio:9/16;object-fit:contain;display:block}
-#hata{color:var(--hata);min-height:1.4em;font-size:13px;margin-top:6px;white-space:pre-wrap}
-.cubuk{height:10px;background:#0b0d12;border-radius:6px;overflow:hidden;border:1px solid var(--kenar);margin-top:10px}
-.cubuk i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--altin2),var(--altin))}
-.sonuc{margin-top:8px;font-size:13px}
-.sonuc.ok{color:var(--ok)}.sonuc.hata{color:var(--hata)}
-details{margin-top:12px;border-top:1px solid var(--kenar);padding-top:10px}
-summary{cursor:pointer;color:var(--altin);font-weight:600}
-.alt{grid-column:1/-1}
-.not{color:var(--soluk);font-size:12.5px;margin-top:8px}
-#ff{font-size:12.5px}.ffyok{color:var(--hata)}.ffvar{color:var(--ok)}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button,select,input,textarea{font:inherit;color:inherit}
+header{display:flex;align-items:center;gap:12px;padding:10px 18px;border-bottom:1px solid var(--line);background:var(--panel)}
+header img{width:30px;height:30px}
+header h1{font-size:16px;margin:0;font-weight:700}
+header .s{margin-left:auto;color:var(--mut);font-size:12px}
+main{display:grid;grid-template-columns:minmax(360px,5fr) 7fr;gap:16px;padding:16px;height:calc(100vh - 51px)}
+.sol{overflow:auto;padding-right:4px;display:flex;flex-direction:column;gap:12px}
+.kart{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kart h2{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin:0 0 10px;font-weight:600;display:flex;align-items:center;gap:8px}
+.kart h2 small{text-transform:none;letter-spacing:0;font-weight:400}
+textarea{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px;resize:vertical}
+textarea:focus,input:focus,select:focus{outline:2px solid var(--ac2);outline-offset:1px}
+#yazi{min-height:92px;font-size:16px;font-weight:600}
+.sira{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.btn{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:8px 12px;cursor:pointer}
+.btn:hover{border-color:#394258}
+.btn.ana{background:var(--ac);color:#1a1400;border-color:var(--ac);font-weight:700}
+.btn.ana:hover{filter:brightness(1.08)}
+.btn:disabled{opacity:.5;cursor:default}
+.stiller{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:10px}
+.stil{padding:8px 4px;text-align:center;border-radius:9px;background:var(--panel2);border:1px solid var(--line);cursor:pointer;font-size:12px}
+.stil.sec,.chip.sec,.pal.sec{border-color:var(--ac);box-shadow:0 0 0 1px var(--ac) inset}
+.paletler{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.pal{height:44px;border-radius:9px;border:1px solid var(--line);cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;position:relative}
+.pal i{position:absolute;right:4px;bottom:4px;width:8px;height:8px;border-radius:50%}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:5px 10px;border-radius:999px;background:var(--panel2);border:1px solid var(--line);cursor:pointer;font-size:12px;white-space:nowrap}
+.chip:hover{border-color:#394258}
+.etiket{font-size:12px;color:var(--mut);margin:12px 0 6px}
+.iki{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+select,input[type=text],input[type=search]{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:7px 9px}
+.galeri{display:flex;flex-direction:column;gap:8px}
+.liste{max-height:210px;overflow:auto;display:flex;flex-wrap:wrap;gap:6px;padding:2px}
+.oneri{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border-radius:9px;background:var(--panel2);margin-bottom:6px;font-size:13px}
+.oneri b{flex:none;width:8px;height:8px;border-radius:50%;margin-top:6px;background:var(--ac2)}
+.oneri.uyari b{background:var(--uy)}
+.oneri button{margin-left:auto;flex:none}
+.bos{color:var(--mut)}
+details summary{cursor:pointer;color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+#sen{min-height:240px;font:12px/1.5 ui-monospace,Consolas,monospace;margin-top:10px}
+.ilerleme{height:8px;border-radius:99px;background:var(--panel2);overflow:hidden;margin-top:10px}
+.ilerleme div{height:100%;width:0;background:var(--ok);transition:width .2s}
+/* sağ: canlı önizleme */
+.sag{display:flex;flex-direction:column;min-height:0}
+.onizle{flex:1;min-height:0;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px;gap:10px}
+.onizle:fullscreen{background:#05060a;padding:20px}
+.ust{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ust .seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.ust .seg button{background:var(--panel2);border:0;padding:6px 12px;cursor:pointer}
+.ust .seg button.sec{background:var(--ac2);color:#001018;font-weight:700}
+.ust .bosluk{flex:1}
+.durumu{font-size:12px;color:var(--mut)}
+.sahneler{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:center;justify-items:center}
+.cerceve{height:100%;max-height:100%;min-height:0;display:flex;flex-direction:column;align-items:center;gap:6px}
+.cerceve figcaption{font-size:12px;color:var(--mut)}
+.cerceve{margin:0}
+canvas{height:calc(100% - 22px);max-width:100%;background:#000;border-radius:6px;border:1px solid #1d2230;display:block}
+#sim.uzak{filter:blur(.7px) brightness(.92)}
+.kontrol{display:flex;align-items:center;gap:10px}
+.kontrol input[type=range]{flex:1}
+.yukleniyor{position:absolute;inset:0}
+@media (max-width:980px){main{grid-template-columns:1fr;height:auto}.sol{overflow:visible}.onizle{height:78vh}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 <header>
   <img src="/logo.svg" alt="">
-  <div><h1>LED Ekran Video</h1><div class="sur" id="sur"></div></div>
-  <div class="bos"></div>
-  <div id="ff"></div>
-  <button class="ikinci" id="kapat" title="Programı kapat">Kapat</button>
+  <h1>LED Ekran Video</h1>
+  <span class="s" id="surum"></span>
 </header>
 <main>
-  <section>
-    <h2>Senaryo</h2>
-    <div class="satir">
-      <select id="ornek"><option value="">Örnek senaryo seç…</option></select>
-      <button class="ikinci" id="yukle">Yükle</button>
+<section class="sol">
+  <div class="kart">
+    <h2>1 · Yazını yaz <small>(boş satır = yeni mesaj)</small></h2>
+    <textarea id="yazi" spellcheck="false" placeholder="PEŞİN FİYATINA&#10;3&#10;TAKSİT">PEŞİN FİYATINA
+3
+TAKSİT</textarea>
+    <div class="etiket" style="margin-top:12px">2 · Tarz seç</div>
+    <div class="stiller" id="stiller"></div>
+    <div class="sira">
+      <button class="btn ana" id="sasirt">🎲 Şaşırt beni</button>
+      <button class="btn" id="yenidenKur">Yeniden kur</button>
     </div>
-    <label for="metin">Senaryo metni (satır başı # yorumdur)</label>
-    <textarea id="metin" spellcheck="false"></textarea>
-    <details>
-      <summary>Sahne ekle (forma göre satır yazar)</summary>
-      <label for="s_metin">Yazı (| satır böler, * ile başlayan satır büyük rakam, @cicek gibi çizim)</label>
-      <input id="s_metin" style="width:100%" value="PEŞİN|FİYATINA|*3|TAKSİT">
-      <div class="izgara">
-        <div><label>Renk</label><select id="s_renk"></select></div>
-        <div><label>Giriş</label><select id="s_giris"></select></div>
-        <div><label>Çıkış</label><select id="s_cikis"></select></div>
-        <div><label>Süre (sn)</label><input id="s_sure" type="number" min="1.5" step="0.5" value="6" style="width:90px"></div>
-      </div>
-      <label>Efektler</label>
-      <div class="satir" id="s_efekt"></div>
-      <div style="margin-top:10px"><button id="ekle">Sahneyi ekle</button> <button class="ikinci" id="oynat">Seçili giriş ve çıkışı oynat</button> <span id="sayi" class="not"></span></div>
-      <p class="not">Yeni animasyon eklemek için şu klasörlerden birine anahtar kareli .txt dosyası koyun (★ ile görünür): <span id="ozelklasor"></span></p>
-    </details>
-    <p class="not">Ekran ölçüsü, geçişler ve sahneler bu metinle belirlenir. Ayrıntı için README dosyasına bakın.</p>
-  </section>
-  <section>
-    <h2>Önizleme</h2>
-    <img class="onizle" id="resim" alt="önizleme">
-    <label for="t">Zaman: <span id="tsn">1.0</span> sn / <span id="top">–</span> sn</label>
-    <input type="range" id="t" min="0" max="10" step="0.1" value="1" style="width:100%">
-    <div id="hata"></div>
-  </section>
-  <section class="alt">
+  </div>
+
+  <div class="kart">
+    <h2>Öneriler <small id="onSay"></small></h2>
+    <div id="oneriler"><div class="bos">Çözümleniyor…</div></div>
+  </div>
+
+  <div class="kart">
+    <h2>Renk paleti</h2>
+    <div class="paletler" id="paletler"></div>
+    <div class="etiket">Yazı stili</div>
+    <div class="chips" id="fontlar"></div>
+    <div class="etiket">3B derinlik</div>
+    <div class="kontrol"><input type="range" id="derinlik" min="0" max="2.5" step="0.1" value="1"><span id="derinlikV" class="durumu">1.0</span></div>
+  </div>
+
+  <div class="kart">
+    <h2>Animasyonlar <small id="animSay"></small></h2>
+    <div class="galeri">
+      <div class="seg chips" id="animGrup"></div>
+      <input type="search" id="ara" placeholder="Animasyon ara…">
+      <div class="liste" id="animListe"></div>
+    </div>
+    <div class="iki">
+      <div><div class="etiket">Giriş</div><select id="giris"></select></div>
+      <div><div class="etiket">Çıkış</div><select id="cikis"></select></div>
+      <div><div class="etiket">Açılış</div><select id="acilis"></select></div>
+      <div><div class="etiket">Kapanış</div><select id="kapanis"></select></div>
+    </div>
+    <div class="etiket">Efekt ve dekor (en çok 2 öneriliyor)</div>
+    <div class="chips" id="efektler"></div>
+  </div>
+
+  <div class="kart">
     <h2>Video üret</h2>
-    <div class="satir">
-      <div><label for="dosya">Dosya adı</label><input id="dosya" value="kampanya" style="width:220px"></div>
-      <div><label for="kodek">Biçim</label><select id="kodek"><option value="mp4">MP4 (H.264)</option><option value="hap">HAP (MOV)</option></select></div>
-      <div style="align-self:end"><button id="uret">Video üret</button> <button class="ikinci" id="iptal" disabled>İptal</button> <button class="ikinci" id="klasor">Klasörü aç</button></div>
+    <div class="iki">
+      <div><div class="etiket" style="margin-top:0">Dosya adı</div><input type="text" id="dosya" value="video"></div>
+      <div><div class="etiket" style="margin-top:0">Biçim</div><select id="kodek"><option value="mp4">MP4 (önerilen, 950x1800)</option><option value="hap">HAP (4'e bölünen ölçü)</option></select></div>
     </div>
-    <div class="cubuk"><i id="cub"></i></div>
-    <div class="sonuc" id="sonuc"></div>
-    <p class="not" id="klas"></p>
-  </section>
+    <div class="sira">
+      <button class="btn ana" id="uret">Videoyu üret</button>
+      <button class="btn" id="iptal" hidden>İptal</button>
+      <button class="btn" id="klasor">Klasörü aç</button>
+    </div>
+    <div class="ilerleme"><div id="bar"></div></div>
+    <div class="durumu" id="mesaj" style="margin-top:6px"></div>
+  </div>
+
+  <div class="kart">
+    <details>
+      <summary>Gelişmiş: senaryo metni</summary>
+      <div class="sira"><select id="ornek" style="max-width:260px"></select></div>
+      <textarea id="sen" spellcheck="false"></textarea>
+    </details>
+  </div>
+</section>
+
+<section class="sag">
+  <div class="onizle" id="onizlePanel">
+    <div class="ust">
+      <b>Canlı önizleme</b>
+      <span class="durumu" id="hazir"></span>
+      <span class="bosluk"></span>
+      <span class="durumu">Uzaklık</span>
+      <div class="seg" id="uzaklik"><button data-d="3" class="sec">3 m</button><button data-d="15">15 m</button></div>
+      <button class="btn" id="tamEkran" title="Tam ekran">⛶ Tam ekran</button>
+    </div>
+    <div class="sahneler">
+      <figure class="cerceve"><canvas id="tasarim"></canvas><figcaption>Tasarım (950×1800)</figcaption></figure>
+      <figure class="cerceve"><canvas id="sim"></canvas><figcaption id="simBaslik">Ekranda nasıl görünür · 8×25 m, 3 m</figcaption></figure>
+    </div>
+    <div class="kontrol">
+      <button class="btn" id="oynat">⏸</button>
+      <input type="range" id="zaman" min="0" max="1000" value="0">
+      <span class="durumu" id="sure">0.0 / 0.0 sn</span>
+    </div>
+  </div>
+  <video id="kaynak" muted loop playsinline hidden></video>
+</section>
 </main>
 <script>
-const $=id=>document.getElementById(id);
-const H={'X-LED':'1'};
-const RENK={altin:'Altın',sari:'Sarı',beyaz:'Beyaz (kısık)',turuncu:'Turuncu',cyan:'Cyan',magenta:'Magenta',lime:'Lime'};
-function doldur(id,liste,sec){const s=$(id);s.innerHTML='';liste.forEach(v=>{const o=document.createElement('option');o.value=v.ad;o.textContent=v.ad+(v.ozel?' ★':'')+' — '+v.acik;s.appendChild(o)});if(sec)s.value=sec}
-const rs=$('s_renk');Object.entries(RENK).forEach(([k,v])=>{const o=document.createElement('option');o.value=k;o.textContent=v;rs.appendChild(o)});rs.value='altin';
-function efektDoldur(liste){const k=$('s_efekt');k.innerHTML='';liste.forEach(e=>{const l=document.createElement('label');l.style.cssText='display:inline-flex;gap:5px;margin:0;align-items:center';l.title=e.acik;l.innerHTML='<input type="checkbox" value="'+e.ad+'"'+(e.ad==='parlama'?' checked':'')+'> '+e.ad;k.appendChild(l)})}
-let toplam=10,bekle=null,istek=0;
-function kaydet(){try{localStorage.setItem('led_metin',$('metin').value)}catch(e){}}
-async function bilgi(){
-  const b=await (await fetch('/bilgi')).json();
-  $('sur').textContent='Sürüm '+b.surum;
-  $('ff').innerHTML=b.ffmpeg?'<span class="ffvar">ffmpeg hazır</span>':'<span class="ffyok">ffmpeg bulunamadı</span>';
-  $('ff').title=b.ffmpeg||'ffmpeg.exe dosyasını programın klasörüne veya D:\\Programlar\\Araçlar Ve İndirilenler altına koyun';
-  $('klas').textContent='Videolar şu klasöre yazılır: '+b.klasor;
-  doldur('s_giris',b.girisler,'toplan');doldur('s_cikis',b.cikislar,'dagil');efektDoldur(b.efektler);
-  $('ozelklasor').textContent=b.animasyon_klasorleri.join('  |  ');
-  $('sayi').textContent=b.girisler.length+' giriş, '+b.cikislar.length+' çıkış, '+b.efektler.length+' efekt';
-  b.ornekler.forEach(a=>{const o=document.createElement('option');o.value=a;o.textContent=a;$('ornek').appendChild(o)});
-  let kayit='';try{kayit=localStorage.getItem('led_metin')||''}catch(e){}
-  if(kayit){$('metin').value=kayit}else{await ornekYukle('tv-afis')}
-  onizle();
+'use strict';
+const $ = s => document.querySelector(s);
+const api = (yol, govde, ek) => fetch(yol, {method: govde === undefined ? 'GET' : 'POST', headers: {'X-LED': '1'}, body: govde, ...(ek || {})});
+let bilgi = null, stil = 'yumusak', tohum = 1, ozel = {}, elleDuzenlendi = false;
+const q = encodeURIComponent;
+const sen = $('#sen'), yazi = $('#yazi');
+const debounce = (f, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => f(...a), ms); }; };
+
+/* ---- senaryo yeniden yazma yardımcıları ---- */
+function sahneAyarla(m, k, v) {
+  const re = new RegExp('\\s' + k + '=\\S+');
+  return m.split('\n').map(l => {
+    if (!/^\s*sahne\b/.test(l)) return l;
+    return re.test(l) ? l.replace(re, ' ' + k + '=' + v) : l.replace(/\s+$/, '') + ' ' + k + '=' + v;
+  }).join('\n');
 }
-async function ornekYukle(ad){if(!ad)return;$('metin').value=await (await fetch('/ornek/'+encodeURIComponent(ad))).text();kaydet();onizle()}
-async function onizle(){
-  const n=++istek;$('hata').textContent='';
-  const r=await fetch('/onizle?t='+$('t').value,{method:'POST',headers:H,body:$('metin').value});
-  if(n!==istek)return;
-  if(!r.ok){$('hata').textContent=await r.text();return}
-  const top=parseFloat(r.headers.get('X-Toplam'));if(top){toplam=top;$('top').textContent=top.toFixed(1);$('t').max=Math.max(0.1,top-0.04).toFixed(2)}
-  const u=URL.createObjectURL(await r.blob());const eski=$('resim').src;$('resim').src=u;if(eski.startsWith('blob:'))URL.revokeObjectURL(eski);
+function globalAyarla(m, k, v) {
+  const satir = m.split('\n'); const re = new RegExp('^\\s*' + k + '\\s+\\S+');
+  const i = satir.findIndex(l => re.test(l));
+  if (i >= 0) satir[i] = k + ' ' + v;
+  else { const j = satir.findIndex(l => /^\s*sahne\b/.test(l)); satir.splice(j < 0 ? satir.length : j, 0, k + ' ' + v); }
+  return satir.join('\n');
 }
-function ertele(){clearTimeout(bekle);bekle=setTimeout(onizle,500)}
-$('metin').addEventListener('input',()=>{kaydet();ertele()});
-$('t').addEventListener('input',()=>{$('tsn').textContent=parseFloat($('t').value).toFixed(1);ertele()});
-$('yukle').onclick=()=>ornekYukle($('ornek').value);
-$('ekle').onclick=()=>{
-  const ef=[...document.querySelectorAll('#s_efekt input:checked')].map(c=>c.value).join(',')||'yok';
-  const m=$('s_metin').value.replace(/"/g,'');
-  const satir='sahne "'+m+'" renk='+$('s_renk').value+' giris='+$('s_giris').value+' cikis='+$('s_cikis').value+' sure='+$('s_sure').value+' efekt='+ef;
-  const t=$('metin');t.value=t.value.replace(/\s*$/,'')+'\n'+satir+'\n';kaydet();onizle();
-};
-$('oynat').onclick=async()=>{
-  const ef=[...document.querySelectorAll('#s_efekt input:checked')].map(c=>c.value).join(',')||'yok';
-  const m=$('s_metin').value.replace(/"/g,'');
-  const sen='ekran 490x900\nfiziksel 8x25\nfps 25\nsahne "'+m+'" renk='+$('s_renk').value+' giris='+$('s_giris').value+' cikis='+$('s_cikis').value+' sure=4 efekt='+ef+'\n';
-  $('oynat').disabled=true;$('hata').textContent='';
-  const turlar=[...Array(9).keys()].map(i=>i*0.2).concat([...Array(8).keys()].map(i=>2.6+i*0.15));
-  for(const t of turlar){
-    const r=await fetch('/onizle?t='+t.toFixed(2),{method:'POST',headers:H,body:sen});
-    if(!r.ok){$('hata').textContent=await r.text();break}
-    const u=URL.createObjectURL(await r.blob());const eski=$('resim').src;$('resim').src=u;if(eski.startsWith('blob:'))URL.revokeObjectURL(eski);
+function uygulaOzel(m) {
+  for (const [k, v] of Object.entries(ozel)) m = (k === 'acilis' || k === 'kapanis') ? globalAyarla(m, k, v) : sahneAyarla(m, k, v);
+  return m;
+}
+function ilkSahne(m) {
+  const l = m.split('\n').find(x => /^\s*sahne\b/.test(x)) || '';
+  const g = k => (l.match(new RegExp('\\s' + k + '=(\\S+)')) || [])[1];
+  const gl = k => ((m.match(new RegExp('^\\s*' + k + '\\s+(\\S+)', 'm')) || [])[1]);
+  return {palet: g('palet') || g('renk'), font: g('font') || 'inter', giris: g('giris'), cikis: g('cikis'), efekt: (g('efekt') || '').split(',').filter(x => x && x !== 'yok'), derinlik: g('derinlik') || '1', acilis: gl('acilis') || 'yok', kapanis: gl('kapanis') || 'yok'};
+}
+
+/* ---- arayüz kurulumu ---- */
+function secenek(sel, liste, deg) { sel.innerHTML = liste.map(x => `<option value="${x.ad}">${x.ad}${x.acik ? ' — ' + x.acik : ''}</option>`).join(''); if (deg) sel.value = deg; }
+function esle() {
+  const s = ilkSahne(sen.value);
+  document.querySelectorAll('.stil').forEach(e => e.classList.toggle('sec', e.dataset.ad === stil));
+  document.querySelectorAll('.pal').forEach(e => e.classList.toggle('sec', e.dataset.ad === s.palet));
+  document.querySelectorAll('#fontlar .chip').forEach(e => e.classList.toggle('sec', e.dataset.ad === s.font));
+  document.querySelectorAll('#efektler .chip').forEach(e => e.classList.toggle('sec', s.efekt.includes(e.dataset.ad)));
+  document.querySelectorAll('#animListe .chip').forEach(e => e.classList.toggle('sec', e.dataset.ad === s.giris));
+  for (const k of ['giris', 'cikis', 'acilis', 'kapanis']) if ([...$('#' + k).options].some(o => o.value === s[k])) $('#' + k).value = s[k];
+  $('#derinlik').value = s.derinlik; $('#derinlikV').textContent = (+s.derinlik).toFixed(1);
+}
+function ozelYaz(k, v) { ozel[k] = v; sen.value = uygulaOzel(sen.value); degisti(); }
+
+async function kur() {
+  const r = await api(`/oto?stil=${stil}&tohum=${tohum}`, yazi.value);
+  sen.value = uygulaOzel(await r.text());
+  elleDuzenlendi = false; degisti();
+}
+const kurGec = debounce(() => { if (!elleDuzenlendi) kur(); }, 450);
+
+let animFiltre = 'tum';
+function animCiz() {
+  const a = $('#ara').value.trim().toLowerCase();
+  const l = bilgi.girisler.filter(x => (animFiltre === 'tum' || (animFiltre === 'vurgu' ? x.ad.startsWith('vurgu-') : animFiltre === 'sirali' ? x.ad.startsWith('tek-tek-') : !x.ad.startsWith('vurgu-') && !x.ad.startsWith('tek-tek-'))) && (!a || (x.ad + ' ' + x.acik).toLowerCase().includes(a)));
+  $('#animListe').innerHTML = l.map(x => `<span class="chip" data-ad="${x.ad}" title="${x.acik}">${x.ad}</span>`).join('') || '<span class="bos">Sonuç yok</span>';
+  $('#animSay').textContent = `(${bilgi.girisler.length} giriş · ${bilgi.efektler.length} efekt · ${bilgi.gecisler.length - 1} geçiş)`;
+  esle();
+}
+
+async function baslat() {
+  bilgi = await (await api('/bilgi')).json();
+  $('#surum').textContent = 'v' + bilgi.surum + (bilgi.ffmpeg ? '' : ' · ffmpeg bulunamadı');
+  $('#stiller').innerHTML = bilgi.stiller.map(s => `<div class="stil" data-ad="${s.ad}" title="${s.acik}">${s.ad[0].toUpperCase() + s.ad.slice(1)}</div>`).join('');
+  $('#paletler').innerHTML = bilgi.paletler.map(p => `<div class="pal" data-ad="${p.ad}" title="${p.ad} — ${p.acik}" style="background:rgb(${p.zemin});color:rgb(${p.yuz})">Aa<i style="background:rgb(${p.vurgu})"></i></div>`).join('');
+  $('#fontlar').innerHTML = bilgi.fontlar.map(f => `<span class="chip" data-ad="${f.ad}" title="${f.acik}">${f.ad}</span>`).join('');
+  $('#efektler').innerHTML = bilgi.efektler.map(f => `<span class="chip" data-ad="${f.ad}" title="${f.acik}">${f.ad}</span>`).join('');
+  $('#animGrup').innerHTML = [['tum', 'Tümü'], ['giris', 'Giriş'], ['sirali', 'Satır satır'], ['vurgu', 'Vurgu']].map(([k, t]) => `<span class="chip${k === 'tum' ? ' sec' : ''}" data-g="${k}">${t}</span>`).join('');
+  secenek($('#giris'), bilgi.girisler); secenek($('#cikis'), bilgi.cikislar);
+  secenek($('#acilis'), bilgi.gecisler); secenek($('#kapanis'), bilgi.gecisler);
+  $('#ornek').innerHTML = '<option value="">Örnek senaryo yükle…</option>' + bilgi.ornekler.map(o => `<option>${o}</option>`).join('');
+  animCiz();
+  await kur();
+}
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-ad],[data-g]'); if (!t) return;
+  if (t.classList.contains('stil')) { stil = t.dataset.ad; ozel = {}; kur(); }
+  else if (t.classList.contains('pal')) ozelYaz('palet', t.dataset.ad);
+  else if (t.closest('#fontlar')) ozelYaz('font', t.dataset.ad);
+  else if (t.closest('#efektler')) {
+    const s = new Set(ilkSahne(sen.value).efekt); s.has(t.dataset.ad) ? s.delete(t.dataset.ad) : s.add(t.dataset.ad);
+    ozelYaz('efekt', [...s].join(',') || 'yok');
   }
-  $('oynat').disabled=false;
+  else if (t.closest('#animListe')) { const g = t.dataset.ad; ozel.giris = g; ozel.cikis = bilgi.cikislar.some(c => c.ad === g) ? g : 'sondur'; sen.value = uygulaOzel(sen.value); degisti(); }
+  else if (t.dataset.g) { animFiltre = t.dataset.g; document.querySelectorAll('#animGrup .chip').forEach(c => c.classList.toggle('sec', c === t)); animCiz(); }
+});
+$('#giris').onchange = e => ozelYaz('giris', e.target.value);
+$('#cikis').onchange = e => ozelYaz('cikis', e.target.value);
+$('#acilis').onchange = e => ozelYaz('acilis', e.target.value);
+$('#kapanis').onchange = e => ozelYaz('kapanis', e.target.value);
+$('#derinlik').oninput = e => { $('#derinlikV').textContent = (+e.target.value).toFixed(1); ozel.derinlik = e.target.value; sen.value = uygulaOzel(sen.value); degisti(); };
+$('#ara').oninput = animCiz;
+$('#sasirt').onclick = () => { tohum = Math.floor(Math.random() * 1e6); ozel = {}; const s = bilgi.stiller; if (Math.random() < .6) stil = s[Math.floor(Math.random() * s.length)].ad; kur(); };
+$('#yenidenKur').onclick = () => { ozel = {}; tohum++; kur(); };
+yazi.oninput = () => { elleDuzenlendi = false; kurGec(); };
+sen.oninput = () => { elleDuzenlendi = true; degisti(); };
+$('#ornek').onchange = async e => { if (!e.target.value) return; sen.value = await (await api('/ornek/' + e.target.value)).text(); elleDuzenlendi = true; ozel = {}; degisti(); };
+
+/* ---- öneriler ---- */
+const oneriGetir = debounce(async () => {
+  const r = await api('/denetle', sen.value); const kutu = $('#oneriler');
+  if (!r.ok) { kutu.innerHTML = `<div class="oneri uyari"><b></b>${(await r.text()).replace(/</g, '&lt;')}</div>`; $('#onSay').textContent = ''; return; }
+  const l = await r.json(); $('#onSay').textContent = l.length ? `(${l.length})` : '';
+  kutu.innerHTML = l.length ? l.map(x => {
+    let dugme = '';
+    if (/çıkış animasyonu yok/.test(x.mesaj)) dugme = '<button class="btn" data-fix="cikis">Uygula</button>';
+    else if (/Açılış ve kapanış/.test(x.mesaj)) dugme = '<button class="btn" data-fix="gecis">Uygula</button>';
+    return `<div class="oneri ${x.seviye}"><b></b><span>${x.mesaj.replace(/</g, '&lt;')}</span>${dugme}</div>`;
+  }).join('') : '<div class="bos">Her şey yolunda: okunurluk ve ritim kurallarına uyuyor.</div>';
+}, 500);
+$('#oneriler').onclick = e => {
+  const f = e.target.dataset.fix; if (!f) return;
+  if (f === 'cikis') { const g = ilkSahne(sen.value).giris; ozelYaz('cikis', bilgi.cikislar.some(c => c.ad === g) ? g : 'sondur'); }
+  if (f === 'gecis') { ozel.acilis = 'fade'; ozel.kapanis = 'iris'; sen.value = uygulaOzel(sen.value); degisti(); }
 };
-$('uret').onclick=async()=>{
-  $('sonuc').className='sonuc';$('sonuc').textContent='';
-  const r=await fetch('/uret?kodek='+$('kodek').value+'&dosya='+encodeURIComponent($('dosya').value),{method:'POST',headers:H,body:$('metin').value});
-  if(!r.ok){$('sonuc').className='sonuc hata';$('sonuc').textContent=await r.text();return}
-  izle();
-};
-$('iptal').onclick=()=>fetch('/iptal',{method:'POST',headers:H});
-$('klasor').onclick=()=>fetch('/klasor',{method:'POST',headers:H});
-$('kapat').onclick=async()=>{if(confirm('Program kapatılsın mı?')){try{await fetch('/kapat',{method:'POST',headers:H})}catch(e){}document.body.innerHTML='<p style="padding:30px">Program kapatıldı. Bu sekmeyi kapatabilirsiniz.</p>'}};
-let izliyor=false;
-async function izle(){
-  if(izliyor)return;izliyor=true;
-  for(;;){
-    const d=await (await fetch('/durum')).json();
-    $('uret').disabled=d.calisiyor;$('iptal').disabled=!d.calisiyor;
-    const y=d.toplam?Math.round(100*d.kare/d.toplam):0;$('cub').style.width=y+'%';
-    if(d.calisiyor){$('sonuc').className='sonuc';$('sonuc').textContent='Üretiliyor: %'+y+' ('+d.kare+'/'+d.toplam+' kare)'}
-    else{if(d.dosya){$('sonuc').className='sonuc '+(d.hata?'hata':'ok');$('sonuc').textContent=d.hata?('Hata: '+d.mesaj):('Hazır: '+d.dosya+' ('+d.mesaj+')')}break}
-    await new Promise(r=>setTimeout(r,700));
+
+/* ---- canlı önizleme ---- */
+const kaynak = $('#kaynak'), tasarim = $('#tasarim'), sim = $('#sim');
+let uzak = 3, klipNo = 0, bekleyen = false, sonKlip = null;
+function degisti() { esle(); oneriGetir(); klipGetir(); }
+const klipGetir = debounce(async () => {
+  const no = ++klipNo; $('#hazir').textContent = 'önizleme hazırlanıyor…';
+  try {
+    const r = await api('/klip', sen.value);
+    if (no !== klipNo) return;
+    if (!r.ok) { $('#hazir').textContent = (await r.text()).slice(0, 120); return; }
+    const url = URL.createObjectURL(await r.blob());
+    const t0 = kaynak.currentTime || 0;
+    kaynak.src = url; if (sonKlip) URL.revokeObjectURL(sonKlip); sonKlip = url;
+    kaynak.onloadedmetadata = () => { kaynak.currentTime = Math.min(t0, Math.max(0, kaynak.duration - .1)); kaynak.play().catch(() => {}); };
+    $('#hazir').textContent = 'canlı';
+  } catch (e) { $('#hazir').textContent = 'önizleme alınamadı'; }
+}, 700);
+
+const dot = {c: null, g: 0};
+function simCiz() {
+  const W = kaynak.videoWidth, H = kaynak.videoHeight; if (!W) return;
+  const kol = uzak === 3 ? 95 : 56, ST = 6;                    // sütun sayısı ve hücre boyu (px)
+  const oran = H / W, fz = 25 / 8 * (W / H);                     // fiziksel dikey uzama: ekran 8x25 m
+  const satir = Math.round(kol * (25 / 8));                      // fiziksel kare pikseller
+  const cw = kol * ST, ch = satir * ST;
+  if (sim.width !== cw || sim.height !== ch) { sim.width = cw; sim.height = ch; sim.style.aspectRatio = '8 / 25'; dot.c = null; }
+  if (!dot.c) { const d = new Uint8Array(ST * ST); for (let y = 0; y < ST; y++) for (let x = 0; x < ST; x++) { const dx = (x + .5 - ST / 2) / (ST / 2), dy = (y + .5 - ST / 2) / (ST / 2); d[y * ST + x] = Math.max(0, Math.min(255, (1.18 - Math.hypot(dx, dy)) * 400)); } dot.c = d; }
+  const k = document.createElement('canvas'); k.width = kol; k.height = satir;
+  const kx = k.getContext('2d', {willReadFrequently: true}); kx.drawImage(kaynak, 0, 0, kol, satir);
+  const px = kx.getImageData(0, 0, kol, satir).data;
+  const cx = sim.getContext('2d'); const img = cx.createImageData(cw, ch); const o = img.data;
+  for (let y = 0; y < satir; y++) for (let x = 0; x < kol; x++) {
+    const i = (y * kol + x) * 4, r = px[i], g = px[i + 1], b = px[i + 2], serit = (x % 5 === 4) ? .45 : 1;
+    for (let yy = 0; yy < ST; yy++) { let j = (((y * ST + yy) * cw) + x * ST) * 4; for (let xx = 0; xx < ST; xx++, j += 4) { const m = dot.c[yy * ST + xx] / 255 * serit; o[j] = r * m; o[j + 1] = g * m; o[j + 2] = b * m; o[j + 3] = 255; } }
   }
-  izliyor=false;
+  cx.putImageData(img, 0, 0);
 }
-setInterval(()=>fetch('/nabiz',{method:'POST',headers:H}).catch(()=>{}),10000);
-fetch('/nabiz',{method:'POST',headers:H});
-bilgi().then(izle);
+function tasarimCiz() {
+  const W = kaynak.videoWidth, H = kaynak.videoHeight; if (!W) return;
+  if (tasarim.width !== W) { tasarim.width = W; tasarim.height = H; tasarim.style.aspectRatio = W + ' / ' + H; }
+  tasarim.getContext('2d').drawImage(kaynak, 0, 0);
+}
+let sonCizim = 0;
+function dongu(t) {
+  if (kaynak.readyState >= 2 && t - sonCizim > 70) {            // ~14 kare/sn: simülasyon yükü hafif kalsın
+    sonCizim = t; tasarimCiz(); simCiz();
+    const d = kaynak.duration || 0;
+    if (!surukle) $('#zaman').value = d ? kaynak.currentTime / d * 1000 : 0;
+    $('#sure').textContent = `${kaynak.currentTime.toFixed(1)} / ${d.toFixed(1)} sn`;
+  }
+  requestAnimationFrame(dongu);
+}
+let surukle = false;
+$('#zaman').oninput = e => { surukle = true; kaynak.currentTime = e.target.value / 1000 * (kaynak.duration || 0); };
+$('#zaman').onchange = () => { surukle = false; };
+$('#oynat').onclick = () => { if (kaynak.paused) { kaynak.play(); $('#oynat').textContent = '⏸'; } else { kaynak.pause(); $('#oynat').textContent = '▶'; } };
+$('#uzaklik').onclick = e => { const d = e.target.dataset.d; if (!d) return; uzak = +d; document.querySelectorAll('#uzaklik button').forEach(b => b.classList.toggle('sec', b === e.target)); sim.classList.toggle('uzak', uzak === 15); $('#simBaslik').textContent = `Ekranda nasıl görünür · 8×25 m, ${uzak} m`; };
+$('#tamEkran').onclick = () => { const p = $('#onizlePanel'); document.fullscreenElement ? document.exitFullscreen() : p.requestFullscreen?.(); };
+requestAnimationFrame(dongu);
+
+/* ---- video üretimi ---- */
+let izle = null;
+$('#uret').onclick = async () => {
+  const r = await api(`/uret?kodek=${$('#kodek').value}&dosya=${q($('#dosya').value)}`, sen.value);
+  if (!r.ok) { $('#mesaj').textContent = await r.text(); return; }
+  $('#uret').disabled = true; $('#iptal').hidden = false; $('#mesaj').textContent = 'üretiliyor…';
+  izle = setInterval(async () => {
+    const d = await (await api('/durum')).json();
+    $('#bar').style.width = d.toplam ? (d.kare / d.toplam * 100) + '%' : '0';
+    if (!d.calisiyor) { clearInterval(izle); $('#uret').disabled = false; $('#iptal').hidden = true; $('#mesaj').textContent = d.hata ? 'Hata: ' + d.mesaj : `Tamam: ${d.mesaj} → ${d.dosya}`; }
+  }, 500);
+};
+$('#iptal').onclick = () => api('/iptal', '');
+$('#klasor').onclick = () => api('/klasor', '');
+setInterval(() => api('/nabiz', ''), 20000); api('/nabiz', '');
+baslat();
 </script>
 </body>
 </html>

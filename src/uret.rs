@@ -58,3 +58,42 @@ pub fn video(metin: &str, cikis: &str, kodek: &str, ilerleme: &dyn Fn(u32, u32),
     let d = kod.wait().map_err(|e| e.to_string())?;
     if d.success() { Ok(format!("{:.1} sn, {} kare", n as f32 / sen.fps as f32, n)) } else { Err("ffmpeg hata verdi".into()) }
 }
+
+/// Canlı önizleme klibi: senaryoyu küçültüp (≤480 px genişlik, 12 fps) hızlı kodlanmış bir MP4 olarak döndürür.
+pub fn klip(metin: &str, iptal: &AtomicBool) -> Result<Vec<u8>, String> {
+    let mut sen = senaryo_oku(metin)?;
+    let k = (1..=50u32).find(|k| sen.w % k == 0 && sen.h % k == 0 && sen.w / k <= 480 && (sen.w / k) % 2 == 0 && (sen.h / k) % 2 == 0).unwrap_or(1);
+    sen.w /= k; sen.h /= k; sen.fps = 12;
+    for sh in sen.sahneler.iter_mut() { sh.harf /= k as f32; }
+    let f = font();
+    let hz = senaryo::hazirla(&f, &sen);
+    let n = (senaryo::toplam_sn(&sen) * sen.fps as f32) as u32;
+    let gecici = std::env::temp_dir().join(format!("led-klip-{}-{}.mp4", std::process::id(), std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0)));
+    let yol = crate::ffmpeg::bul().ok_or_else(|| crate::ffmpeg::YOK_MESAJI.to_string())?;
+    let mut c = std::process::Command::new(yol);
+    c.args(["-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", &format!("{}x{}", sen.w, sen.h), "-r", &sen.fps.to_string(), "-i", "-", "-c:v", "libx264", "-preset", "ultrafast", "-crf", "24", "-pix_fmt", "yuv420p", "-movflags", "+faststart"]);
+    c.arg(&gecici).stdin(std::process::Stdio::piped()).stdout(std::process::Stdio::null()).stderr(std::process::Stdio::null());
+    #[cfg(windows)]
+    { use std::os::windows::process::CommandExt; c.creation_flags(0x0800_0000); }
+    let mut kod = c.spawn().map_err(|e| format!("ffmpeg başlatılamadı: {e}"))?;
+    let mut girdi = kod.stdin.take().ok_or("ffmpeg girişi açılamadı")?;
+    for i in 0..n {
+        if iptal.load(Ordering::Relaxed) { drop(girdi); let _ = kod.kill(); let _ = kod.wait(); let _ = std::fs::remove_file(&gecici); return Err("iptal".into()); }
+        let kare = senaryo::kare_uret(&sen, &hz, i as f32 / sen.fps as f32, i);
+        let kare = senaryo::dikey_kucult(&kare, sen.w, sen.sanal_h(), sen.h);
+        if girdi.write_all(&kare).is_err() { let _ = kod.wait(); let _ = std::fs::remove_file(&gecici); return Err("ffmpeg kapandı".into()); }
+    }
+    drop(girdi);
+    let d = kod.wait().map_err(|e| e.to_string())?;
+    let b = std::fs::read(&gecici).map_err(|e| e.to_string());
+    let _ = std::fs::remove_file(&gecici);
+    if d.success() { b } else { Err("ffmpeg hata verdi".into()) }
+}
+
+/// Denetim ve öneri listesi.
+pub fn analiz(metin: &str) -> Result<Vec<(&'static str, String)>, String> {
+    let sen = senaryo_oku(metin)?;
+    let f = font();
+    let hz = senaryo::hazirla(&f, &sen);
+    Ok(crate::oto::denetle(&sen, &hz))
+}

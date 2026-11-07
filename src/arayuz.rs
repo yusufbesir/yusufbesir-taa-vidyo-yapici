@@ -33,6 +33,7 @@ struct Ortak {
     durum: Mutex<Durum>,
     iptal: AtomicBool,
     onizleme: Mutex<()>,
+    klip: Mutex<()>,
     son_nabiz: Mutex<Instant>,
     port: u16,
 }
@@ -144,7 +145,11 @@ fn isle(mut s: TcpStream, o: Arc<Ortak>) {
             let liste = |l: Vec<(String, String, bool)>| l.iter().map(|(a, b, o)| format!("{{\"ad\":\"{}\",\"acik\":\"{}\",\"ozel\":{o}}}", json_kacis(a), json_kacis(b))).collect::<Vec<_>>().join(",");
             let efekt: Vec<String> = crate::senaryo::efekt_listesi().iter().map(|(a, b)| format!("{{\"ad\":\"{a}\",\"acik\":\"{b}\",\"ozel\":false}}")).collect();
             let kl: Vec<String> = crate::animasyon::klasorler().iter().map(|k| format!("\"{}\"", json_kacis(&k.display().to_string()))).collect();
-            let j = format!("{{\"surum\":\"{SURUM}\",\"ffmpeg\":\"{}\",\"klasor\":\"{}\",\"ornekler\":[{}],\"girisler\":[{}],\"cikislar\":[{}],\"efektler\":[{}],\"animasyon_klasorleri\":[{}]}}", json_kacis(&ff), json_kacis(&cikti_klasoru().display().to_string()), adlar.join(","), liste(crate::senaryo::giris_listesi()), liste(crate::senaryo::cikis_listesi()), efekt.join(","), kl.join(","));
+            let paletler: Vec<String> = crate::stil::PALETLER.iter().map(|p| { let q = crate::stil::paletli(p.0).unwrap(); format!("{{\"ad\":\"{}\",\"acik\":\"{}\",\"yuz\":[{},{},{}],\"zemin\":[{},{},{}],\"vurgu\":[{},{},{}]}}", p.0, json_kacis(p.1), q.yuz.0, q.yuz.1, q.yuz.2, q.zemin.0, q.zemin.1, q.zemin.2, q.vurgu.0, q.vurgu.1, q.vurgu.2) }).collect();
+            let fontlar: Vec<String> = crate::stil::FONTLAR.iter().map(|f| format!("{{\"ad\":\"{}\",\"acik\":\"{}\"}}", f.0, json_kacis(f.1))).collect();
+            let gecisler: Vec<String> = crate::senaryo::GECISLER.iter().map(|g| format!("{{\"ad\":\"{}\",\"acik\":\"{}\"}}", g.0, json_kacis(g.1))).collect();
+            let stiller: Vec<String> = crate::oto::STILLER.iter().map(|g| format!("{{\"ad\":\"{}\",\"acik\":\"{}\"}}", g.0, json_kacis(g.1))).collect();
+            let j = format!("{{\"paletler\":[{}],\"fontlar\":[{}],\"gecisler\":[{}],\"stiller\":[{}],\"surum\":\"{SURUM}\",\"ffmpeg\":\"{}\",\"klasor\":\"{}\",\"ornekler\":[{}],\"girisler\":[{}],\"cikislar\":[{}],\"efektler\":[{}],\"animasyon_klasorleri\":[{}]}}", paletler.join(","), fontlar.join(","), gecisler.join(","), stiller.join(","), json_kacis(&ff), json_kacis(&cikti_klasoru().display().to_string()), adlar.join(","), liste(crate::senaryo::giris_listesi()), liste(crate::senaryo::cikis_listesi()), efekt.join(","), kl.join(","));
             yanit(&mut s, 200, "application/json; charset=utf-8", j.as_bytes())
         }
         ("GET", y) if y.starts_with("/ornek/") => match ORNEKLER.iter().find(|(a, _)| *a == &y[7..]) {
@@ -194,6 +199,27 @@ fn isle(mut s: TcpStream, o: Arc<Ortak>) {
             });
             yanit(&mut s, 200, metin, "basladi".as_bytes())
         }
+        ("POST", "/oto") => {
+            let stil = sorgu(&yol, "stil").unwrap_or_else(|| "yumusak".into());
+            let tohum: u32 = sorgu(&yol, "tohum").and_then(|v| v.parse().ok()).unwrap_or(1);
+            let (w, h) = (sorgu(&yol, "w").and_then(|v| v.parse().ok()).unwrap_or(950u32), sorgu(&yol, "h").and_then(|v| v.parse().ok()).unwrap_or(1800u32));
+            let fiz = if sorgu(&yol, "fiziksel").as_deref() == Some("0") { None } else { Some((8.0, 25.0)) };
+            let m = crate::oto::uret(&yazi, &stil, tohum, (w, h), fiz);
+            crate::animasyon::yukle();
+            yanit(&mut s, 200, metin, m.as_bytes())
+        }
+        ("POST", "/denetle") => match std::panic::catch_unwind(|| uret::analiz(&yazi)).unwrap_or_else(|_| Err("denetlenemedi".into())) {
+            Ok(v) => { let j = v.iter().map(|(a, b)| format!("{{\"seviye\":\"{a}\",\"mesaj\":\"{}\"}}", json_kacis(b))).collect::<Vec<_>>().join(","); yanit(&mut s, 200, "application/json; charset=utf-8", format!("[{j}]").as_bytes()) }
+            Err(e) => yanit(&mut s, 400, metin, e.as_bytes()),
+        },
+        ("POST", "/klip") => {
+            let _k = o.klip.lock().unwrap();
+            let iptal = AtomicBool::new(false);
+            match std::panic::catch_unwind(|| uret::klip(&yazi, &iptal)).unwrap_or_else(|_| Err("klip üretilemedi".into())) {
+                Ok(b) => yanit(&mut s, 200, "video/mp4", &b),
+                Err(e) => yanit(&mut s, 400, metin, e.as_bytes()),
+            }
+        }
         ("POST", "/iptal") => { o.iptal.store(true, Ordering::Relaxed); yanit(&mut s, 200, metin, b"ok") }
         ("POST", "/klasor") => { klasor_ac(&cikti_klasoru()); yanit(&mut s, 200, metin, b"ok") }
         ("POST", "/kapat") => { yanit(&mut s, 200, metin, b"ok"); std::process::exit(0) }
@@ -207,7 +233,7 @@ pub fn calistir(tarayici_ac: bool, port: u16) -> ! {
     let port = dinle.local_addr().unwrap().port();
     let adres = format!("http://127.0.0.1:{port}/");
     println!("LED Ekran Video arayüzü: {adres}");
-    let o = Arc::new(Ortak { durum: Mutex::new(Durum::default()), iptal: AtomicBool::new(false), onizleme: Mutex::new(()), son_nabiz: Mutex::new(Instant::now()), port });
+    let o = Arc::new(Ortak { durum: Mutex::new(Durum::default()), iptal: AtomicBool::new(false), onizleme: Mutex::new(()), klip: Mutex::new(()), son_nabiz: Mutex::new(Instant::now()), port });
     if tarayici_ac {
         #[cfg(windows)]
         { use std::os::windows::process::CommandExt; let _ = std::process::Command::new("cmd").args(["/c", "start", "", &adres]).creation_flags(0x0800_0000).spawn(); }

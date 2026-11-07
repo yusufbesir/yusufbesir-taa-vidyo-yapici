@@ -32,6 +32,16 @@ sahne "PEŞİN|FİYATINA|*3|TAKSİT" renk=altin giris=toplan cikis=dagil sure=8 
 - Hata olursa satır numarasıyla Türkçe mesaj verir.
 - `--genislik/--yukseklik/--fps` senaryodaki değeri geçersiz kılar (genişlik çift sayı olmalı), `--duz` fiziksel düzeltmeyi kapatır, `--kodek hap` HAP üretir.
 
+## Otomatik mod ve yeni arayüz (0.5.0)
+Arayüz tek ekran: solda yazı kutusu, tarz kartları (Yumuşak, Enerjik, Minimal, Gösterişli, Şenlik), "Şaşırt beni", renk paletleri, yazı stilleri, animasyon galerisi ve öneriler; sağda büyük canlı önizleme. Önizleme iki görünüm içerir: tasarım ve "ekranda nasıl görünür" (8x25 m LED, nokta ve çıta benzetimi, 3 m / 15 m). Her değişiklikte alttaki klip yenilenir ve döngüde oynar; tam ekran düğmesi vardır.
+- **Yalnız yazıyı yazın:** boş satır yeni mesajdır; yalnız rakam satırı büyük rakam olur; uzun satırlar 10 harfe bölünür. Düzen, font, palet, açılış, animasyonlar, geçişler, dekor ve kapanış otomatik kurulur (kural tabanlı; en çok 2 hareket ailesi, çıkış girişin tersi, açılış ve kapanış güçlü).
+- **Sahne anahtarları:** `font=`, `palet=` (`renk=` da çalışır), `derinlik=0..3`.
+- **Fontlar (10):** inter, anton, archivo, poppins, barlow, slab, russo, fjalla, bangers, bebas (hepsi SIL OFL). **Paletler (12):** altin-gece, sicak-beyaz, buz-cyan, cyan-vurgu, magenta-gece, pembe-parilti, gok-mavisi, altin-cyan, pembe-altin, mor-altin, tek-altin, sari-lacivert.
+- **Açılış/kapanış:** tv, perde, kapi, iris, slayt, fade, neon, yok.
+- **Dekor efektleri (`efekt=`):** cicek-yagmuru, papatya, yaprak, kelebek, ugur-bocegi, ari, ates-bocegi, kalp, yildiz-yagmuru, konfeti, balon, havai-fisek, pirilti-bulutu (mevcut parlama, pirilti, kar, kivilcim vb. ile birlikte).
+- **Okunurluk denetimi:** en küçük harf ekran yüksekliğinin en az %5'i (~90 px), ana satırlar %7-9, satır başına en çok 10 harf, sahne en az 5 sn, kontrast 7:1; uygunsuzsa arayüzde uyarı çıkar (sade metin). Sert hareketler (yildirim, hizli-*, titre) için LED uyarısı verir.
+- Giriş animasyonu sayısı 130'un üzerinde (25 yerleşik + dosyalardan: yön, dönüş, satır satır, vurgu); `animasyonlar/*.txt` ile eklenir.
+
 ## Animasyon kütüphanesi (çok sayıda, eklenebilir)
 Her animasyon hem **giriş** hem **çıkış** olarak kullanılır (çıkışta ters oynar): `giris=spiral cikis=spiral`. Arayüzde açılır listeler kütüphaneden dolar; "Seçili giriş ve çıkışı oynat" düğmesi hemen önizletir.
 - **Yerleşik (kodla):** dusus, sagdan, soldan, merdiven, cevir, salincak, buyu, patla, sarsil, dalga, yay-sag, yay-sol, ucarak, spiral, derinles, uzaktan, sinema, capraz, asilma, nabiz, neon, yavas-belir, yuksel, donerek-buyu, yildiz; ayrıca eski donerek, zipla, yandan, zoom, alttan, ustten, belir, elastik, daktilo, sil, toplan (parçacık) ve çıkışlar yukari, asagi, sondur, kucul, dagil.
