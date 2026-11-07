@@ -1,4 +1,4 @@
-//! LED Ekran Video kurulum ve kaldırma programı (tek exe; adı "kaldir" ile başlıyorsa kaldırır).
+//! TAA Vidyo Yapıcı kurulum ve kaldırma programı (tek exe; adı "kaldir" ile başlıyorsa kaldırır).
 //! Yalnız kendi dosyalarını yazar ve siler; kullanıcının videolarına ve senaryolarına dokunmaz.
 use std::fs;
 use std::io::{self, Write};
@@ -7,10 +7,10 @@ use std::process::Command;
 
 include!(concat!(env!("OUT_DIR"), "/dosyalar.rs"));
 
-const AD: &str = "LED Ekran Video";
-const KLASOR_AD: &str = "LED-Ekran-Video";
+const AD: &str = "TAA Vidyo Yapıcı";
+const KLASOR_AD: &str = "TAA Vidyo Yapıcı";
 #[cfg(windows)]
-const KAYIT: &str = r"HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\LED-Ekran-Video";
+const KAYIT: &str = r"HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\TAA-Vidyo-Yapici";
 const MANIFEST: &str = "kurulum.txt";
 
 #[cfg(windows)]
@@ -60,7 +60,7 @@ fn reg(args: &[&str]) -> bool {
 /// Masaüstü ve Başlat menüsü kısayolları; oluşturulanların yolunu döndürür.
 #[cfg(windows)]
 fn kisayol_olustur(hedef: &Path) -> Vec<String> {
-    let exe = hedef.join("led-ekran-video.exe");
+    let exe = hedef.join("taa-vidyo-yapici.exe");
     let ico = hedef.join("simge.ico");
     let mut yollar = vec![];
     for (klasor, ad) in [("Desktop", format!("{AD}.lnk")), ("Programs", format!("{AD}.lnk"))] {
@@ -137,9 +137,9 @@ fn kur(a: &[String]) -> i32 {
     if !ffmpeg_var_mi(&hedef) {
         println!("\nUYARI: ffmpeg bulunamadı. Video üretmek için ffmpeg.exe gerekir.\n  ffmpeg.exe dosyasını {} klasörüne koyun\n  veya D:\\Programlar\\Araçlar Ve İndirilenler altına kurun.", hedef.display());
     }
-    println!("Videolar varsayılan olarak Videolar\\LED-Ekran-Video klasörüne yazılır.");
+    println!("Videolar varsayılan olarak Videolar\\TAA Vidyo Yapıcı klasörüne yazılır.");
     if cfg!(windows) && !sessiz && sor("Şimdi başlatılsın mı?", false) {
-        let _ = Command::new(hedef.join("led-ekran-video.exe")).arg("--arayuz").spawn();
+        let _ = Command::new(hedef.join("taa-vidyo-yapici.exe")).arg("--arayuz").spawn();
     }
     0
 }

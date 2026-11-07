@@ -47,9 +47,9 @@ fn json_kacis(s: &str) -> String {
 /// Videoların yazılacağı klasör (LED_CIKTI ile değiştirilebilir).
 pub fn cikti_klasoru() -> PathBuf {
     let k = if let Ok(p) = std::env::var("LED_CIKTI") { PathBuf::from(p) }
-        else if let Ok(p) = std::env::var("USERPROFILE") { PathBuf::from(p).join("Videos").join("LED-Ekran-Video") }
-        else if let Ok(p) = std::env::var("HOME") { PathBuf::from(p).join("led-ekran-video-videolar") }
-        else { PathBuf::from("led-ekran-video-videolar") };
+        else if let Ok(p) = std::env::var("USERPROFILE") { PathBuf::from(p).join("Videos").join("TAA Vidyo Yapıcı") }
+        else if let Ok(p) = std::env::var("HOME") { PathBuf::from(p).join("taa-vidyo-yapici-videolar") }
+        else { PathBuf::from("taa-vidyo-yapici-videolar") };
     let _ = std::fs::create_dir_all(&k);
     k
 }
@@ -232,7 +232,7 @@ pub fn calistir(tarayici_ac: bool, port: u16) -> ! {
     let dinle = match TcpListener::bind(("127.0.0.1", port)) { Ok(d) => d, Err(e) => { eprintln!("HATA: arayüz portu açılamadı: {e}"); std::process::exit(1) } };
     let port = dinle.local_addr().unwrap().port();
     let adres = format!("http://127.0.0.1:{port}/");
-    println!("LED Ekran Video arayüzü: {adres}");
+    println!("TAA Vidyo Yapıcı arayüzü: {adres}");
     let o = Arc::new(Ortak { durum: Mutex::new(Durum::default()), iptal: AtomicBool::new(false), onizleme: Mutex::new(()), klip: Mutex::new(()), son_nabiz: Mutex::new(Instant::now()), port });
     if tarayici_ac {
         #[cfg(windows)]

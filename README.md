@@ -1,18 +1,18 @@
-# LED Ekran Video (TAA Paket programı, tek bilgisayarda kullanılır)
+# TAA Vidyo Yapıcı (TAA Paket programı, tek bilgisayarda kullanılır)
 
 Bina dışı dikey LED ekranlar (Yusuf’un ekranı 950x1800, 9:16) için 3B yazı, parçacık ve geçişli, karanlıkta okunur MP4/HAP video üretir. Videolar bir **senaryo dosyası** ile tanımlanır.
 
 ## Kurulum (Windows)
-`LED-Ekran-Video-Kurulum.exe` çalıştırılır: `D:\Programlar\LED-Ekran-Video\` klasörüne kurar (D: yoksa `%LOCALAPPDATA%\Programs`), masaüstü ve Başlat menüsü kısayolu ile Uygulamalar listesine kayıt ekler, `kaldir.exe` yazar. `--sessiz` sorusuz kurar, `--hedef KLASÖR` klasörü değiştirir, `--kisayolsuz` kısayol ve kayıt yazmaz.
+`TAA-Vidyo-Yapici-Kurulum.exe` çalıştırılır: `D:\Programlar\TAA Vidyo Yapıcı\` klasörüne kurar (D: yoksa `%LOCALAPPDATA%\Programs`), masaüstü ve Başlat menüsü kısayolu ile Uygulamalar listesine kayıt ekler, `kaldir.exe` yazar. `--sessiz` sorusuz kurar, `--hedef KLASÖR` klasörü değiştirir, `--kisayolsuz` kısayol ve kayıt yazmaz.
 Kaldırmak için Ayarlar > Uygulamalar'dan veya `kaldir.exe` ile; yalnız kendi dosyaları silinir, videolara ve kullanıcının eklediği senaryolara dokunulmaz.
 **ffmpeg** programla gelmez; `ffmpeg.exe` programın klasörüne (veya altındaki `ffmpeg\bin`), `D:\Programlar\Araçlar Ve İndirilenler` altına konur ya da `LED_FFMPEG` ortam değişkeniyle yolu verilir; yoksa PATH aranır.
 
 ## Arayüz
-`led-ekran-video.exe` argümansız çalışınca (veya kısayolla) yerel arayüz tarayıcıda açılır; yalnız bu bilgisayardan erişilir (127.0.0.1). Senaryo yazılır, örnekler yüklenir, "Sahne ekle" formu satır yazar, ekran oranında önizleme ve zaman çubuğu vardır; video `Videolar\LED-Ekran-Video` klasörüne MP4 veya HAP olarak üretilir (`LED_CIKTI` klasörü değiştirir). Sekme kapanınca program kendiliğinden kapanır; ayrıca "Kapat" düğmesi vardır. HAP için ekran ölçüsü 4'e bölünmelidir (950x1800 uygun değildir, MP4 kullanın).
+`taa-vidyo-yapici.exe` argümansız çalışınca (veya kısayolla) yerel arayüz tarayıcıda açılır; yalnız bu bilgisayardan erişilir (127.0.0.1). Senaryo yazılır, örnekler yüklenir, "Sahne ekle" formu satır yazar, ekran oranında önizleme ve zaman çubuğu vardır; video `Videolar\TAA Vidyo Yapıcı` klasörüne MP4 veya HAP olarak üretilir (`LED_CIKTI` klasörü değiştirir). Sekme kapanınca program kendiliğinden kapanır; ayrıca "Kapat" düğmesi vardır. HAP için ekran ölçüsü 4'e bölünmelidir (950x1800 uygun değildir, MP4 kullanın).
 
 ## Senaryo ile video
 ```
-led-ekran-video --senaryo senaryolar/tv-afis.txt --cikis kampanya.mp4
+taa-vidyo-yapici --senaryo senaryolar/tv-afis.txt --cikis kampanya.mp4
 ```
 Senaryo dosyası (`#` yorum satırı):
 ```
@@ -46,7 +46,7 @@ Arayüz tek ekran: solda yazı kutusu, tarz kartları (Yumuşak, Enerjik, Minima
 Her animasyon hem **giriş** hem **çıkış** olarak kullanılır (çıkışta ters oynar): `giris=spiral cikis=spiral`. Arayüzde açılır listeler kütüphaneden dolar; "Seçili giriş ve çıkışı oynat" düğmesi hemen önizletir.
 - **Yerleşik (kodla):** dusus, sagdan, soldan, merdiven, cevir, salincak, buyu, patla, sarsil, dalga, yay-sag, yay-sol, ucarak, spiral, derinles, uzaktan, sinema, capraz, asilma, nabiz, neon, yavas-belir, yuksel, donerek-buyu, yildiz; ayrıca eski donerek, zipla, yandan, zoom, alttan, ustten, belir, elastik, daktilo, sil, toplan (parçacık) ve çıkışlar yukari, asagi, sondur, kucul, dagil.
 - **Özel (metin dosyası):** `animasyonlar/temel.txt` ve `vurucu.txt` gömülüdür (mercek, gelgit, kapi, firlat, yaprak, sicra, yildirim, agirlik, firtina, mekik, uzay, ...).
-- **Kendi animasyonunu ekle:** programı değiştirmeden `.txt` dosyası yaz ve şu klasörlerden birine koy: programın yanındaki `animasyonlar`, `Videolar\LED-Ekran-Video\animasyonlar` veya `LED_ANIMASYON` ortam değişkeniyle verilen klasör. Aynı ada sahip dosya yerleşik özelin yerine geçer. Biçim:
+- **Kendi animasyonunu ekle:** programı değiştirmeden `.txt` dosyası yaz ve şu klasörlerden birine koy: programın yanındaki `animasyonlar`, `Videolar\TAA Vidyo Yapıcı\animasyonlar` veya `LED_ANIMASYON` ortam değişkeniyle verilen klasör. Aynı ada sahip dosya yerleşik özelin yerine geçer. Biçim:
 ```
 animasyon uzaydan-gel          # tek kelime ad
 aciklama Uzaktan küçük gelir   # arayüzde görünür
@@ -74,7 +74,7 @@ Alanlar: `dx`, `dy` (ekran oranı; dx=-1 bir ekran genişliği sola), `olcek`, `
 ARASTIRMA-DIS-LED-EKRAN.md: beyaz kısık, flaş yok, tarama çizgisi yok, kalın font, 10-15 sn döngü.
 
 ## Derleme (Linux'tan Windows exe)
-`./derle-windows.sh` (gerekenler: `rustup target add x86_64-pc-windows-gnu`, `pip install ziglang`, `cargo install cargo-zigbuild`) `dist/` altına `led-ekran-video.exe` ve `LED-Ekran-Video-Kurulum.exe` üretir. Simge `logo/simge.ico` (kısayollarda kullanılır; exe dosyasına gömülü değildir).
+`./derle-windows.sh` (gerekenler: `rustup target add x86_64-pc-windows-gnu`, `pip install ziglang`, `cargo install cargo-zigbuild`) `dist/` altına `taa-vidyo-yapici.exe` ve `TAA-Vidyo-Yapici-Kurulum.exe` üretir. Simge `logo/simge.ico` (kısayollarda kullanılır; exe dosyasına gömülü değildir).
 
 ## Durum
 Çekirdek, senaryo motoru, arayüz, kurulum ve kaldırma hazır (29 test; Linux'ta arayüz ve kurulum mantığı denendi). Render CPU'da çalışır (10 sn video yaklaşık 2,5-3 dk). Windows exe'nin kendisi bir Windows bilgisayarda henüz denenmedi.

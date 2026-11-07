@@ -1,5 +1,5 @@
 # Animasyon galerisi: her sahnede yazı, adı yazan animasyonla girer ve aynı animasyonun tersiyle çıkar.
-# Hepsini görmek için: led-ekran-video --senaryo senaryolar/animasyon-galerisi.txt --cikis galeri.mp4
+# Hepsini görmek için: taa-vidyocu --senaryo senaryolar/animasyon-galerisi.txt --cikis galeri.mp4
 ekran 950x1800
 fiziksel 8x25
 fps 25
