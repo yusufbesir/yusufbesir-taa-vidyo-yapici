@@ -4,4 +4,4 @@ fiziksel 8x25      # gerçek ekran ölçüsü (metre); piksel kare değilse yaz�
 fps 25
 acilis yok
 kapanis yok
-sahne "PEŞİN FİYATINA|*3|TAKSİT" renk=altin giris=belir cikis=sondur sure=7 efekt=parlama,cift-cerceve
+sahne "PEŞİN FİYATINA|*3|TAKSİT" renk=altin giris=belir cikis=sondur sure=7 efekt=parlama

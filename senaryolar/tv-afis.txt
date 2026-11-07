@@ -4,4 +4,4 @@ fiziksel 8x25      # gerçek ekran ölçüsü (metre); piksel kare değilse yaz�
 fps 25
 acilis tv
 kapanis tv
-sahne "PEŞİN FİYATINA|*3|TAKSİT" renk=altin giris=yok sure=7 efekt=parlama,cift-cerceve
+sahne "PEŞİN FİYATINA|*3|TAKSİT" renk=altin giris=yok sure=7 efekt=parlama
