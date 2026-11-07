@@ -36,7 +36,7 @@ sahne "PEŞİN|FİYATINA|*3|TAKSİT" renk=altin giris=toplan cikis=dagil sure=8 
 `fiziksel 8x25` (metre, genişlik x yükseklik) verilirse program gerçek ekran oranında (kare piksel) çizer ve çıkışta dikeyde piksel yüksekliğine indirir. Örnek: 8 m / 980 px = 8,2 mm, 25 m / 1800 px = 13,9 mm; piksel oranı 1,7. Düzeltme olmazsa yazı ve çizimler ekranda 1,7 kat gerilir. Resolume'da kompozisyon 980x1800 olmalı ve video ölçeksiz oynatılmalı; 1080x1920 video sığdırılırsa kenarlarda ~29 px boşluk kalır.
 
 ## Örnek senaryolar
-`senaryolar/`: tv-afis, ornek-gibi, toplan-dagil, daktilo-kivilcim, elastik-parcacik, tv-klasik, tv-iki-mesaj, perde-hizli, ornek-cicekli.
+`senaryolar/`: tv-referans, tv-afis, ornek-gibi, toplan-dagil, daktilo-kivilcim, elastik-parcacik, tv-klasik, tv-iki-mesaj, perde-hizli, ornek-cicekli.
 
 ## Eski hızlı modlar
 `--mod sabit|kayan|3d|tv` ile tek komutta video (bkz. `--yardim`).

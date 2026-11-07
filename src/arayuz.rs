@@ -12,7 +12,8 @@ const SAYFA: &str = include_str!("../web/index.html");
 const LOGO: &str = include_str!("../logo/logo.svg");
 pub const SURUM: &str = env!("CARGO_PKG_VERSION");
 
-pub const ORNEKLER: [(&str, &str); 9] = [
+pub const ORNEKLER: [(&str, &str); 10] = [
+    ("tv-referans", include_str!("../senaryolar/tv-referans.txt")),
     ("tv-afis", include_str!("../senaryolar/tv-afis.txt")),
     ("ornek-gibi", include_str!("../senaryolar/ornek-gibi.txt")),
     ("toplan-dagil", include_str!("../senaryolar/toplan-dagil.txt")),

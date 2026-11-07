@@ -204,36 +204,51 @@ fn yerlesim(font: &FontRef, w: u32, h: u32, s: &Sahne) -> (Vec<Maske>, f32) {
 
 /// Açık satırlı düzen: "PEŞİN|FİYATINA|*3|TAKSİT". `*` ile başlayan satır büyük rakamdır ve iki yanına çift çizgi gelir.
 fn afis_yerlesim(font: &FontRef, w: u32, h: u32, s: &Sahne) -> (Vec<Maske>, f32) {
-    let satirlar: Vec<(String, bool)> = s.metin.split('|').map(|x| { let x = x.trim(); match x.strip_prefix('*') { Some(r) => (r.trim().to_string(), true), None => (x.to_string(), false) } }).collect();
+    // satır türleri: 0 düz, 1 büyük rakam + çift çizgi (*), 2 büyük rakam + tek çizgi (+), 3 ince yatay çizgi (~)
+    let satirlar: Vec<(String, u8)> = s.metin.split('|').map(|x| { let x = x.trim(); match x.chars().next() {
+        Some('*') => (x[1..].trim().to_string(), 1), Some('+') => (x[1..].trim().to_string(), 2), Some('~') => (String::new(), 3), _ => (x.to_string(), 0) } }).collect();
+    let yazili = |k: u8| k == 0;
+    let buyuk = |k: u8| k == 1 || k == 2;
     let fit = |t: &str| (w as f32 * 0.80 / genislik(font, t, 100.0).max(1.0) * 100.0).min(s.harf);
-    let ref_boy = satirlar.iter().filter(|x| !x.1).map(|x| fit(&x.0)).fold(f32::MAX, f32::min).min(s.harf);
-    let mut boylar: Vec<f32> = satirlar.iter().map(|(t, buyuk)| if *buyuk { (ref_boy * 3.6).min(s.harf * 1.8).min(h as f32 * 0.34) } else { fit(t) }).collect();
+    let ref_boy = satirlar.iter().filter(|x| yazili(x.1)).map(|x| fit(&x.0)).fold(f32::MAX, f32::min).min(s.harf);
+    let mut boylar: Vec<f32> = satirlar.iter().map(|(t, k)| if buyuk(*k) { (ref_boy * 3.6).min(s.harf * 1.8).min(h as f32 * 0.34) } else if *k == 3 { 0.0 } else { fit(t) }).collect();
     // art arda gelen düz satırlar aynı boyda olsun (en küçüğüne eşitlenir): PEŞİN / FİYATINA gibi
     let mut i = 0;
     while i < satirlar.len() {
-        if satirlar[i].1 { i += 1; continue; }
+        if !yazili(satirlar[i].1) { i += 1; continue; }
         let mut j = i;
-        while j < satirlar.len() && !satirlar[j].1 { j += 1; }
+        while j < satirlar.len() && yazili(satirlar[j].1) { j += 1; }
         let en_kucuk = boylar[i..j].iter().cloned().fold(f32::MAX, f32::min);
         for b in &mut boylar[i..j] { *b = en_kucuk; }
         i = j;
     }
-    let toplam: f32 = boylar.iter().map(|b| satir_yuksekligi(font, *b)).sum();
+    let cizgi_h = (w as f32 * 0.008).max(6.0);
+    let yuk = |b: &[f32]| -> Vec<f32> { (0..b.len()).map(|k| if satirlar[k].1 == 3 { cizgi_h } else { satir_yuksekligi(font, b[k]) }).collect() };
+    let toplam: f32 = yuk(&boylar).iter().sum();
     if toplam > h as f32 * 0.8 { let k = h as f32 * 0.8 / toplam; for b in boylar.iter_mut() { *b *= k; } }
-    let sh: Vec<f32> = boylar.iter().map(|b| satir_yuksekligi(font, *b)).collect();
+    let sh: Vec<f32> = yuk(&boylar);
     let bosluk = h as f32 * 0.05; // uzun dikey ekranda satırlar nefes alsın
     let mut y = (h as f32 - sh.iter().sum::<f32>() - bosluk * (satirlar.len() - 1) as f32) / 2.0;
     let mut v = vec![];
-    for (k, (t, buyuk)) in satirlar.iter().enumerate() {
+    for (k, (t, tur)) in satirlar.iter().enumerate() {
         let orta = y + sh[k] / 2.0;
+        if *tur == 3 {
+            let mut m = anim::kaydir(&anim::maske(font, w, h, &[" ".to_string()], 20.0), 0);
+            let (x0, x1) = ((w as f32 * 0.25) as u32, (w as f32 * 0.75) as u32);
+            anim::dikdortgen(&mut m, x0, y as u32, x1, (y + cizgi_h) as u32);
+            v.push(m);
+            y += sh[k] + bosluk;
+            continue;
+        }
         let mut m = anim::kaydir(&anim::maske(font, w, h, &[t.clone()], boylar[k]), (orta - h as f32 / 2.0) as i32);
-        if *buyuk {
+        if buyuk(*tur) {
             let gen = genislik(font, t, boylar[k]);
             let (kal, ara) = ((boylar[k] * 0.035).max(6.0) as u32, (boylar[k] * 0.06).max(10.0) as u32);
             let (sol_bit, sag_bas) = ((w as f32 / 2.0 - gen / 2.0 - boylar[k] * 0.18) as u32, (w as f32 / 2.0 + gen / 2.0 + boylar[k] * 0.18) as u32);
             let (bas, son) = ((w as f32 * 0.10) as u32, (w as f32 * 0.90) as u32);
             let cy = orta as u32;
-            for off in [cy - (ara + kal) / 2 - kal / 2, cy + (ara + kal) / 2 - kal / 2] {
+            let ofsetler: Vec<u32> = if *tur == 1 { vec![cy - (ara + kal) / 2 - kal / 2, cy + (ara + kal) / 2 - kal / 2] } else { vec![cy - kal / 2] };
+            for off in ofsetler {
                 if sol_bit > bas { anim::dikdortgen(&mut m, bas, off, sol_bit, off + kal); }
                 if son > sag_bas { anim::dikdortgen(&mut m, sag_bas, off, son, off + kal); }
             }

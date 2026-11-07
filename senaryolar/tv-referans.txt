@@ -1,0 +1,8 @@
+# Yusuf'un gönderdiği videodaki düzen: üst çizgi, PEŞİN FİYATINA, büyük 3 (tek çizgi), TAKSİT, alt çizgi. Altın yazı.
+# ~ ince yatay çizgi, + büyük rakam ve yanlarında tek çizgi (* çift çizgi)
+ekran 980x1800
+fiziksel 8x25
+fps 25
+acilis yok
+kapanis yok
+sahne "~|PEŞİN FİYATINA|+3|TAKSİT|~" renk=altin giris=belir cikis=yok sure=8 efekt=parlama
