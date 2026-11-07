@@ -1,6 +1,6 @@
 # LED Ekran Video (TAA Paket programı, tek bilgisayarda kullanılır)
 
-Bina dışı dikey LED ekranlar (varsayılan 980x1800, 9:16) için 3B yazı, parçacık ve geçişli, karanlıkta okunur MP4/HAP video üretir. Videolar bir **senaryo dosyası** ile tanımlanır.
+Bina dışı dikey LED ekranlar (Yusuf’un ekranı 950x1800, 9:16) için 3B yazı, parçacık ve geçişli, karanlıkta okunur MP4/HAP video üretir. Videolar bir **senaryo dosyası** ile tanımlanır.
 
 ## Kurulum (Windows)
 `LED-Ekran-Video-Kurulum.exe` çalıştırılır: `D:\Programlar\LED-Ekran-Video\` klasörüne kurar (D: yoksa `%LOCALAPPDATA%\Programs`), masaüstü ve Başlat menüsü kısayolu ile Uygulamalar listesine kayıt ekler, `kaldir.exe` yazar. `--sessiz` sorusuz kurar, `--hedef KLASÖR` klasörü değiştirir, `--kisayolsuz` kısayol ve kayıt yazmaz.
@@ -8,7 +8,7 @@ Kaldırmak için Ayarlar > Uygulamalar'dan veya `kaldir.exe` ile; yalnız kendi 
 **ffmpeg** programla gelmez; `ffmpeg.exe` programın klasörüne (veya altındaki `ffmpeg\bin`), `D:\Programlar\Araçlar Ve İndirilenler` altına konur ya da `LED_FFMPEG` ortam değişkeniyle yolu verilir; yoksa PATH aranır.
 
 ## Arayüz
-`led-ekran-video.exe` argümansız çalışınca (veya kısayolla) yerel arayüz tarayıcıda açılır; yalnız bu bilgisayardan erişilir (127.0.0.1). Senaryo yazılır, örnekler yüklenir, "Sahne ekle" formu satır yazar, ekran oranında önizleme ve zaman çubuğu vardır; video `Videolar\LED-Ekran-Video` klasörüne MP4 veya HAP olarak üretilir (`LED_CIKTI` klasörü değiştirir). Sekme kapanınca program kendiliğinden kapanır; ayrıca "Kapat" düğmesi vardır. HAP için ekran ölçüsü 4'e bölünmelidir (980x1800 uygundur).
+`led-ekran-video.exe` argümansız çalışınca (veya kısayolla) yerel arayüz tarayıcıda açılır; yalnız bu bilgisayardan erişilir (127.0.0.1). Senaryo yazılır, örnekler yüklenir, "Sahne ekle" formu satır yazar, ekran oranında önizleme ve zaman çubuğu vardır; video `Videolar\LED-Ekran-Video` klasörüne MP4 veya HAP olarak üretilir (`LED_CIKTI` klasörü değiştirir). Sekme kapanınca program kendiliğinden kapanır; ayrıca "Kapat" düğmesi vardır. HAP için ekran ölçüsü 4'e bölünmelidir (950x1800 uygun değildir, MP4 kullanın).
 
 ## Senaryo ile video
 ```
@@ -16,7 +16,7 @@ led-ekran-video --senaryo senaryolar/tv-afis.txt --cikis kampanya.mp4
 ```
 Senaryo dosyası (`#` yorum satırı):
 ```
-ekran 980x1800
+ekran 950x1800
 fiziksel 8x25        # gerçek ekran ölçüsü (metre); piksel kare değilse yazı gerilmez
 fps 25
 acilis tv            # tv | perde | yok
@@ -33,7 +33,7 @@ sahne "PEŞİN|FİYATINA|*3|TAKSİT" renk=altin giris=toplan cikis=dagil sure=8 
 - `--genislik/--yukseklik/--fps` senaryodaki değeri geçersiz kılar (genişlik çift sayı olmalı), `--duz` fiziksel düzeltmeyi kapatır, `--kodek hap` HAP üretir.
 
 ## Fiziksel ekran ölçüsü
-`fiziksel 8x25` (metre, genişlik x yükseklik) verilirse program gerçek ekran oranında (kare piksel) çizer ve çıkışta dikeyde piksel yüksekliğine indirir. Örnek: 8 m / 980 px = 8,2 mm, 25 m / 1800 px = 13,9 mm; piksel oranı 1,7. Düzeltme olmazsa yazı ve çizimler ekranda 1,7 kat gerilir. Resolume'da kompozisyon 980x1800 olmalı ve video ölçeksiz oynatılmalı; 1080x1920 video sığdırılırsa kenarlarda ~29 px boşluk kalır.
+`fiziksel 8x25` (metre, genişlik x yükseklik) verilirse program gerçek ekran oranında (kare piksel) çizer ve çıkışta dikeyde piksel yüksekliğine indirir. Örnek: 8 m / 950 px = 8,4 mm, 25 m / 1800 px = 13,9 mm; piksel oranı 1,65. Düzeltme olmazsa yazı ve çizimler ekranda 1,7 kat gerilir. Resolume’da kompozisyon 950x1800 olmalı ve video ölçeksiz oynatılmalı.
 
 ## Örnek senaryolar
 `senaryolar/`: tv-referans, tv-afis, ornek-gibi, toplan-dagil, daktilo-kivilcim, elastik-parcacik, tv-klasik, tv-iki-mesaj, perde-hizli, ornek-cicekli.

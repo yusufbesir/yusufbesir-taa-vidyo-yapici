@@ -1,7 +1,7 @@
 # Yusuf'un gönderdiği videodaki düzen: üst çizgi, PEŞİN / FİYATINA, büyük 3 (tek çizgi), TAKSİT, alt çizgi.
 # Kısık beyaz 3B yazı; tüplü TV açılış ve kapanış; dönerek giriş, yukarı kayarak çıkış; yazıdan geçen parlama.
 # ~ ince yatay çizgi, + büyük rakam ve yanlarında tek çizgi (* çift çizgi)
-ekran 980x1800
+ekran 950x1800
 fiziksel 8x25
 fps 25
 acilis tv
