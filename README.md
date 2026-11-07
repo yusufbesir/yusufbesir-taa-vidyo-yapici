@@ -21,13 +21,13 @@ fiziksel 8x25        # gerçek ekran ölçüsü (metre); piksel kare değilse ya
 fps 25
 acilis tv            # tv | perde | yok
 kapanis tv           # tv | perde | yok
-sahne "PEŞİN FİYATINA|*3|TAKSİT" renk=altin giris=toplan cikis=dagil sure=8 efekt=parlama,parcacik
+sahne "PEŞİN|FİYATINA|*3|TAKSİT" renk=altin giris=toplan cikis=dagil sure=8 efekt=parlama,parcacik
 ```
 - **renk:** altin, sari, beyaz (kısık), turuncu, cyan, magenta, lime (siyah/koyu zemin).
 - **giris:** yok, donerek, zipla, yandan, zoom, alttan, ustten, belir (yavaşça belirir), elastik (yaylanarak büyür), daktilo (harf harf yazılır), sil (soldan sağa açılır), toplan (parçacıklardan toplanır).
 - **cikis:** yok, yukari, asagi, donerek, sondur, kucul (dönerek küçülür), sil (soldan sağa silinir), dagil (parçacıklara dağılır).
 - **efekt:** parlama (yazıdan geçen ışık), pirilti (yıldızlar), cerceve (koşan ışıklı çerçeve), cift-cerceve (çift çizgi çerçeve), parcacik (süzülen parçacıklar), kivilcim (uçan kıvılcımlar); `efekt=yok` hepsini kapatır.
-- **Düzen:** `sahne "PEŞİN FİYATINA|*3|TAKSİT"`: `|` açık satır ayırır, `*` ile başlayan satır büyük rakamdır ve yanlarına çift çizgi gelir. `|` yoksa kelimeler alt alta dizilir.
+- **Düzen:** `sahne "PEŞİN|FİYATINA|*3|TAKSİT"`: `|` açık satır ayırır, `*` ile başlayan satır büyük rakamdır ve yanlarına çift çizgi gelir. `|` yoksa kelimeler alt alta dizilir.
 - **Çizimler:** `@cicek`, `@papatya`, `@yildiz`, `@rozet`, `@cerceve`, `@elmas` (varsayılan senaryolarda yok, yalnızca istenirse eklenir; bkz. senaryolar/ornek-cicekli.txt).
 - Hata olursa satır numarasıyla Türkçe mesaj verir.
 - `--genislik/--yukseklik/--fps` senaryodaki değeri geçersiz kılar (genişlik çift sayı olmalı), `--duz` fiziksel düzeltmeyi kapatır, `--kodek hap` HAP üretir.

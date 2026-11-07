@@ -202,12 +202,22 @@ fn yerlesim(font: &FontRef, w: u32, h: u32, s: &Sahne) -> (Vec<Maske>, f32) {
     (v, boylar.iter().cloned().fold(0.0, f32::max) * 0.14)
 }
 
-/// Açık satırlı düzen: "PEŞİN FİYATINA|*3|TAKSİT". `*` ile başlayan satır büyük rakamdır ve iki yanına çift çizgi gelir.
+/// Açık satırlı düzen: "PEŞİN|FİYATINA|*3|TAKSİT". `*` ile başlayan satır büyük rakamdır ve iki yanına çift çizgi gelir.
 fn afis_yerlesim(font: &FontRef, w: u32, h: u32, s: &Sahne) -> (Vec<Maske>, f32) {
     let satirlar: Vec<(String, bool)> = s.metin.split('|').map(|x| { let x = x.trim(); match x.strip_prefix('*') { Some(r) => (r.trim().to_string(), true), None => (x.to_string(), false) } }).collect();
     let fit = |t: &str| (w as f32 * 0.80 / genislik(font, t, 100.0).max(1.0) * 100.0).min(s.harf);
     let ref_boy = satirlar.iter().filter(|x| !x.1).map(|x| fit(&x.0)).fold(f32::MAX, f32::min).min(s.harf);
     let mut boylar: Vec<f32> = satirlar.iter().map(|(t, buyuk)| if *buyuk { (ref_boy * 3.6).min(s.harf * 1.8).min(h as f32 * 0.34) } else { fit(t) }).collect();
+    // art arda gelen düz satırlar aynı boyda olsun (en küçüğüne eşitlenir): PEŞİN / FİYATINA gibi
+    let mut i = 0;
+    while i < satirlar.len() {
+        if satirlar[i].1 { i += 1; continue; }
+        let mut j = i;
+        while j < satirlar.len() && !satirlar[j].1 { j += 1; }
+        let en_kucuk = boylar[i..j].iter().cloned().fold(f32::MAX, f32::min);
+        for b in &mut boylar[i..j] { *b = en_kucuk; }
+        i = j;
+    }
     let toplam: f32 = boylar.iter().map(|b| satir_yuksekligi(font, *b)).sum();
     if toplam > h as f32 * 0.8 { let k = h as f32 * 0.8 / toplam; for b in boylar.iter_mut() { *b *= k; } }
     let sh: Vec<f32> = boylar.iter().map(|b| satir_yuksekligi(font, *b)).collect();
