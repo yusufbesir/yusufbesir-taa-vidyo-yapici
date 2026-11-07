@@ -1,8 +1,9 @@
-# Yusuf'un gönderdiği videodaki düzen: üst çizgi, PEŞİN üst üste FİYATINA, büyük 3 (tek çizgi), TAKSİT, alt çizgi. Beyaza yakın (kısık beyaz) yazı.
+# Yusuf'un gönderdiği videodaki düzen: üst çizgi, PEŞİN / FİYATINA, büyük 3 (tek çizgi), TAKSİT, alt çizgi.
+# Kısık beyaz 3B yazı; tüplü TV açılış ve kapanış; dönerek giriş, yukarı kayarak çıkış; yazıdan geçen parlama.
 # ~ ince yatay çizgi, + büyük rakam ve yanlarında tek çizgi (* çift çizgi)
 ekran 980x1800
 fiziksel 8x25
 fps 25
-acilis yok
-kapanis yok
-sahne "~|PEŞİN|FİYATINA|+3|TAKSİT|~" renk=beyaz giris=belir cikis=yok sure=8 efekt=parlama
+acilis tv
+kapanis tv
+sahne "~|PEŞİN|FİYATINA|+3|TAKSİT|~" renk=beyaz giris=donerek cikis=yukari sure=8 efekt=parlama
