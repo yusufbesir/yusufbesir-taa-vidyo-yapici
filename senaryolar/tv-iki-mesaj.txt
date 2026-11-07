@@ -1,0 +1,8 @@
+# Tüplü TV: iki mesaj, ilki yukarı çıkar, ikincisi alttan girer
+ekran 980x1800
+fiziksel 8x25      # gerçek ekran ölçüsü (metre); piksel kare değilse yazı gerilmez. Kaldırınca ölçü düzeltmesi kapanır
+fps 25
+acilis tv
+kapanis tv
+sahne "PEŞİN FİYATINA 3 TAKSİT" renk=beyaz giris=yok cikis=yukari sure=4.5
+sahne "VADE FARKSIZ 3 TAKSİT" renk=altin giris=alttan sure=4.5

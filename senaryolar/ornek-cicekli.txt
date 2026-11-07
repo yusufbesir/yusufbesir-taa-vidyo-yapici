@@ -1,0 +1,8 @@
+# ÖRNEK: çiçek yalnızca istenirse eklenir (@cicek, @papatya, @yildiz, @rozet, @cerceve, @elmas)
+ekran 980x1800
+fiziksel 8x25      # gerçek ekran ölçüsü (metre); piksel kare değilse yazı gerilmez. Kaldırınca ölçü düzeltmesi kapanır
+fps 25
+acilis tv
+kapanis tv
+sahne "PEŞİN FİYATINA 3 TAKSİT" renk=beyaz giris=yok cikis=asagi sure=4.5
+sahne "@cicek" renk=turuncu giris=zoom sure=3.5 efekt=parlama,pirilti
