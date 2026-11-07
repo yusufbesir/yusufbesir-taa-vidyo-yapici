@@ -1,0 +1,12 @@
+[package]
+name = "taa-vidyo-yapici-kurulum"
+version = "0.5.0"
+edition = "2021"
+build = "build.rs"
+
+[dependencies]
+
+[profile.release]
+opt-level = "s"
+strip = true
+lto = true

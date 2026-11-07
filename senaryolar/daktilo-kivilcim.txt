@@ -1,0 +1,5 @@
+# Daktilo gibi yazılır, soldan sağa silinir; uçan kıvılcımlar
+ekran 950x1800
+fiziksel 8x25
+fps 25
+sahne "PEŞİN|FİYATINA|*3|TAKSİT" renk=altin giris=daktilo cikis=sil sure=7 efekt=parlama,kivilcim

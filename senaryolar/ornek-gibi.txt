@@ -1,7 +1,7 @@
 # Örnek videoya göre: çizgiler ve yazı sırayla belirir, sonda söner; çift çizgi çerçeve
-ekran 980x1800
+ekran 950x1800
 fiziksel 8x25      # gerçek ekran ölçüsü (metre); piksel kare değilse yazı gerilmez. Kaldırınca ölçü düzeltmesi kapanır
 fps 25
 acilis yok
 kapanis yok
-sahne "PEŞİN FİYATINA|*3|TAKSİT" renk=altin giris=belir cikis=sondur sure=7 efekt=parlama
+sahne "PEŞİN|FİYATINA|*3|TAKSİT" renk=altin giris=belir cikis=sondur sure=7 efekt=parlama

@@ -1,22 +1,19 @@
 use ab_glyph::{Font, FontRef, PxScale, };
-use led_ekran_video::*;
+use taa_vidyo_yapici::*;
 use std::io::Write;
-use std::process::{Command, Stdio};
 
 fn arg(a: &[String], k: &str, d: &str) -> String {
     a.iter().position(|x| x == k).and_then(|i| a.get(i + 1)).cloned().unwrap_or(d.into())
 }
 
 fn baslat(cikis: &str, kodek: &str, w: u32, h: u32, fps: u32) -> std::process::Child {
-    let mut c = Command::new("ffmpeg");
-    c.args(["-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", &format!("{w}x{h}"), "-r", &fps.to_string(), "-i", "-"]);
-    match kodek {
-        "hap" => c.args(["-c:v", "hap", "-format", "hap"]),
-        _ => c.args(["-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "12", "-preset", "slow", "-g", "1", "-movflags", "+faststart"]),
-    };
-    c.arg(cikis).stdin(Stdio::piped()).stdout(Stdio::null()).stderr(Stdio::null());
-    c.spawn().expect("ffmpeg bulunamadı")
+    ffmpeg::baslat(cikis, kodek, w, h, fps).unwrap_or_else(|e| { eprintln!("HATA: {e}"); std::process::exit(3) })
 }
+
+#[cfg(windows)]
+fn konsolu_gizle() { extern "system" { fn FreeConsole() -> i32; } unsafe { FreeConsole(); } }
+#[cfg(not(windows))]
+fn konsolu_gizle() {}
 
 /// Dikey ekran için satırlara böl: her kelime ayrı satır; ≤2 harfli/rakam kelimeler sonrakiyle birleşir.
 fn dikey_satirlar(s: &str) -> Vec<String> {
@@ -52,8 +49,15 @@ fn yerlesim(font: &FontRef, w: u32, h: u32, s: &str, en_cok_px: f32) -> (Vec<ani
 
 fn main() {
     let a: Vec<String> = std::env::args().collect();
+    if a.len() == 1 || a.iter().any(|x| x == "--arayuz") {
+        // Çift tıklayınca arayüz açılır (konsol gizlenir); --port N ve --tarayici-yok test içindir.
+        let port: u16 = arg(&a, "--port", "0").parse().unwrap_or(0);
+        if !a.iter().any(|x| x == "--tarayici-yok") { konsolu_gizle(); }
+        arayuz::calistir(!a.iter().any(|x| x == "--tarayici-yok"), port);
+    }
+    if a.iter().any(|x| x == "--surum") { println!("taa-vidyo-yapici {}", arayuz::SURUM); return; }
     if a.iter().any(|x| x == "--yardim") {
-        println!("led-ekran-video --yazi \"SATIR1|SATIR2\" [--palet sari|beyaz|turuncu|cyan|magenta|lime] [--mod sabit|kayan]\n  [--genislik 980 --yukseklik 1800 (dikey 9:16) --fps 25 --sure 8 --harf 120 --font yol.otf --cikis cikti.mp4 --kodek mp4|hap]\n  --onizleme dosya.ppm : yalnız tek kare yazar");
+        println!("taa-vidyo-yapici --yazi \"SATIR1|SATIR2\" [--palet sari|beyaz|turuncu|cyan|magenta|lime] [--mod sabit|kayan]\n  [--genislik 980 --yukseklik 1800 (dikey 9:16) --fps 25 --sure 8 --harf 120 --font yol.otf --cikis cikti.mp4 --kodek mp4|hap]\n  --onizleme dosya.ppm : yalnız tek kare yazar\n  --senaryo dosya.txt [--cikis v.mp4] : senaryodan video\n  --arayuz : tarayıcı arayüzü (argümansız çalıştırınca da açılır)\nffmpeg: LED_FFMPEG, programın yanı veya PATH");
         return;
     }
     let w: u32 = arg(&a, "--genislik", "980").parse().unwrap();
@@ -82,6 +86,7 @@ fn main() {
         if a.iter().any(|x| x == "--yukseklik") { sen.h = h; }
         if a.iter().any(|x| x == "--duz") { sen.fiziksel = None; }
         if a.iter().any(|x| x == "--fps") { sen.fps = fps; }
+        if let Err(e) = uret::dogrula(&sen) { eprintln!("HATA: {e}"); std::process::exit(2); }
         let hz = senaryo::hazirla(&font, &sen);
         let mut kod = baslat(&arg(&a, "--cikis", "cikti.mp4"), &arg(&a, "--kodek", "mp4"), sen.w, sen.h, sen.fps);
         let mut girdi = kod.stdin.take().unwrap();

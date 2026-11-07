@@ -1,0 +1,6 @@
+# Elastik zıplayarak girer, dönerek küçülür; iki farklı mesaj, süzülen parçacıklar ve pırıltı
+ekran 950x1800
+fiziksel 8x25
+fps 25
+sahne "PEŞİN|FİYATINA|*3|TAKSİT" renk=altin giris=elastik cikis=kucul sure=6 efekt=parlama,parcacik,pirilti
+sahne "VADE FARKSIZ 3 TAKSİT" renk=altin giris=sil cikis=dagil sure=6 efekt=parlama,parcacik

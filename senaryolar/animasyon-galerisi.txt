@@ -1,0 +1,23 @@
+# Animasyon galerisi: her sahnede yazı, adı yazan animasyonla girer ve aynı animasyonun tersiyle çıkar.
+# Hepsini görmek için: taa-vidyo-yapici --senaryo senaryolar/animasyon-galerisi.txt --cikis galeri.mp4
+ekran 950x1800
+fiziksel 8x25
+fps 25
+acilis tv
+kapanis tv
+sahne "DUSUS" renk=altin giris=dusus cikis=dusus sure=3 efekt=parlama
+sahne "CEVIR" renk=altin giris=cevir cikis=cevir sure=3 efekt=parlama
+sahne "SALINCAK" renk=altin giris=salincak cikis=salincak sure=3 efekt=parlama
+sahne "SPIRAL" renk=altin giris=spiral cikis=spiral sure=3 efekt=parlama
+sahne "UCARAK" renk=altin giris=ucarak cikis=ucarak sure=3 efekt=parlama
+sahne "DERINLES" renk=altin giris=derinles cikis=derinles sure=3 efekt=parlama
+sahne "NEON" renk=altin giris=neon cikis=neon sure=3 efekt=parlama
+sahne "ASILMA" renk=altin giris=asilma cikis=asilma sure=3 efekt=parlama
+sahne "MERCEK" renk=altin giris=mercek cikis=mercek sure=3 efekt=parlama
+sahne "KAPI" renk=altin giris=kapi cikis=kapi sure=3 efekt=parlama
+sahne "FIRLAT" renk=altin giris=firlat cikis=firlat sure=3 efekt=parlama
+sahne "YAPRAK" renk=altin giris=yaprak cikis=yaprak sure=3 efekt=parlama
+sahne "AGIRLIK" renk=altin giris=agirlik cikis=agirlik sure=3 efekt=parlama
+sahne "FIRTINA" renk=altin giris=firtina cikis=firtina sure=3 efekt=parlama
+sahne "MEKIK" renk=altin giris=mekik cikis=mekik sure=3 efekt=parlama
+sahne "UZAY" renk=altin giris=uzay cikis=uzay sure=3 efekt=parlama

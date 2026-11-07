@@ -1,5 +1,5 @@
 # Kepenk açılış/kapanış, hareketli sahneler
-ekran 980x1800
+ekran 950x1800
 fiziksel 8x25      # gerçek ekran ölçüsü (metre); piksel kare değilse yazı gerilmez. Kaldırınca ölçü düzeltmesi kapanır
 fps 25
 acilis perde

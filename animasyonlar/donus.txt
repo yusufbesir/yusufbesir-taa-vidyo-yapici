@@ -1,0 +1,194 @@
+# Üretilmiş animasyon paketi (biçim için temel.txt'ye bakın)
+
+animasyon zoom-in
+aciklama Çok küçükten yerine büyür
+sure 1.0
+gecikme 0.15
+anahtar 0 olcek=0.05 parlak=0
+anahtar 1
+
+animasyon zoom-out
+aciklama Dev boydan yerine küçülür
+sure 1.0
+gecikme 0.15
+anahtar 0 olcek=4 parlak=0
+anahtar 1
+
+animasyon zoom-patla
+aciklama Küçükten büyüyüp hafif taşar, oturur
+sure 1.1
+gecikme 0.15
+anahtar 0 olcek=0.1 parlak=0
+anahtar 0.7 olcek=1.12 parlak=1
+anahtar 1
+
+animasyon flip-x
+aciklama Yatay eksende çevrilerek gelir
+sure 1.1
+gecikme 0.15
+anahtar 0 aci=90 parlak=0.1
+anahtar 1
+
+animasyon flip-x-ters
+aciklama Yatay eksende ters yönde çevrilir
+sure 1.1
+gecikme 0.15
+anahtar 0 aci=-90 parlak=0.1
+anahtar 1
+
+animasyon flip-cift
+aciklama Bir buçuk tur çevrilerek oturur
+sure 1.4
+gecikme 0.15
+anahtar 0 aci=540 olcek=0.5 parlak=0.2
+anahtar 1
+
+animasyon tur
+aciklama Tam tur dönerek girer
+sure 1.3
+gecikme 0.15
+anahtar 0 aci=360 olcek=0.3 parlak=0
+anahtar 1
+
+animasyon tur-ters
+aciklama Ters yönde tam tur
+sure 1.3
+gecikme 0.15
+anahtar 0 aci=-360 olcek=0.3 parlak=0
+anahtar 1
+
+animasyon yuvarlan
+aciklama Soldan yuvarlanarak gelir
+sure 1.4
+gecikme 0.15
+anahtar 0 dx=-1.2 aci=360 parlak=0.3
+anahtar 1
+
+animasyon yuvarlan-sag
+aciklama Sağdan yuvarlanarak gelir
+sure 1.4
+gecikme 0.15
+anahtar 0 dx=1.2 aci=-360 parlak=0.3
+anahtar 1
+
+animasyon isik-hizi
+aciklama Hızla kayar, hafif fazla gider ve oturur
+sure 0.9
+gecikme 0.12
+anahtar 0 dx=1.3 aci=-40 parlak=0.4
+anahtar 0.6 dx=-0.05 aci=10 parlak=1
+anahtar 1
+
+animasyon kutu-sal
+aciklama Kutu gibi sallanarak ortaya iner
+sure 1.5
+gecikme 0.2
+anahtar 0 dy=-1.1 aci=60 parlak=0.5
+anahtar 0.5 dy=0.04 aci=-20 parlak=1
+anahtar 0.75 dy=-0.02 aci=8
+anahtar 1
+
+animasyon sarkac
+aciklama Sarkaç gibi sallanıp durur
+sure 1.8
+gecikme 0.2
+anahtar 0 aci=70 dy=-0.3 parlak=0.4
+anahtar 0.4 aci=-40 dy=0 parlak=1
+anahtar 0.7 aci=18
+anahtar 0.88 aci=-6
+anahtar 1
+
+animasyon kayan-harf
+aciklama Genişleyen çerçeveden küçülerek kayar
+sure 1.3
+gecikme 0.2
+anahtar 0 dx=-0.6 olcek=1.8 parlak=0
+anahtar 1
+
+animasyon murekkep
+aciklama Büyük ve silik başlar, mürekkep gibi yayılıp keskinleşir
+sure 1.6
+gecikme 0.2
+anahtar 0 olcek=1.5 parlak=0
+anahtar 0.5 olcek=1.1 parlak=0.5
+anahtar 1
+
+animasyon odak
+aciklama Yavaşça odaklanır, büyüklük az değişir
+sure 1.5
+gecikme 0.2
+anahtar 0 olcek=1.25 parlak=0
+anahtar 1
+
+animasyon dalgali
+aciklama Yanlara dalgalanarak kayar
+sure 1.6
+gecikme 0.2
+anahtar 0 dx=-0.9 dy=0.15 parlak=0.2
+anahtar 0.3 dx=-0.5 dy=-0.12
+anahtar 0.6 dx=-0.15 dy=0.08
+anahtar 0.85 dx=0.03 dy=-0.03 parlak=1
+anahtar 1
+
+animasyon yildirim-hizli
+aciklama Hızlı ve sert gelir (tek sefer)
+sure 0.5
+gecikme 0.06
+egri dogrusal
+anahtar 0 dy=-0.8 olcek=1.4 parlak=0.4
+anahtar 1
+
+animasyon kapak
+aciklama Kapak gibi yukarıdan eğilip kapanır
+sure 1.2
+gecikme 0.15
+anahtar 0 aci=110 dy=-0.4 parlak=0.2
+anahtar 0.7 aci=-10
+anahtar 1
+
+animasyon buyuk-kucuk
+aciklama Dev boydan hızlıca iner, hafif aşar
+sure 1.0
+gecikme 0.15
+anahtar 0 olcek=2.5 parlak=0
+anahtar 0.65 olcek=0.93 parlak=1
+anahtar 1
+
+animasyon sicra-asagi
+aciklama Aşağıdan sıçrayıp yerine konar
+sure 1.3
+gecikme 0.15
+anahtar 0 dy=1.1 parlak=0.4
+anahtar 0.55 dy=-0.08 parlak=1
+anahtar 0.8 dy=0.03
+anahtar 1
+
+animasyon asansor
+aciklama Yavaş ve düz yükselir
+sure 2.0
+gecikme 0.3
+anahtar 0 dy=0.35 parlak=0
+anahtar 1
+
+animasyon inis
+aciklama Yavaş ve düz iner
+sure 2.0
+gecikme 0.3
+anahtar 0 dy=-0.35 parlak=0
+anahtar 1
+
+animasyon derin
+aciklama Derinlik büyüyerek 3B belirir
+sure 1.5
+gecikme 0.2
+anahtar 0 derinlik=0 parlak=0.5 olcek=0.9
+anahtar 1
+
+animasyon derin-donus
+aciklama 3B derinlik ve hafif dönüşle belirir
+sure 1.6
+gecikme 0.2
+anahtar 0 derinlik=0 aci=50 parlak=0.4
+anahtar 0.7 derinlik=1.5 aci=-8 parlak=1
+anahtar 1
+
