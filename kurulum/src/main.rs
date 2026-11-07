@@ -65,7 +65,7 @@ fn kisayol_olustur(hedef: &Path) -> Vec<String> {
     let mut yollar = vec![];
     for (klasor, ad) in [("Desktop", format!("{AD}.lnk")), ("Programs", format!("{AD}.lnk"))] {
         let ps = format!(
-            "$d=[Environment]::GetFolderPath('{klasor}'); $y=Join-Path $d '{ad}'; $s=(New-Object -ComObject WScript.Shell).CreateShortcut($y); $s.TargetPath='{exe}'; $s.Arguments='--arayuz'; $s.WorkingDirectory='{dir}'; $s.IconLocation='{ico}'; $s.Description='{AD}'; $s.Save(); Write-Output $y",
+            "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; $d=[Environment]::GetFolderPath('{klasor}'); $y=Join-Path $d '{ad}'; $s=(New-Object -ComObject WScript.Shell).CreateShortcut($y); $s.TargetPath='{exe}'; $s.Arguments='--arayuz'; $s.WorkingDirectory='{dir}'; $s.IconLocation='{ico}'; $s.Description='{AD}'; $s.Save(); Write-Output $y",
             exe = exe.display(), dir = hedef.display(), ico = ico.display());
         use std::os::windows::process::CommandExt;
         if let Ok(o) = Command::new("powershell").args(["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-Command", &ps]).creation_flags(0x0800_0000).output() {
@@ -175,7 +175,9 @@ fn kaldir(a: &[String]) -> i32 {
     #[cfg(windows)]
     if kaldir_sonra {
         use std::os::windows::process::CommandExt;
-        let _ = Command::new("cmd").args(["/c", &format!("ping -n 3 127.0.0.1 >nul & del /f /q \"{}\" & rmdir \"{}\"", hedef.join("kaldir.exe").display(), hedef.display())]).creation_flags(0x0800_0000).spawn();
+        // Rust'ın argüman kaçışı cmd'de tırnakları bozar; komutu ham veriyoruz
+        let komut = format!("/c \"ping -n 3 127.0.0.1 >nul & del /f /q \"{}\" & rmdir \"{}\"\"", hedef.join("kaldir.exe").display(), hedef.display());
+        let _ = Command::new("cmd").raw_arg(komut).creation_flags(0x0800_0000).spawn();
     }
     #[cfg(not(windows))]
     if kaldir_sonra { let _ = fs::remove_file(hedef.join("kaldir.exe")); let _ = fs::remove_dir(&hedef); }
