@@ -1,0 +1,12 @@
+[package]
+name = "led-ekran-video-kurulum"
+version = "0.3.0"
+edition = "2021"
+build = "build.rs"
+
+[dependencies]
+
+[profile.release]
+opt-level = "s"
+strip = true
+lto = true

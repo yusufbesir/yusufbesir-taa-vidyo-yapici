@@ -94,7 +94,10 @@ pub fn bant(m: &Maske, y0: u32, y1: u32) -> Maske {
     Maske { w: m.w, h: m.h, a, bx: (bx0, by0, bx1, by1) }
 }
 
-pub fn kare3d_uzerine(t: &mut [u8], m: &Maske, yuz: Renk, yan: Renk, p: &Poz) {
+pub fn kare3d_uzerine(t: &mut [u8], m: &Maske, yuz: Renk, yan: Renk, p: &Poz) { kare3d_kirpmali(t, m, yuz, yan, p, (0.0, 1.0)) }
+
+/// `kirp`: yazının sol-sağ görünür aralığı (0..1, maske kutusuna göre); silme/daktilo animasyonları için.
+pub fn kare3d_kirpmali(t: &mut [u8], m: &Maske, yuz: Renk, yan: Renk, p: &Poz, kirp: (f32, f32)) {
     let (w, h) = (m.w, m.h);
     if p.parlak <= 0.0 { return; }
     let (bx0, by0, bx1, by1) = m.bx;
@@ -116,6 +119,8 @@ pub fn kare3d_uzerine(t: &mut [u8], m: &Maske, yuz: Renk, yan: Renk, p: &Poz) {
             for x in rx0..=rx1 {
                 let mx = cx + (x as f32 - dx - p.dx - cx) / sx;
                 let my = cy + (y as f32 - dy - p.dy - cy) / sy;
+                let u = (mx - bx0 as f32) / ((bx1 - bx0).max(1) as f32);
+                if u < kirp.0 || u > kirp.1 { continue; }
                 let a = ornek(m, mx, my);
                 if a <= 0.0 { continue; }
                 let i = ((y * w + x) * 3) as usize;
@@ -171,4 +176,32 @@ pub fn dikdortgen(m: &mut Maske, x0: u32, y0: u32, x1: u32, y1: u32) {
     for y in y0..=y1 { for x in x0..=x1 { m.a[(y * m.w + x) as usize] = 1.0; } }
     let (bx0, by0, bx1, by1) = m.bx;
     m.bx = if bx1 <= bx0 { (x0, y0, x1, y1) } else { (bx0.min(x0), by0.min(y0), bx1.max(x1), by1.max(y1)) };
+}
+
+/// Yazı piksellerini parçacıklara böler: `k`=0 tam yazı, 1 tamamen dağılmış. Toplanma için 1-ilerleme verilir.
+pub fn dagilma(t: &mut [u8], m: &Maske, yuz: Renk, k: f32, tohum: u32) {
+    let (w, h) = (m.w, m.h);
+    let (bx0, by0, bx1, by1) = m.bx;
+    if bx1 <= bx0 { return; }
+    for y in (by0..=by1).step_by(2) {
+        for x in (bx0..=bx1).step_by(2) {
+            if m.a[(y * w + x) as usize] < 0.5 { continue; }
+            let hs = |s: u32| crate::efekt::hash(x.wrapping_mul(7919) ^ y.wrapping_mul(104729) ^ s.wrapping_mul(31) ^ tohum.wrapping_mul(977));
+            let kk = ((k - hs(1) * 0.45) / 0.55).clamp(0.0, 1.0);
+            let e = kk * kk;
+            let (dx, dy) = ((hs(2) - 0.5) * w as f32 * 0.9 * e, (hs(3) - 0.55) * h as f32 * 0.4 * e);
+            let par = (1.0 - kk * 0.8).max(0.0).sqrt();
+            let (px, py) = (x as f32 + dx, y as f32 + dy);
+            if px < 0.0 || py < 0.0 || px >= (w - 2) as f32 || py >= (h - 2) as f32 { continue; }
+            for oy in 0..2u32 { for ox in 0..2u32 {
+                let i = (((py as u32 + oy) * w + px as u32 + ox) * 3) as usize;
+                for (c, v) in [yuz.0, yuz.1, yuz.2].iter().enumerate() { t[i + c] = t[i + c].max((*v as f32 * par) as u8); }
+            } }
+        }
+    }
+}
+
+pub fn elastik(t: f32) -> f32 {
+    let t = t.clamp(0.0, 1.0);
+    if t <= 0.0 { 0.0 } else if t >= 1.0 { 1.0 } else { 2f32.powf(-10.0 * t) * ((t * 10.0 - 0.75) * (2.0 * std::f32::consts::PI / 3.0)).sin() + 1.0 }
 }

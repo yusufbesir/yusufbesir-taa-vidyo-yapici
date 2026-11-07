@@ -12,9 +12,9 @@ pub struct Sahne { pub metin: String, pub renk: String, pub giris: String, pub c
 #[derive(Clone, Debug)]
 pub struct Senaryo { pub w: u32, pub h: u32, pub fiziksel: Option<(f32, f32)>, pub fps: u32, pub acilis: Gecis, pub kapanis: Gecis, pub sahneler: Vec<Sahne> }
 
-pub const GIRISLER: [&str; 8] = ["yok", "donerek", "zipla", "yandan", "zoom", "alttan", "ustten", "belir"];
-pub const CIKISLAR: [&str; 5] = ["yok", "yukari", "asagi", "donerek", "sondur"];
-pub const EFEKTLER: [&str; 4] = ["parlama", "pirilti", "cerceve", "cift-cerceve"];
+pub const GIRISLER: [&str; 12] = ["yok", "donerek", "zipla", "yandan", "zoom", "alttan", "ustten", "belir", "elastik", "daktilo", "sil", "toplan"];
+pub const CIKISLAR: [&str; 8] = ["yok", "yukari", "asagi", "donerek", "sondur", "kucul", "sil", "dagil"];
+pub const EFEKTLER: [&str; 6] = ["parlama", "pirilti", "cerceve", "cift-cerceve", "parcacik", "kivilcim"];
 
 fn gecis(s: &str) -> Result<Gecis, String> {
     match s { "tv" => Ok(Gecis::Tv), "perde" => Ok(Gecis::Perde), "yok" => Ok(Gecis::Yok), _ => Err(format!("bilinmeyen geçiş: {s} (tv|perde|yok)")) }
@@ -107,17 +107,27 @@ pub fn satir_poz(giris: &str, cikis: &str, t: f32, sure: f32, li: usize, d: f32,
     let pi = std::f32::consts::PI;
     let faz = li as f32 * 0.9;
     let sal = Poz { aci: ((t - GIRIS_SN).max(0.0) * 1.3 + faz).sin() * 0.26, olcek: 1.0 + 0.03 * (t * 3.0 + faz).sin(), parlak: 1.0, derinlik: d, dx: 0.0, dy: (t * 2.0 + faz).sin() * 6.0 };
-    if cikis != "yok" && t > sure - CIKIS_SN {
-        let k = ((t - (sure - CIKIS_SN)) / CIKIS_SN).clamp(0.0, 1.0);
+    let cs = if cikis == "dagil" { 1.2 } else { CIKIS_SN };
+    if cikis != "yok" && t > sure - cs {
+        let k = ((t - (sure - cs)) / cs).clamp(0.0, 1.0);
         let e = k * k * (3.0 - 2.0 * k);
         let mut p = sal;
         match cikis {
             "yukari" => { p.dy = -e * h * 1.05 - k * li as f32 * 60.0; p.aci = -e * pi * 0.25; }
             "asagi" => { p.dy = e * h * 1.05 + k * li as f32 * 60.0; p.aci = e * pi * 0.25; }
             "sondur" => { p.parlak = 1.0 - k; }
+            "kucul" => { p.olcek = (1.0 - e).max(0.02); p.aci = e * pi * 2.0; p.parlak = 1.0 - k * k; }
+            "sil" => {}
+            "dagil" => { p.parlak = 0.0; }
             _ => { p.aci = -e * pi * 0.5; p.parlak = 1.0 - k; p.olcek = 1.0 + 0.25 * k; }
         }
         return p;
+    }
+    if giris == "toplan" {
+        let ti = t - li as f32 * 0.15;
+        if ti < 1.4 { return Poz { parlak: 0.0, ..sal }; }
+        if ti < 1.7 { return Poz { derinlik: d * anim::yumusak((ti - 1.4) / 0.3), ..sal }; }
+        return sal;
     }
     if giris != "yok" {
         let ti = t - li as f32 * if giris == "belir" { 0.45 } else { 0.15 };
@@ -132,14 +142,28 @@ pub fn satir_poz(giris: &str, cikis: &str, t: f32, sure: f32, li: usize, d: f32,
                 "zoom" => { p.olcek = 1.0 + 2.2 * (1.0 - anim::geri(k)); p.aci = 0.0; }
                 "alttan" => { p.dy = (1.0 - anim::geri(k)) * h * 1.05; p.aci = (1.0 - k) * pi * 0.5 + p.aci * k; }
                 "belir" => { p.aci = p.aci * k; }
+                "elastik" => { p.olcek = anim::elastik(k).max(0.01); }
+                "sil" | "daktilo" => {}
                 _ => { p.dy = -(1.0 - anim::geri(k)) * h * 1.05; p.aci = -(1.0 - k) * pi * 0.5 + p.aci * k; } // ustten
             }
-            p.parlak = if giris == "belir" { k } else { (0.4 + 0.6 * k).min(1.0) };
-            p.derinlik = if giris == "belir" { d } else { d * anim::yumusak(k) };
+            p.parlak = match giris { "belir" => k, "sil" | "daktilo" | "elastik" => 1.0, _ => (0.4 + 0.6 * k).min(1.0) };
+            p.derinlik = match giris { "belir" | "sil" | "daktilo" | "elastik" => d, _ => d * anim::yumusak(k) };
             return p;
         }
     }
     sal
+}
+
+/// Silme/daktilo için yazının görünür sol-sağ aralığı.
+pub fn satir_kirp(giris: &str, cikis: &str, t: f32, sure: f32, li: usize) -> (f32, f32) {
+    let mut k = (0.0, 1.0);
+    let ti = t - li as f32 * 0.15;
+    if giris == "sil" || giris == "daktilo" {
+        let dur = if giris == "daktilo" { 1.4 } else { 0.9 };
+        if ti < dur { let p = (ti / dur).clamp(0.0, 1.0); k.1 = if giris == "daktilo" { (p * 12.0).floor() / 12.0 } else { anim::yumusak(p) }; }
+    }
+    if cikis == "sil" && t > sure - CIKIS_SN { k.0 = anim::yumusak(((t - (sure - CIKIS_SN)) / CIKIS_SN).clamp(0.0, 1.0)); }
+    k
 }
 
 /// Perde: üstten ve alttan siyah kepenk; kenarda ince parlak çizgi. `kapali`: 0=açık, 1=tam kapalı.
@@ -254,9 +278,14 @@ pub fn kare_uret(s: &Senaryo, hz: &[Hazir], t: f32, no: u32) -> Vec<u8> {
     let mut k = anim::bos_kare(w, h, z.zemin);
     // ilk sahne açılışla birlikte zaten görünür: girişi açılış geçişi yapar
     let giris = if idx == 0 && s.acilis != Gecis::Yok { "yok" } else { sh.giris.as_str() };
+    if sh.efekt.iter().any(|e| e == "parcacik") { efekt::parcaciklar(&mut k, w, h, t, 60, z.yuz, idx as u32 + 7); }
+    if sh.efekt.iter().any(|e| e == "kivilcim") { efekt::kivilcimlar(&mut k, w, h, t, 40, z.yuz, idx as u32 + 3); }
     for (li, m) in z.maskeler.iter().enumerate() {
+        let ti = yerel - li as f32 * 0.15;
+        if giris == "toplan" && (0.0..1.4).contains(&ti) { anim::dagilma(&mut k, m, z.yuz, 1.0 - ti / 1.4, (idx * 10 + li) as u32); continue; }
+        if sh.cikis == "dagil" && yerel > sh.sure - 1.2 { anim::dagilma(&mut k, m, z.yuz, ((yerel - (sh.sure - 1.2)) / 1.2).clamp(0.0, 1.0), (idx * 10 + li) as u32 + 50); continue; }
         let p = satir_poz(giris, &sh.cikis, yerel, sh.sure, li, z.d, (w, h));
-        anim::kare3d_uzerine(&mut k, m, z.yuz, z.yan, &p);
+        anim::kare3d_kirpmali(&mut k, m, z.yuz, z.yan, &p, satir_kirp(giris, &sh.cikis, yerel, sh.sure, li));
     }
     if sh.efekt.iter().any(|e| e == "parlama") {
         let konum = (yerel - 1.0) / 1.3;

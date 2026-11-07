@@ -1,0 +1,5 @@
+# Parçacıklardan toplanan yazı, bekleme, parçacıklara dağılma; arkada süzülen parçacıklar
+ekran 980x1800
+fiziksel 8x25
+fps 25
+sahne "PEŞİN FİYATINA|*3|TAKSİT" renk=altin giris=toplan cikis=dagil sure=8 efekt=parlama,parcacik

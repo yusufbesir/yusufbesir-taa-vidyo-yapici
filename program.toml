@@ -1,7 +1,7 @@
 # TAA Paket program bildirimi (docs/program-sozlesmesi.md; denetim: tools/sozlesme_denetle.py --program program.toml --surum-dosyasi Cargo.toml --paket-kok <taa-paket>)
 ad = "led-ekran-video"
 gorunen_ad = "LED Ekran Video"
-surum = "0.2.0"                 # Cargo.toml [package] version ile aynı olmalı
+surum = "0.3.0"                 # Cargo.toml [package] version ile aynı olmalı
 arayuz = "1"
 gerektirir = {}                 # yalnız ab_glyph; taa-* crate kullanmaz
 sunar  = ["video.uret@1"]
@@ -9,4 +9,4 @@ ister  = []
 veri_sahibi = []                # veri alanı yok; çıktı kullanıcının seçtiği dosya
 veri_okur   = []
 ayar_alani  = "programlar.led-ekran-video"
-# Bilgi: başlatıcı led-ekran-video.exe; kurulum D:\Programlar\LED-Ekran-Video\; tek bilgisayar; ffmpeg dış bağımlılık
+# Bilgi: başlatıcı led-ekran-video.exe (argümansız çalışınca tarayıcı arayüzü açılır); kurulum LED-Ekran-Video-Kurulum.exe, D:\Programlar\LED-Ekran-Video; tek bilgisayar; ffmpeg dış bağımlılık
