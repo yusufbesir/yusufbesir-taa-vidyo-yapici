@@ -1,5 +1,5 @@
 use ab_glyph::{Font, FontRef, PxScale, };
-use taa_vidyocu::*;
+use taa_vidyo_yapici::*;
 use std::io::Write;
 
 fn arg(a: &[String], k: &str, d: &str) -> String {
@@ -55,9 +55,9 @@ fn main() {
         if !a.iter().any(|x| x == "--tarayici-yok") { konsolu_gizle(); }
         arayuz::calistir(!a.iter().any(|x| x == "--tarayici-yok"), port);
     }
-    if a.iter().any(|x| x == "--surum") { println!("taa-vidyocu {}", arayuz::SURUM); return; }
+    if a.iter().any(|x| x == "--surum") { println!("taa-vidyo-yapici {}", arayuz::SURUM); return; }
     if a.iter().any(|x| x == "--yardim") {
-        println!("taa-vidyocu --yazi \"SATIR1|SATIR2\" [--palet sari|beyaz|turuncu|cyan|magenta|lime] [--mod sabit|kayan]\n  [--genislik 980 --yukseklik 1800 (dikey 9:16) --fps 25 --sure 8 --harf 120 --font yol.otf --cikis cikti.mp4 --kodek mp4|hap]\n  --onizleme dosya.ppm : yalnız tek kare yazar\n  --senaryo dosya.txt [--cikis v.mp4] : senaryodan video\n  --arayuz : tarayıcı arayüzü (argümansız çalıştırınca da açılır)\nffmpeg: LED_FFMPEG, programın yanı veya PATH");
+        println!("taa-vidyo-yapici --yazi \"SATIR1|SATIR2\" [--palet sari|beyaz|turuncu|cyan|magenta|lime] [--mod sabit|kayan]\n  [--genislik 980 --yukseklik 1800 (dikey 9:16) --fps 25 --sure 8 --harf 120 --font yol.otf --cikis cikti.mp4 --kodek mp4|hap]\n  --onizleme dosya.ppm : yalnız tek kare yazar\n  --senaryo dosya.txt [--cikis v.mp4] : senaryodan video\n  --arayuz : tarayıcı arayüzü (argümansız çalıştırınca da açılır)\nffmpeg: LED_FFMPEG, programın yanı veya PATH");
         return;
     }
     let w: u32 = arg(&a, "--genislik", "980").parse().unwrap();
