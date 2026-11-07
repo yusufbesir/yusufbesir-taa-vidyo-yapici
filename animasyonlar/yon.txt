@@ -1,0 +1,210 @@
+# Üretilmiş animasyon paketi (biçim için temel.txt'ye bakın)
+
+animasyon kayar-sol
+aciklama Sol taraftan düz kayarak girer
+sure 1.0
+gecikme 0.15
+anahtar 0 dx=-1.2 parlak=0.2
+anahtar 1
+
+animasyon yaylan-sol
+aciklama Sol taraftan gelir, hedefi aşıp geri döner
+sure 1.2
+gecikme 0.15
+anahtar 0 dx=-1.2 parlak=0.3
+anahtar 0.65 dx=0.060 dy=0.000 parlak=1
+anahtar 1
+
+animasyon yavas-sol
+aciklama Sol taraftan uzun ve yumuşak süzülür
+sure 1.8
+gecikme 0.25
+anahtar 0 dx=-1.2 parlak=0
+anahtar 1
+
+animasyon hizli-sol
+aciklama Sol taraftan çok hızlı çarpar
+sure 0.6
+gecikme 0.08
+egri dogrusal
+anahtar 0 dx=-1.2 parlak=0.5
+anahtar 0.8 dx=0.036 dy=0.000
+anahtar 1
+
+animasyon donen-sol
+aciklama Sol taraftan dönerek gelir
+sure 1.2
+gecikme 0.15
+anahtar 0 dx=-1.2 aci=180 olcek=0.6 parlak=0.3
+anahtar 1
+
+animasyon zoomlu-sol
+aciklama Sol taraftan küçükten büyüyerek gelir
+sure 1.1
+gecikme 0.15
+anahtar 0 dx=-1.2 olcek=0.3 parlak=0.2
+anahtar 1
+
+animasyon kayar-sag
+aciklama Sag taraftan düz kayarak girer
+sure 1.0
+gecikme 0.15
+anahtar 0 dx=1.2 parlak=0.2
+anahtar 1
+
+animasyon yaylan-sag
+aciklama Sag taraftan gelir, hedefi aşıp geri döner
+sure 1.2
+gecikme 0.15
+anahtar 0 dx=1.2 parlak=0.3
+anahtar 0.65 dx=-0.060 dy=0.000 parlak=1
+anahtar 1
+
+animasyon yavas-sag
+aciklama Sag taraftan uzun ve yumuşak süzülür
+sure 1.8
+gecikme 0.25
+anahtar 0 dx=1.2 parlak=0
+anahtar 1
+
+animasyon hizli-sag
+aciklama Sag taraftan çok hızlı çarpar
+sure 0.6
+gecikme 0.08
+egri dogrusal
+anahtar 0 dx=1.2 parlak=0.5
+anahtar 0.8 dx=-0.036 dy=0.000
+anahtar 1
+
+animasyon donen-sag
+aciklama Sag taraftan dönerek gelir
+sure 1.2
+gecikme 0.15
+anahtar 0 dx=1.2 aci=180 olcek=0.6 parlak=0.3
+anahtar 1
+
+animasyon zoomlu-sag
+aciklama Sag taraftan küçükten büyüyerek gelir
+sure 1.1
+gecikme 0.15
+anahtar 0 dx=1.2 olcek=0.3 parlak=0.2
+anahtar 1
+
+animasyon kayar-ust
+aciklama Ust taraftan düz kayarak girer
+sure 1.0
+gecikme 0.15
+anahtar 0 dy=-1.1 parlak=0.2
+anahtar 1
+
+animasyon yaylan-ust
+aciklama Ust taraftan gelir, hedefi aşıp geri döner
+sure 1.2
+gecikme 0.15
+anahtar 0 dy=-1.1 parlak=0.3
+anahtar 0.65 dx=0.000 dy=0.055 parlak=1
+anahtar 1
+
+animasyon yavas-ust
+aciklama Ust taraftan uzun ve yumuşak süzülür
+sure 1.8
+gecikme 0.25
+anahtar 0 dy=-1.1 parlak=0
+anahtar 1
+
+animasyon hizli-ust
+aciklama Ust taraftan çok hızlı çarpar
+sure 0.6
+gecikme 0.08
+egri dogrusal
+anahtar 0 dy=-1.1 parlak=0.5
+anahtar 0.8 dx=0.000 dy=0.033
+anahtar 1
+
+animasyon donen-ust
+aciklama Ust taraftan dönerek gelir
+sure 1.2
+gecikme 0.15
+anahtar 0 dy=-1.1 aci=180 olcek=0.6 parlak=0.3
+anahtar 1
+
+animasyon zoomlu-ust
+aciklama Ust taraftan küçükten büyüyerek gelir
+sure 1.1
+gecikme 0.15
+anahtar 0 dy=-1.1 olcek=0.3 parlak=0.2
+anahtar 1
+
+animasyon kayar-alt
+aciklama Alt taraftan düz kayarak girer
+sure 1.0
+gecikme 0.15
+anahtar 0 dy=1.1 parlak=0.2
+anahtar 1
+
+animasyon yaylan-alt
+aciklama Alt taraftan gelir, hedefi aşıp geri döner
+sure 1.2
+gecikme 0.15
+anahtar 0 dy=1.1 parlak=0.3
+anahtar 0.65 dx=0.000 dy=-0.055 parlak=1
+anahtar 1
+
+animasyon yavas-alt
+aciklama Alt taraftan uzun ve yumuşak süzülür
+sure 1.8
+gecikme 0.25
+anahtar 0 dy=1.1 parlak=0
+anahtar 1
+
+animasyon hizli-alt
+aciklama Alt taraftan çok hızlı çarpar
+sure 0.6
+gecikme 0.08
+egri dogrusal
+anahtar 0 dy=1.1 parlak=0.5
+anahtar 0.8 dx=0.000 dy=-0.033
+anahtar 1
+
+animasyon donen-alt
+aciklama Alt taraftan dönerek gelir
+sure 1.2
+gecikme 0.15
+anahtar 0 dy=1.1 aci=180 olcek=0.6 parlak=0.3
+anahtar 1
+
+animasyon zoomlu-alt
+aciklama Alt taraftan küçükten büyüyerek gelir
+sure 1.1
+gecikme 0.15
+anahtar 0 dy=1.1 olcek=0.3 parlak=0.2
+anahtar 1
+
+animasyon capraz-sol-ust
+aciklama sol-ust köşeden çapraz kayarak girer
+sure 1.1
+gecikme 0.15
+anahtar 0 dx=-1 dy=-1 parlak=0.2 olcek=0.7
+anahtar 1
+
+animasyon capraz-sag-ust
+aciklama sag-ust köşeden çapraz kayarak girer
+sure 1.1
+gecikme 0.15
+anahtar 0 dx=1 dy=-1 parlak=0.2 olcek=0.7
+anahtar 1
+
+animasyon capraz-sol-alt
+aciklama sol-alt köşeden çapraz kayarak girer
+sure 1.1
+gecikme 0.15
+anahtar 0 dx=-1 dy=1 parlak=0.2 olcek=0.7
+anahtar 1
+
+animasyon capraz-sag-alt
+aciklama sag-alt köşeden çapraz kayarak girer
+sure 1.1
+gecikme 0.15
+anahtar 0 dx=1 dy=1 parlak=0.2 olcek=0.7
+anahtar 1
+

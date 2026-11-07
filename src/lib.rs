@@ -3,6 +3,7 @@ pub mod anim;
 pub mod cizim;
 pub mod efekt;
 pub mod dekor;
+pub mod oto;
 pub mod tv;
 pub mod senaryo;
 pub mod animasyon;

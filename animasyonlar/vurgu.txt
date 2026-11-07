@@ -1,0 +1,141 @@
+# Üretilmiş animasyon paketi (biçim için temel.txt'ye bakın)
+
+animasyon vurgu-nabiz
+aciklama Vurgu: Kalp atışı gibi iki küçük atım
+sure 1.2
+gecikme 0.0
+anahtar 0
+anahtar 0.2 olcek=1.07
+anahtar 0.35
+anahtar 0.5 olcek=1.05
+anahtar 1
+
+animasyon vurgu-buyut
+aciklama Vurgu: Tek sefer %6 büyüyüp küçülür
+sure 0.9
+gecikme 0.0
+anahtar 0
+anahtar 0.5 olcek=1.06
+anahtar 1
+
+animasyon vurgu-tada
+aciklama Vurgu: Hafif büyür ve sağa sola sallanır
+sure 1.2
+gecikme 0.0
+anahtar 0
+anahtar 0.15 olcek=0.96 aci=-4
+anahtar 0.3 olcek=1.06 aci=4
+anahtar 0.5 olcek=1.06 aci=-4
+anahtar 0.7 olcek=1.06 aci=3
+anahtar 1
+
+animasyon vurgu-sallan
+aciklama Vurgu: Yana sallanır
+sure 1.0
+gecikme 0.0
+anahtar 0
+anahtar 0.2 aci=6
+anahtar 0.4 aci=-5
+anahtar 0.6 aci=3
+anahtar 0.8 aci=-1
+anahtar 1
+
+animasyon vurgu-jelo
+aciklama Vurgu: Jöle gibi yaylanır
+sure 1.2
+gecikme 0.0
+anahtar 0
+anahtar 0.2 olcek=1.08 aci=2
+anahtar 0.4 olcek=0.96 aci=-2
+anahtar 0.6 olcek=1.03
+anahtar 1
+
+animasyon vurgu-hop
+aciklama Vurgu: Hafifçe zıplar
+sure 0.8
+gecikme 0.0
+anahtar 0
+anahtar 0.4 dy=-0.04
+anahtar 0.7 dy=0.01
+anahtar 1
+
+animasyon vurgu-titre
+aciklama Vurgu: Çok hafif yatay titreme (yumuşak)
+sure 0.8
+gecikme 0.0
+anahtar 0
+anahtar 0.2 dx=0.01
+anahtar 0.4 dx=-0.01
+anahtar 0.6 dx=0.008
+anahtar 1
+
+animasyon vurgu-isik
+aciklama Vurgu: Parlaklık hafif yükselip döner
+sure 1.2
+gecikme 0.0
+anahtar 0 parlak=0.8
+anahtar 0.5 parlak=1
+anahtar 1
+
+animasyon vurgu-derin-vurgu
+aciklama Vurgu: Derinlik bir an artar
+sure 1.2
+gecikme 0.0
+anahtar 0
+anahtar 0.5 derinlik=1.6
+anahtar 1
+
+animasyon vurgu-egil
+aciklama Vurgu: Öne doğru eğilip döner
+sure 1.2
+gecikme 0.0
+anahtar 0
+anahtar 0.4 aci=12
+anahtar 1
+
+animasyon vurgu-kayma-vurgu
+aciklama Vurgu: Hafif sağa kayıp yerine döner
+sure 1.2
+gecikme 0.0
+anahtar 0
+anahtar 0.5 dx=0.03
+anahtar 1
+
+animasyon vurgu-buyut-sonra-kucult
+aciklama Vurgu: İki kademeli vurgu
+sure 1.5
+gecikme 0.0
+anahtar 0
+anahtar 0.3 olcek=1.07
+anahtar 0.55 olcek=0.97
+anahtar 0.8 olcek=1.03
+anahtar 1
+
+animasyon vurgu-salincak
+aciklama Vurgu: Yavaş salınım
+sure 1.8
+gecikme 0.0
+anahtar 0
+anahtar 0.25 aci=4
+anahtar 0.5 aci=-4
+anahtar 0.75 aci=2
+anahtar 1
+
+animasyon vurgu-kabar
+aciklama Vurgu: Şişer ve söner
+sure 1.0
+gecikme 0.0
+anahtar 0
+anahtar 0.5 olcek=1.1
+anahtar 1
+
+animasyon vurgu-sek
+aciklama Vurgu: Sekerek yerleşir
+sure 1.0
+gecikme 0.0
+anahtar 0
+anahtar 0.3 dy=-0.03
+anahtar 0.5
+anahtar 0.7 dy=-0.012
+anahtar 1
+

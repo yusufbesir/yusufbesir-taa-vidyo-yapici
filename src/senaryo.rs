@@ -4,7 +4,8 @@ use crate::{efekt, tv, *};
 use ab_glyph::FontRef;
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum Gecis { Tv, Perde, Yok }
+pub enum Gecis { Tv, Perde, Kapi, Iris, Slayt, Fade, Neon, Yok }
+pub const GECISLER: [(&str, &str); 8] = [("yok", "Geçiş yok"), ("tv", "Tüplü TV"), ("perde", "Üstten ve alttan perde"), ("kapi", "Ortadan açılan kapı"), ("iris", "Daire iris"), ("slayt", "Üstten slayt kapağı"), ("fade", "Yumuşak karartma"), ("neon", "Neon yanması (tek sefer, yumuşak)")];
 
 #[derive(Clone, Debug)]
 pub struct Sahne { pub metin: String, pub renk: String, pub giris: String, pub cikis: String, pub sure: f32, pub harf: f32, pub efekt: Vec<String>, pub font: String, pub derinlik: f32 }
@@ -30,7 +31,7 @@ pub fn giris_adlari() -> Vec<String> { GIRISLER.iter().map(|x| x.to_string()).ch
 pub fn cikis_adlari() -> Vec<String> { CIKISLAR.iter().map(|x| x.to_string()).chain(crate::animasyon::liste().into_iter().map(|x| x.0)).collect() }
 
 fn gecis(s: &str) -> Result<Gecis, String> {
-    match s { "tv" => Ok(Gecis::Tv), "perde" => Ok(Gecis::Perde), "yok" => Ok(Gecis::Yok), _ => Err(format!("bilinmeyen geçiş: {s} (tv|perde|yok)")) }
+    match s { "tv" => Ok(Gecis::Tv), "perde" => Ok(Gecis::Perde), "kapi" => Ok(Gecis::Kapi), "iris" => Ok(Gecis::Iris), "slayt" => Ok(Gecis::Slayt), "fade" => Ok(Gecis::Fade), "neon" => Ok(Gecis::Neon), "yok" => Ok(Gecis::Yok), _ => Err(format!("bilinmeyen geçiş: {s} (tv|perde|kapi|iris|slayt|fade|neon|yok)")) }
 }
 
 pub fn ayristir(metin: &str) -> Result<Senaryo, String> {
@@ -109,8 +110,8 @@ pub fn dikey_kucult(k: &[u8], w: u32, hv: u32, h: u32) -> Vec<u8> {
     c
 }
 
-pub fn acilis_sn(g: &Gecis) -> f32 { match g { Gecis::Tv => tv::ACILIS_SN, Gecis::Perde => 1.2, Gecis::Yok => 0.0 } }
-pub fn kapanis_sn(g: &Gecis) -> f32 { match g { Gecis::Tv => tv::KAPANIS_SN, Gecis::Perde => 1.2, Gecis::Yok => 0.0 } }
+pub fn acilis_sn(g: &Gecis) -> f32 { match g { Gecis::Tv => tv::ACILIS_SN, Gecis::Yok => 0.0, _ => 1.2 } }
+pub fn kapanis_sn(g: &Gecis) -> f32 { match g { Gecis::Tv => tv::KAPANIS_SN, Gecis::Yok => 0.0, _ => 1.2 } }
 pub fn toplam_sn(s: &Senaryo) -> f32 { acilis_sn(&s.acilis) + s.sahneler.iter().map(|x| x.sure).sum::<f32>() + kapanis_sn(&s.kapanis) }
 
 const GIRIS_SN: f32 = 0.9;
@@ -213,9 +214,51 @@ pub fn perde(t: &mut [u8], w: u32, h: u32, kapali: f32, renk: Renk) {
     }
 }
 
-fn yerlesim(font: &FontRef, w: u32, h: u32, s: &Sahne) -> (Vec<Maske>, f32) {
+/// Açılış/kapanış kaplaması. `kapali`: 0 açık, 1 tam kapalı (siyah). Tv ayrıca işlenir.
+pub fn kaplama(g: &Gecis, t: &mut [u8], w: u32, h: u32, kapali: f32, renk: Renk) {
+    let kapali = kapali.clamp(0.0, 1.0);
+    if kapali <= 0.0 { return; }
+    let cizgi = (w / 120).max(6);
+    match g {
+        Gecis::Perde => perde(t, w, h, kapali, renk),
+        Gecis::Fade => for b in t.iter_mut() { *b = (*b as f32 * (1.0 - kapali)) as u8; },
+        Gecis::Neon => { // iki kademeli, yumuşak: önce yarım, sonra tam yanar (flaş yok)
+            let y = 1.0 - kapali; let f = if y < 0.5 { y * 0.8 } else { 0.4 + (y - 0.5) * 1.2 };
+            for b in t.iter_mut() { *b = (*b as f32 * f.clamp(0.0, 1.0)) as u8; }
+        }
+        Gecis::Slayt => {
+            let alt = (h as f32 * kapali) as u32;
+            for y in 0..h.min(alt + cizgi) { for x in 0..w { let i = ((y * w + x) * 3) as usize; if y < alt { t[i] = 0; t[i + 1] = 0; t[i + 2] = 0; } else if kapali < 1.0 { t[i] = renk.0; t[i + 1] = renk.1; t[i + 2] = renk.2; } } }
+        }
+        Gecis::Kapi => {
+            let pw = (w as f32 / 2.0 * kapali) as u32;
+            for y in 0..h { for x in 0..w {
+                let (sol, sag) = (x < pw, x >= w - pw);
+                let kenar = kapali < 1.0 && ((x >= pw && x < pw + cizgi) || (x + pw >= w.saturating_sub(cizgi) && x + pw < w));
+                let i = ((y * w + x) * 3) as usize;
+                if sol || sag { t[i] = 0; t[i + 1] = 0; t[i + 2] = 0; } else if kenar && pw > 0 { t[i] = renk.0; t[i + 1] = renk.1; t[i + 2] = renk.2; }
+            } }
+        }
+        Gecis::Iris => {
+            let (cx, cy) = (w as f32 / 2.0, h as f32 / 2.0);
+            let maks = (cx * cx + cy * cy).sqrt();
+            let r = maks * (1.0 - kapali);
+            let yum = (w as f32 * 0.03).max(8.0);
+            for y in 0..h { for x in 0..w {
+                let d = ((x as f32 - cx).powi(2) + (y as f32 - cy).powi(2)).sqrt();
+                if d <= r { continue; }
+                let a = ((d - r) / yum).clamp(0.0, 1.0);
+                let i = ((y * w + x) * 3) as usize;
+                for c in 0..3 { t[i + c] = (t[i + c] as f32 * (1.0 - a)) as u8; }
+            } }
+        }
+        _ => {}
+    }
+}
+
+fn yerlesim(font: &FontRef, w: u32, h: u32, s: &Sahne) -> (Vec<Maske>, f32, Vec<(f32, bool)>) {
     if let Some(ad) = s.metin.strip_prefix('@') {
-        return (vec![cizim::maske(ad.trim().to_lowercase().as_str(), w, h, w.min(h) as f32 * 0.9).unwrap()], w as f32 * 0.06);
+        return (vec![cizim::maske(ad.trim().to_lowercase().as_str(), w, h, w.min(h) as f32 * 0.9).unwrap()], w as f32 * 0.06, vec![]);
     }
     if s.metin.contains('|') { return afis_yerlesim(font, w, h, s); }
     let satir = dikey_satirlar(&s.metin);
@@ -229,11 +272,11 @@ fn yerlesim(font: &FontRef, w: u32, h: u32, s: &Sahne) -> (Vec<Maske>, f32) {
         v.push(anim::kaydir(&anim::maske(font, w, h, &[s1.clone()], boylar[k]), (y + sh[k] / 2.0 - h as f32 / 2.0) as i32));
         y += sh[k];
     }
-    (v, boylar.iter().cloned().fold(0.0, f32::max) * 0.14)
+    (v, boylar.iter().cloned().fold(0.0, f32::max) * 0.14, boylar.iter().map(|b| (*b, true)).collect())
 }
 
 /// Açık satırlı düzen: "PEŞİN|FİYATINA|*3|TAKSİT". `*` ile başlayan satır büyük rakamdır ve iki yanına çift çizgi gelir.
-fn afis_yerlesim(font: &FontRef, w: u32, h: u32, s: &Sahne) -> (Vec<Maske>, f32) {
+fn afis_yerlesim(font: &FontRef, w: u32, h: u32, s: &Sahne) -> (Vec<Maske>, f32, Vec<(f32, bool)>) {
     // satır türleri: 0 düz, 1 büyük rakam + çift çizgi (*), 2 büyük rakam + tek çizgi (+), 3 ince yatay çizgi (~)
     let satirlar: Vec<(String, u8)> = s.metin.split('|').map(|x| { let x = x.trim(); match x.chars().next() {
         Some('*') => (x[1..].trim().to_string(), 1), Some('+') => (x[1..].trim().to_string(), 2), Some('~') => (String::new(), 3), _ => (x.to_string(), 0) } }).collect();
@@ -286,7 +329,8 @@ fn afis_yerlesim(font: &FontRef, w: u32, h: u32, s: &Sahne) -> (Vec<Maske>, f32)
         v.push(m);
         y += sh[k] + bosluk;
     }
-    (v, boylar.iter().cloned().fold(0.0, f32::max) * 0.08)
+    let bilgi = satirlar.iter().zip(&boylar).filter(|(sa, _)| sa.1 != 3).map(|(sa, b)| (*b, sa.1 == 0 || sa.1 == 1 || sa.1 == 2)).collect();
+    (v, boylar.iter().cloned().fold(0.0, f32::max) * 0.08, bilgi)
 }
 
 /// Dikey ekran için satırlara böl: her kelime ayrı satır; kısa kelimeler sonrakiyle birleşir.
@@ -305,15 +349,15 @@ pub fn dikey_satirlar(s: &str) -> Vec<String> {
     out
 }
 
-pub struct Hazir { pub maskeler: Vec<Maske>, pub d: f32, pub yuz: Renk, pub yan: Renk, pub zemin: Renk, pub vurgu: Renk }
+pub struct Hazir { pub maskeler: Vec<Maske>, pub d: f32, pub yuz: Renk, pub yan: Renk, pub zemin: Renk, pub vurgu: Renk, pub boylar: Vec<(f32, bool)> }
 
 pub fn hazirla(font: &FontRef, s: &Senaryo) -> Vec<Hazir> {
     let tvli = s.acilis == Gecis::Tv || s.kapanis == Gecis::Tv;
     s.sahneler.iter().map(|sh| {
         let pl = crate::stil::paletli(&sh.renk).unwrap();
         let sf = crate::stil::font(&sh.font);
-        let (maskeler, d) = yerlesim(sf.as_ref().unwrap_or(font), s.w, s.sanal_h(), sh);
-        Hazir { maskeler, d: d * sh.derinlik, yuz: pl.yuz, yan: pl.yan, zemin: if tvli { Renk(18, 20, 24) } else { pl.zemin }, vurgu: pl.vurgu }
+        let (maskeler, d, boylar) = yerlesim(sf.as_ref().unwrap_or(font), s.w, s.sanal_h(), sh);
+        Hazir { maskeler, d: d * sh.derinlik, yuz: pl.yuz, yan: pl.yan, zemin: if tvli { Renk(18, 20, 24) } else { pl.zemin }, vurgu: pl.vurgu, boylar }
     }).collect()
 }
 
@@ -358,8 +402,8 @@ pub fn kare_uret(s: &Senaryo, hz: &[Hazir], t: f32, no: u32) -> Vec<u8> {
     let normal = tv::Tup { sv: 1.0, sh: 1.0, flas: 0.0, parlak: 0.985 + 0.015 * (no as f32 * 0.9).sin(), gurultu: 0.0 };
     if s.acilis == Gecis::Tv && t < acik_bitis { return tv::tup(&k, w, h, tv::acilis(t), no); }
     if s.kapanis == Gecis::Tv && t > kapat_basla { return tv::tup(&k, w, h, tv::kapanis(t - kapat_basla), no); }
-    if s.acilis == Gecis::Perde && t < acik_bitis { perde(&mut k, w, h, 1.0 - anim::yumusak(t / acik_bitis), z.yuz); }
-    if s.kapanis == Gecis::Perde && t > kapat_basla { perde(&mut k, w, h, anim::yumusak((t - kapat_basla) / ka), z.yuz); }
+    if t < acik_bitis { kaplama(&s.acilis, &mut k, w, h, 1.0 - anim::yumusak(t / acik_bitis), z.yuz); }
+    if t > kapat_basla { kaplama(&s.kapanis, &mut k, w, h, anim::yumusak((t - kapat_basla) / ka), z.yuz); }
     if s.acilis == Gecis::Tv || s.kapanis == Gecis::Tv { return tv::tup(&k, w, h, normal, no); }
     k
 }

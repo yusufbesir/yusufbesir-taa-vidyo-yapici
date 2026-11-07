@@ -1,0 +1,72 @@
+# Üretilmiş animasyon paketi (biçim için temel.txt'ye bakın)
+
+animasyon tek-tek-sol
+aciklama Satırlar sırayla soldan kayar
+sure 1.0
+gecikme 0.45
+anahtar 0 dx=-1 parlak=0
+anahtar 1
+
+animasyon tek-tek-sag
+aciklama Satırlar sırayla sağdan kayar
+sure 1.0
+gecikme 0.45
+anahtar 0 dx=1 parlak=0
+anahtar 1
+
+animasyon tek-tek-alt
+aciklama Satırlar sırayla alttan çıkar
+sure 1.0
+gecikme 0.45
+anahtar 0 dy=0.6 parlak=0
+anahtar 1
+
+animasyon tek-tek-ust
+aciklama Satırlar sırayla üstten iner
+sure 1.0
+gecikme 0.45
+anahtar 0 dy=-0.6 parlak=0
+anahtar 1
+
+animasyon tek-tek-zoom
+aciklama Satırlar sırayla büyüyerek gelir
+sure 1.0
+gecikme 0.45
+anahtar 0 olcek=0.2 parlak=0
+anahtar 1
+
+animasyon tek-tek-don
+aciklama Satırlar sırayla dönerek gelir
+sure 1.1
+gecikme 0.45
+anahtar 0 aci=120 olcek=0.5 parlak=0
+anahtar 1
+
+animasyon tek-tek-belir
+aciklama Satırlar sırayla belirir
+sure 0.9
+gecikme 0.45
+anahtar 0 parlak=0
+anahtar 1
+
+animasyon tek-tek-sicra
+aciklama Satırlar sırayla sıçrar
+sure 1.1
+gecikme 0.45
+anahtar 0 dy=0.9 parlak=0.3
+anahtar 1
+
+animasyon tek-tek-buyuk
+aciklama Satırlar sırayla dev boydan iner
+sure 1.0
+gecikme 0.45
+anahtar 0 olcek=2.2 parlak=0
+anahtar 1
+
+animasyon tek-tek-flip
+aciklama Satırlar sırayla çevrilir
+sure 1.0
+gecikme 0.45
+anahtar 0 aci=90 parlak=0.1
+anahtar 1
+
