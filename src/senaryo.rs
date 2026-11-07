@@ -209,7 +209,7 @@ fn afis_yerlesim(font: &FontRef, w: u32, h: u32, s: &Sahne) -> (Vec<Maske>, f32)
         Some('*') => (x[1..].trim().to_string(), 1), Some('+') => (x[1..].trim().to_string(), 2), Some('~') => (String::new(), 3), _ => (x.to_string(), 0) } }).collect();
     let yazili = |k: u8| k == 0;
     let buyuk = |k: u8| k == 1 || k == 2;
-    let fit = |t: &str| (w as f32 * 0.80 / genislik(font, t, 100.0).max(1.0) * 100.0).min(s.harf);
+    let fit = |t: &str| (w as f32 * 0.88 / genislik(font, t, 100.0).max(1.0) * 100.0).min(s.harf);
     let ref_boy = satirlar.iter().filter(|x| yazili(x.1)).map(|x| fit(&x.0)).fold(f32::MAX, f32::min).min(s.harf);
     let mut boylar: Vec<f32> = satirlar.iter().map(|(t, k)| if buyuk(*k) { (ref_boy * 3.6).min(s.harf * 1.8).min(h as f32 * 0.34) } else if *k == 3 { 0.0 } else { fit(t) }).collect();
     // art arda gelen düz satırlar aynı boyda olsun (en küçüğüne eşitlenir): PEŞİN / FİYATINA gibi
