@@ -68,7 +68,8 @@ summary{cursor:pointer;color:var(--altin);font-weight:600}
       </div>
       <label>Efektler</label>
       <div class="satir" id="s_efekt"></div>
-      <div style="margin-top:10px"><button id="ekle">Sahneyi ekle</button></div>
+      <div style="margin-top:10px"><button id="ekle">Sahneyi ekle</button> <button class="ikinci" id="oynat">Seçili giriş ve çıkışı oynat</button> <span id="sayi" class="not"></span></div>
+      <p class="not">Yeni animasyon eklemek için şu klasörlerden birine anahtar kareli .txt dosyası koyun (★ ile görünür): <span id="ozelklasor"></span></p>
     </details>
     <p class="not">Ekran ölçüsü, geçişler ve sahneler bu metinle belirlenir. Ayrıntı için README dosyasına bakın.</p>
   </section>
@@ -95,13 +96,9 @@ summary{cursor:pointer;color:var(--altin);font-weight:600}
 const $=id=>document.getElementById(id);
 const H={'X-LED':'1'};
 const RENK={altin:'Altın',sari:'Sarı',beyaz:'Beyaz (kısık)',turuncu:'Turuncu',cyan:'Cyan',magenta:'Magenta',lime:'Lime'};
-const GIRIS=['yok','donerek','zipla','yandan','zoom','alttan','ustten','belir','elastik','daktilo','sil','toplan'];
-const CIKIS=['yok','yukari','asagi','donerek','sondur','kucul','sil','dagil'];
-const EFEKT=['parlama','pirilti','cerceve','cift-cerceve','parcacik','kivilcim'];
-function doldur(id,liste,sec){const s=$(id);liste.forEach(v=>{const o=document.createElement('option');o.value=Array.isArray(liste)?v:v;o.textContent=v;s.appendChild(o)});if(sec)s.value=sec}
+function doldur(id,liste,sec){const s=$(id);s.innerHTML='';liste.forEach(v=>{const o=document.createElement('option');o.value=v.ad;o.textContent=v.ad+(v.ozel?' ★':'')+' — '+v.acik;s.appendChild(o)});if(sec)s.value=sec}
 const rs=$('s_renk');Object.entries(RENK).forEach(([k,v])=>{const o=document.createElement('option');o.value=k;o.textContent=v;rs.appendChild(o)});rs.value='altin';
-doldur('s_giris',GIRIS,'toplan');doldur('s_cikis',CIKIS,'dagil');
-EFEKT.forEach(e=>{const l=document.createElement('label');l.style.cssText='display:inline-flex;gap:5px;margin:0;align-items:center';l.innerHTML='<input type="checkbox" value="'+e+'"'+(e==='parlama'?' checked':'')+'> '+e;$('s_efekt').appendChild(l)});
+function efektDoldur(liste){const k=$('s_efekt');k.innerHTML='';liste.forEach(e=>{const l=document.createElement('label');l.style.cssText='display:inline-flex;gap:5px;margin:0;align-items:center';l.title=e.acik;l.innerHTML='<input type="checkbox" value="'+e.ad+'"'+(e.ad==='parlama'?' checked':'')+'> '+e.ad;k.appendChild(l)})}
 let toplam=10,bekle=null,istek=0;
 function kaydet(){try{localStorage.setItem('led_metin',$('metin').value)}catch(e){}}
 async function bilgi(){
@@ -110,6 +107,9 @@ async function bilgi(){
   $('ff').innerHTML=b.ffmpeg?'<span class="ffvar">ffmpeg hazır</span>':'<span class="ffyok">ffmpeg bulunamadı</span>';
   $('ff').title=b.ffmpeg||'ffmpeg.exe dosyasını programın klasörüne veya D:\\Programlar\\Araçlar Ve İndirilenler altına koyun';
   $('klas').textContent='Videolar şu klasöre yazılır: '+b.klasor;
+  doldur('s_giris',b.girisler,'toplan');doldur('s_cikis',b.cikislar,'dagil');efektDoldur(b.efektler);
+  $('ozelklasor').textContent=b.animasyon_klasorleri.join('  |  ');
+  $('sayi').textContent=b.girisler.length+' giriş, '+b.cikislar.length+' çıkış, '+b.efektler.length+' efekt';
   b.ornekler.forEach(a=>{const o=document.createElement('option');o.value=a;o.textContent=a;$('ornek').appendChild(o)});
   let kayit='';try{kayit=localStorage.getItem('led_metin')||''}catch(e){}
   if(kayit){$('metin').value=kayit}else{await ornekYukle('tv-afis')}
@@ -133,6 +133,19 @@ $('ekle').onclick=()=>{
   const m=$('s_metin').value.replace(/"/g,'');
   const satir='sahne "'+m+'" renk='+$('s_renk').value+' giris='+$('s_giris').value+' cikis='+$('s_cikis').value+' sure='+$('s_sure').value+' efekt='+ef;
   const t=$('metin');t.value=t.value.replace(/\s*$/,'')+'\n'+satir+'\n';kaydet();onizle();
+};
+$('oynat').onclick=async()=>{
+  const ef=[...document.querySelectorAll('#s_efekt input:checked')].map(c=>c.value).join(',')||'yok';
+  const m=$('s_metin').value.replace(/"/g,'');
+  const sen='ekran 490x900\nfiziksel 8x25\nfps 25\nsahne "'+m+'" renk='+$('s_renk').value+' giris='+$('s_giris').value+' cikis='+$('s_cikis').value+' sure=4 efekt='+ef+'\n';
+  $('oynat').disabled=true;$('hata').textContent='';
+  const turlar=[...Array(9).keys()].map(i=>i*0.2).concat([...Array(8).keys()].map(i=>2.6+i*0.15));
+  for(const t of turlar){
+    const r=await fetch('/onizle?t='+t.toFixed(2),{method:'POST',headers:H,body:sen});
+    if(!r.ok){$('hata').textContent=await r.text();break}
+    const u=URL.createObjectURL(await r.blob());const eski=$('resim').src;$('resim').src=u;if(eski.startsWith('blob:'))URL.revokeObjectURL(eski);
+  }
+  $('oynat').disabled=false;
 };
 $('uret').onclick=async()=>{
   $('sonuc').className='sonuc';$('sonuc').textContent='';

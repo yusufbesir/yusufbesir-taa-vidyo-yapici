@@ -9,7 +9,7 @@ cargo zigbuild --release --target "$HEDEF"
 PAKET="$(mktemp -d)"
 cp "$CARGO_TARGET_DIR/$HEDEF/release/led-ekran-video.exe" "$PAKET/"
 cp logo/simge.ico README.md "$PAKET/"
-mkdir "$PAKET/senaryolar" && cp senaryolar/*.txt "$PAKET/senaryolar/"
+mkdir "$PAKET/senaryolar" "$PAKET/animasyonlar" && cp senaryolar/*.txt "$PAKET/senaryolar/" && cp animasyonlar/*.txt "$PAKET/animasyonlar/"
 LED_PAKET="$PAKET" cargo zigbuild --release --target "$HEDEF" --manifest-path kurulum/Cargo.toml --target-dir "$CARGO_TARGET_DIR/kurulum"
 mkdir -p dist
 cp "$CARGO_TARGET_DIR/$HEDEF/release/led-ekran-video.exe" dist/

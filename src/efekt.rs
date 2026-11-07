@@ -126,6 +126,65 @@ pub fn kivilcimlar(t: &mut [u8], w: u32, h: u32, zaman: f32, n: u32, renk: Renk,
     }
 }
 
+/// Yavaşça düşen, sallanan beyaz kar taneleri.
+pub fn kar(t: &mut [u8], w: u32, h: u32, zaman: f32, n: u32, tohum: u32) {
+    for k in 0..n {
+        let s = |o: u32| hash(tohum * 1000 + k * 13 + o);
+        let hiz = 40.0 + s(0) * 90.0;
+        let dongu = h as f32 + 60.0;
+        let y = (zaman * hiz + s(1) * dongu).rem_euclid(dongu) - 30.0;
+        let x = s(2) * w as f32 + (zaman * (0.5 + s(3)) + s(4) * 6.28).sin() * (15.0 + s(5) * 35.0);
+        nokta(t, w, h, x, y, (3.0 + s(6) * 8.0) * (w as f32 / 980.0), Renk(210, 210, 205), 0.5 + 0.5 * s(7));
+    }
+}
+
+/// Hızlı eğik ince yağmur çizgileri.
+pub fn yagmur(t: &mut [u8], w: u32, h: u32, zaman: f32, n: u32, renk: Renk, tohum: u32) {
+    for k in 0..n {
+        let s = |o: u32| hash(tohum * 1000 + k * 17 + o);
+        let hiz = 500.0 + s(0) * 500.0;
+        let dongu = h as f32 + 200.0;
+        let y0 = (zaman * hiz + s(1) * dongu).rem_euclid(dongu) - 100.0;
+        let x0 = s(2) * w as f32 - (y0 * 0.12);
+        for q in 0..9 {
+            let yy = y0 - q as f32 * 9.0;
+            nokta(t, w, h, x0 + (y0 - yy) * 0.12, yy, (2.2 - q as f32 * 0.2).max(0.8) * (w as f32 / 980.0), renk, 0.7 - q as f32 * 0.07);
+        }
+    }
+}
+
+/// Merkezden dışa yayılan ince, yumuşak halkalar (sakin, yavaş).
+pub fn halkalar(t: &mut [u8], w: u32, h: u32, zaman: f32, renk: Renk) {
+    let (cx, cy) = (w as f32 / 2.0, h as f32 / 2.0);
+    let maks = ((w * w + h * h) as f32).sqrt() / 2.0;
+    for i in 0..3 {
+        let p = (zaman * 0.22 + i as f32 / 3.0).rem_euclid(1.0);
+        let r = p * maks;
+        let a = (1.0 - p) * 0.55;
+        let adim = 90;
+        for j in 0..adim {
+            let aci = j as f32 / adim as f32 * 6.2832;
+            nokta(t, w, h, cx + aci.cos() * r, cy + aci.sin() * r, 3.0 * (w as f32 / 980.0), renk, a);
+        }
+    }
+}
+
+/// Ara sıra ekranı çaprazlayan kayan yıldızlar (kuyruklu).
+pub fn kayan_yildizlar(t: &mut [u8], w: u32, h: u32, zaman: f32, renk: Renk, tohum: u32) {
+    for k in 0..4u32 {
+        let s = |o: u32| hash(tohum * 100 + k * 5 + o);
+        let periyot = 2.5 + s(0) * 2.0;
+        let p = ((zaman + s(1) * periyot) / periyot).fract() * periyot / 1.0; // 0..periyot
+        if p > 1.0 { continue; }
+        let (bx, by) = (s(2) * w as f32 * 0.8 + w as f32 * 0.2, s(3) * h as f32 * 0.4);
+        let (vx, vy) = (-(w as f32) * 0.9, h as f32 * 0.5);
+        for kuyruk in 0..14 {
+            let q = (p - kuyruk as f32 * 0.012).max(0.0);
+            nokta(t, w, h, bx + vx * q, by + vy * q, (4.5 - kuyruk as f32 * 0.3).max(1.0) * (w as f32 / 980.0), renk, (1.0 - kuyruk as f32 / 14.0) * (1.0 - p * 0.5));
+        }
+    }
+}
+
 #[cfg(test)]
 mod t {
     use super::*;
@@ -138,6 +197,17 @@ mod t {
         let mut b = vec![0u8; (w * h * 3) as usize];
         kivilcimlar(&mut b, w, h, 0.5, 40, Renk(255, 206, 48), 1);
         assert!(b.iter().any(|&x| x > 100));
+    }
+    #[test]
+    fn yeni_efektler_cizer() {
+        let (w, h) = (300u32, 500u32);
+        for (ad, f) in [("kar", 0), ("yagmur", 1), ("halka", 2), ("kayan", 3)] {
+            let mut a = vec![0u8; (w * h * 3) as usize];
+            for zaman in [0.2f32, 0.7, 1.3] {
+                match f { 0 => kar(&mut a, w, h, zaman, 60, 1), 1 => yagmur(&mut a, w, h, zaman, 60, Renk(255, 206, 48), 1), 2 => halkalar(&mut a, w, h, zaman, Renk(255, 206, 48)), _ => kayan_yildizlar(&mut a, w, h, zaman, Renk(255, 206, 48), 1) }
+            }
+            assert!(a.iter().any(|&b| b > 100), "{ad}");
+        }
     }
     #[test]
     fn cerceve_ve_piriltilar_cizer() {

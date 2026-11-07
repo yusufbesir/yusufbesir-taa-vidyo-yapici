@@ -14,7 +14,18 @@ pub struct Senaryo { pub w: u32, pub h: u32, pub fiziksel: Option<(f32, f32)>, p
 
 pub const GIRISLER: [&str; 12] = ["yok", "donerek", "zipla", "yandan", "zoom", "alttan", "ustten", "belir", "elastik", "daktilo", "sil", "toplan"];
 pub const CIKISLAR: [&str; 8] = ["yok", "yukari", "asagi", "donerek", "sondur", "kucul", "sil", "dagil"];
-pub const EFEKTLER: [&str; 6] = ["parlama", "pirilti", "cerceve", "cift-cerceve", "parcacik", "kivilcim"];
+pub const EFEKTLER: [&str; 10] = ["parlama", "pirilti", "cerceve", "cift-cerceve", "parcacik", "kivilcim", "kar", "yagmur", "halka", "kayan-yildiz"];
+
+const ESKI_GIRIS_ACIK: [&str; 12] = ["Giriş animasyonu yok (hemen görünür)", "Dönerek büyüyerek girer", "Yukarıdan zıplayarak gelir", "Yandan dönerek kayar", "Dev boyuttan yerine küçülür", "Alttan yükselir", "Üstten iner", "Yavaşça belirir, satırlar sırayla", "Yaylanarak büyür", "Harf harf yazılır", "Soldan sağa açılır", "Parçacıklardan toplanır"];
+const ESKI_CIKIS_ACIK: [&str; 8] = ["Çıkış animasyonu yok", "Yukarı kayarak çıkar", "Aşağı kayarak çıkar", "Dönerek kaybolur", "Yavaşça söner", "Dönerek küçülüp kaybolur", "Soldan sağa silinir", "Parçacıklara dağılır"];
+/// (ad, açıklama, özel_mi) listeleri; arayüz açılır listeleri bundan beslenir.
+pub fn giris_listesi() -> Vec<(String, String, bool)> { GIRISLER.iter().zip(ESKI_GIRIS_ACIK).map(|(a, b)| (a.to_string(), b.to_string(), false)).chain(crate::animasyon::liste()).collect() }
+pub fn cikis_listesi() -> Vec<(String, String, bool)> { CIKISLAR.iter().zip(ESKI_CIKIS_ACIK).map(|(a, b)| (a.to_string(), b.to_string(), false)).chain(crate::animasyon::liste()).collect() }
+pub const EFEKT_ACIK: [&str; 10] = ["Yazıdan geçen ışık", "Pırıltı yıldızları", "Koşan ışıklı çerçeve", "Çift çizgi çerçeve", "Süzülen parçacıklar", "Uçan kıvılcımlar", "Yağan kar", "Eğik yağmur", "Merkezden yayılan halkalar", "Kayan yıldızlar"];
+
+/// Geçerli giriş adları: eski özel durumlular + animasyon kütüphanesi (yerleşik ve özel).
+pub fn giris_adlari() -> Vec<String> { GIRISLER.iter().map(|x| x.to_string()).chain(crate::animasyon::liste().into_iter().map(|x| x.0)).collect() }
+pub fn cikis_adlari() -> Vec<String> { CIKISLAR.iter().map(|x| x.to_string()).chain(crate::animasyon::liste().into_iter().map(|x| x.0)).collect() }
 
 fn gecis(s: &str) -> Result<Gecis, String> {
     match s { "tv" => Ok(Gecis::Tv), "perde" => Ok(Gecis::Perde), "yok" => Ok(Gecis::Yok), _ => Err(format!("bilinmeyen geçiş: {s} (tv|perde|yok)")) }
@@ -34,8 +45,8 @@ pub fn ayristir(metin: &str) -> Result<Senaryo, String> {
                 let (k, v) = kv.split_once('=').ok_or_else(|| hata(&format!("anahtar=değer bekleniyor: {kv}")))?;
                 match k {
                     "renk" => { if palet(v).is_none() { return Err(hata(&format!("bilinmeyen renk: {v}"))); } sh.renk = v.into() }
-                    "giris" => { if !GIRISLER.contains(&v) { return Err(hata(&format!("bilinmeyen giriş: {v} ({GIRISLER:?})"))); } sh.giris = v.into() }
-                    "cikis" => { if !CIKISLAR.contains(&v) { return Err(hata(&format!("bilinmeyen çıkış: {v} ({CIKISLAR:?})"))); } sh.cikis = v.into() }
+                    "giris" => { if !giris_adlari().iter().any(|x| x == v) { return Err(hata(&format!("bilinmeyen giriş: {v} (olanlar: {})", giris_adlari().join(", ")))); } sh.giris = v.into() }
+                    "cikis" => { if !cikis_adlari().iter().any(|x| x == v) { return Err(hata(&format!("bilinmeyen çıkış: {v} (olanlar: {})", cikis_adlari().join(", ")))); } sh.cikis = v.into() }
                     "sure" => sh.sure = v.parse().map_err(|_| hata("sure sayı olmalı"))?,
                     "harf" => sh.harf = v.parse().map_err(|_| hata("harf sayı olmalı"))?,
                     "efekt" => { sh.efekt = v.split(',').filter(|e| *e != "yok").map(String::from).collect(); for e in &sh.efekt { if !EFEKTLER.contains(&e.as_str()) { return Err(hata(&format!("bilinmeyen efekt: {e}"))); } } }
@@ -107,8 +118,14 @@ pub fn satir_poz(giris: &str, cikis: &str, t: f32, sure: f32, li: usize, d: f32,
     let pi = std::f32::consts::PI;
     let faz = li as f32 * 0.9;
     let sal = Poz { aci: ((t - GIRIS_SN).max(0.0) * 1.3 + faz).sin() * 0.26, olcek: 1.0 + 0.03 * (t * 3.0 + faz).sin(), parlak: 1.0, derinlik: d, dx: 0.0, dy: (t * 2.0 + faz).sin() * 6.0 };
-    let cs = if cikis == "dagil" { 1.2 } else { CIKIS_SN };
+    let kutuphane_cikis = crate::animasyon::bilgi(cikis);
+    let cs = if cikis == "dagil" { 1.2 } else if let Some((sn, _)) = kutuphane_cikis { sn } else { CIKIS_SN };
     if cikis != "yok" && t > sure - cs {
+        if kutuphane_cikis.is_some() {
+            let k = ((t - (sure - cs)) / cs).clamp(0.0, 1.0);
+            let c = crate::animasyon::Ctx { w, h, li, d, sal };
+            if let Some(p) = crate::animasyon::poz(cikis, 1.0 - k, &c) { return p; }
+        }
         let k = ((t - (sure - cs)) / cs).clamp(0.0, 1.0);
         let e = k * k * (3.0 - 2.0 * k);
         let mut p = sal;
@@ -127,6 +144,15 @@ pub fn satir_poz(giris: &str, cikis: &str, t: f32, sure: f32, li: usize, d: f32,
         let ti = t - li as f32 * 0.15;
         if ti < 1.4 { return Poz { parlak: 0.0, ..sal }; }
         if ti < 1.7 { return Poz { derinlik: d * anim::yumusak((ti - 1.4) / 0.3), ..sal }; }
+        return sal;
+    }
+    if let Some((gsn, ggec)) = crate::animasyon::bilgi(giris) {
+        let ti = t - li as f32 * ggec;
+        if ti < 0.0 { return Poz { parlak: 0.0, ..sal }; }
+        if ti < gsn {
+            let c = crate::animasyon::Ctx { w, h, li, d, sal };
+            if let Some(p) = crate::animasyon::poz(giris, ti / gsn, &c) { return p; }
+        }
         return sal;
     }
     if giris != "yok" {
@@ -304,6 +330,10 @@ pub fn kare_uret(s: &Senaryo, hz: &[Hazir], t: f32, no: u32) -> Vec<u8> {
     // ilk sahne açılışla birlikte zaten görünür: girişi açılış geçişi yapar
     let giris = if idx == 0 && s.acilis != Gecis::Yok { "yok" } else { sh.giris.as_str() };
     if sh.efekt.iter().any(|e| e == "parcacik") { efekt::parcaciklar(&mut k, w, h, t, 60, z.yuz, idx as u32 + 7); }
+    if sh.efekt.iter().any(|e| e == "kar") { efekt::kar(&mut k, w, h, t, 90, idx as u32 + 11); }
+    if sh.efekt.iter().any(|e| e == "yagmur") { efekt::yagmur(&mut k, w, h, t, 70, z.yuz, idx as u32 + 13); }
+    if sh.efekt.iter().any(|e| e == "halka") { efekt::halkalar(&mut k, w, h, t, z.yuz); }
+    if sh.efekt.iter().any(|e| e == "kayan-yildiz") { efekt::kayan_yildizlar(&mut k, w, h, t, z.yuz, idx as u32 + 17); }
     if sh.efekt.iter().any(|e| e == "kivilcim") { efekt::kivilcimlar(&mut k, w, h, t, 40, z.yuz, idx as u32 + 3); }
     for (li, m) in z.maskeler.iter().enumerate() {
         let ti = yerel - li as f32 * 0.15;
@@ -354,7 +384,7 @@ mod t {
     }
     #[test]
     fn hata_mesajlari() {
-        assert!(ayristir("sahne \"A\" giris=uzay").unwrap_err().contains("bilinmeyen giriş"));
+        assert!(ayristir("sahne \"A\" giris=xyzzy").unwrap_err().contains("bilinmeyen giriş"));
         assert!(ayristir("acilis tvv\nsahne \"A\"").is_err());
         assert!(ayristir("ekran 10x10").unwrap_err().contains("sahne"));
         assert!(ayristir("sahne \"@yok\"").unwrap_err().contains("çizim"));

@@ -24,13 +24,32 @@ kapanis tv           # tv | perde | yok
 sahne "PEŞİN|FİYATINA|*3|TAKSİT" renk=altin giris=toplan cikis=dagil sure=8 efekt=parlama,parcacik
 ```
 - **renk:** altin, sari, beyaz (kısık), turuncu, cyan, magenta, lime (siyah/koyu zemin).
-- **giris:** yok, donerek, zipla, yandan, zoom, alttan, ustten, belir (yavaşça belirir), elastik (yaylanarak büyür), daktilo (harf harf yazılır), sil (soldan sağa açılır), toplan (parçacıklardan toplanır).
+- **giris:** yok, donerek, zipla, yandan, zoom, alttan, ustten, belir (yavaşça belirir), elastik (yaylanarak büyür), daktilo (harf harf yazılır), sil (soldan sağa açılır), toplan (parçacıklardan toplanır). Ayrıca "Animasyon kütüphanesi" bölümündeki tüm adlar (spiral, salincak, neon, mercek, ...).
 - **cikis:** yok, yukari, asagi, donerek, sondur, kucul (dönerek küçülür), sil (soldan sağa silinir), dagil (parçacıklara dağılır).
-- **efekt:** parlama (yazıdan geçen ışık), pirilti (yıldızlar), cerceve (koşan ışıklı çerçeve), cift-cerceve (çift çizgi çerçeve), parcacik (süzülen parçacıklar), kivilcim (uçan kıvılcımlar); `efekt=yok` hepsini kapatır.
+- **efekt:** parlama (yazıdan geçen ışık), pirilti (yıldızlar), cerceve (koşan ışıklı çerçeve), cift-cerceve (çift çizgi çerçeve), parcacik (süzülen parçacıklar), kivilcim (uçan kıvılcımlar), kar, yagmur, halka, kayan-yildiz; `efekt=yok` hepsini kapatır.
 - **Düzen:** `sahne "PEŞİN|FİYATINA|*3|TAKSİT"`: `|` açık satır ayırır, `*` ile başlayan satır büyük rakamdır ve yanlarına çift çizgi gelir. `|` yoksa kelimeler alt alta dizilir.
 - **Çizimler:** `@cicek`, `@papatya`, `@yildiz`, `@rozet`, `@cerceve`, `@elmas` (varsayılan senaryolarda yok, yalnızca istenirse eklenir; bkz. senaryolar/ornek-cicekli.txt).
 - Hata olursa satır numarasıyla Türkçe mesaj verir.
 - `--genislik/--yukseklik/--fps` senaryodaki değeri geçersiz kılar (genişlik çift sayı olmalı), `--duz` fiziksel düzeltmeyi kapatır, `--kodek hap` HAP üretir.
+
+## Animasyon kütüphanesi (çok sayıda, eklenebilir)
+Her animasyon hem **giriş** hem **çıkış** olarak kullanılır (çıkışta ters oynar): `giris=spiral cikis=spiral`. Arayüzde açılır listeler kütüphaneden dolar; "Seçili giriş ve çıkışı oynat" düğmesi hemen önizletir.
+- **Yerleşik (kodla):** dusus, sagdan, soldan, merdiven, cevir, salincak, buyu, patla, sarsil, dalga, yay-sag, yay-sol, ucarak, spiral, derinles, uzaktan, sinema, capraz, asilma, nabiz, neon, yavas-belir, yuksel, donerek-buyu, yildiz; ayrıca eski donerek, zipla, yandan, zoom, alttan, ustten, belir, elastik, daktilo, sil, toplan (parçacık) ve çıkışlar yukari, asagi, sondur, kucul, dagil.
+- **Özel (metin dosyası):** `animasyonlar/temel.txt` ve `vurucu.txt` gömülüdür (mercek, gelgit, kapi, firlat, yaprak, sicra, yildirim, agirlik, firtina, mekik, uzay, ...).
+- **Kendi animasyonunu ekle:** programı değiştirmeden `.txt` dosyası yaz ve şu klasörlerden birine koy: programın yanındaki `animasyonlar`, `Videolar\LED-Ekran-Video\animasyonlar` veya `LED_ANIMASYON` ortam değişkeniyle verilen klasör. Aynı ada sahip dosya yerleşik özelin yerine geçer. Biçim:
+```
+animasyon uzaydan-gel          # tek kelime ad
+aciklama Uzaktan küçük gelir   # arayüzde görünür
+sure 1.2                       # saniye (0.2-5)
+gecikme 0.2                    # satırlar arası gecikme
+egri yumusak                   # yumusak | dogrusal
+anahtar 0.0 olcek=0.05 aci=360 parlak=0   # k=0 başlangıç
+anahtar 0.7 olcek=1.15 aci=-20 parlak=1
+anahtar 1.0                    # k=1 yerine oturmuş hâl (belirtilmezse eklenir)
+```
+Alanlar: `dx`, `dy` (ekran oranı; dx=-1 bir ekran genişliği sola), `olcek`, `aci` (derece, dikey eksende dönme), `parlak` (0-1), `derinlik` (3B kalınlık katsayısı). Hatalar satır numarasıyla Türkçe bildirilir.
+- **Efektler (10):** parlama, pirilti, cerceve, cift-cerceve, parcacik, kivilcim, kar, yagmur, halka, kayan-yildiz.
+- Hepsini görmek için: `senaryolar/animasyon-galerisi.txt`.
 
 ## Fiziksel ekran ölçüsü
 `fiziksel 8x25` (metre, genişlik x yükseklik) verilirse program gerçek ekran oranında (kare piksel) çizer ve çıkışta dikeyde piksel yüksekliğine indirir. Örnek: 8 m / 950 px = 8,4 mm, 25 m / 1800 px = 13,9 mm; piksel oranı 1,65. Düzeltme olmazsa yazı ve çizimler ekranda 1,7 kat gerilir. Resolume’da kompozisyon 950x1800 olmalı ve video ölçeksiz oynatılmalı.
@@ -48,4 +67,4 @@ ARASTIRMA-DIS-LED-EKRAN.md: beyaz kısık, flaş yok, tarama çizgisi yok, kalı
 `./derle-windows.sh` (gerekenler: `rustup target add x86_64-pc-windows-gnu`, `pip install ziglang`, `cargo install cargo-zigbuild`) `dist/` altına `led-ekran-video.exe` ve `LED-Ekran-Video-Kurulum.exe` üretir. Simge `logo/simge.ico` (kısayollarda kullanılır; exe dosyasına gömülü değildir).
 
 ## Durum
-Çekirdek, senaryo motoru, arayüz, kurulum ve kaldırma hazır (24 test; Linux'ta arayüz ve kurulum mantığı denendi). Render CPU'da çalışır (10 sn video yaklaşık 2,5-3 dk). Windows exe'nin kendisi bir Windows bilgisayarda henüz denenmedi.
+Çekirdek, senaryo motoru, arayüz, kurulum ve kaldırma hazır (29 test; Linux'ta arayüz ve kurulum mantığı denendi). Render CPU'da çalışır (10 sn video yaklaşık 2,5-3 dk). Windows exe'nin kendisi bir Windows bilgisayarda henüz denenmedi.

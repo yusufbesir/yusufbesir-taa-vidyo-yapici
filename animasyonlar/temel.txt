@@ -1,0 +1,93 @@
+# Anahtar kareli animasyonlar: k=0 başlangıç (görünmez/uzak), k=1 yerine oturmuş hâl.
+# Alanlar: dx dy (ekran oranı; dx=-1 bir ekran genişliği sola), olcek, aci (derece, dikey eksen), parlak (0..1), derinlik (kat)
+# Her animasyon hem giriş hem çıkış olarak kullanılır (çıkışta ters oynar). Yeni animasyon eklemek için bu biçimi kopyalayın.
+
+animasyon mercek
+aciklama Dev ve bulanık başlar, mercek gibi odaklanır
+sure 1.3
+anahtar 0.0 olcek=3.0 parlak=0
+anahtar 0.6 olcek=1.15 parlak=0.9
+anahtar 1.0
+
+animasyon gelgit
+aciklama Soldan dalga gibi gelir, hafif geçip geri döner
+sure 1.2
+anahtar 0.0 dx=-1.2 parlak=0.3
+anahtar 0.65 dx=0.06 parlak=1
+anahtar 1.0
+
+animasyon kapi
+aciklama Kapı gibi açılır (dikey eksende 90 dereceden)
+sure 1.1
+anahtar 0.0 aci=90 parlak=0.2 olcek=0.8
+anahtar 0.7 aci=-12 parlak=1 olcek=1
+anahtar 1.0
+
+animasyon ters-kapi
+aciklama Kapı gibi açılır (ters yönden)
+sure 1.1
+anahtar 0.0 aci=-90 parlak=0.2 olcek=0.8
+anahtar 0.7 aci=12 parlak=1 olcek=1
+anahtar 1.0
+
+animasyon firlat
+aciklama Aşağıdan fırlar, biraz geçip oturur
+sure 1.0
+anahtar 0.0 dy=1.3 olcek=0.6 parlak=0.4
+anahtar 0.65 dy=-0.06 olcek=1.12 parlak=1
+anahtar 1.0
+
+animasyon yaprak
+aciklama Sağdan sola sallanarak süzülür
+sure 1.8
+gecikme 0.25
+anahtar 0.0 dx=0.7 dy=-0.45 aci=40 parlak=0.2
+anahtar 0.35 dx=-0.25 dy=-0.25 aci=-25 parlak=0.8
+anahtar 0.7 dx=0.12 dy=-0.08 aci=12 parlak=1
+anahtar 1.0
+
+animasyon sicra
+aciklama Yoktan çıkıp büyür, küçülür, yerine oturur
+sure 1.0
+anahtar 0.0 olcek=0.1 parlak=0
+anahtar 0.45 olcek=1.35 parlak=1
+anahtar 0.75 olcek=0.9
+anahtar 1.0
+
+animasyon yildirim
+aciklama Kısa ışık titremeleriyle yanar (yavaş, strobe değil)
+sure 1.2
+egri dogrusal
+anahtar 0.0 parlak=0
+anahtar 0.25 parlak=0.9
+anahtar 0.4 parlak=0.25
+anahtar 0.6 parlak=0.95
+anahtar 0.75 parlak=0.5
+anahtar 1.0 parlak=1
+
+animasyon kuyruklu
+aciklama Sağ üst köşeden kuyruklu yıldız gibi gelir
+sure 1.3
+anahtar 0.0 dx=1.3 dy=-0.6 olcek=0.4 aci=60 parlak=0.2
+anahtar 1.0
+
+animasyon hizli
+aciklama Çok hızlı soldan girer
+sure 0.5
+gecikme 0.08
+anahtar 0.0 dx=-0.9 parlak=0.5
+anahtar 1.0
+
+animasyon agir
+aciklama Ağır ve yavaş, hafifçe küçük başlayıp oturur
+sure 2.0
+gecikme 0.3
+anahtar 0.0 dy=0.12 olcek=0.9 parlak=0
+anahtar 1.0
+
+animasyon egilme
+aciklama Eğik başlar, doğrulur
+sure 1.1
+anahtar 0.0 aci=60 dx=-0.5 parlak=0.3
+anahtar 0.7 aci=-8 dx=0.03 parlak=1
+anahtar 1.0

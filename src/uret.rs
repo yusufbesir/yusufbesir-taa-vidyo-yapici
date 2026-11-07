@@ -18,6 +18,7 @@ pub fn dogrula(s: &senaryo::Senaryo) -> Result<(), String> {
 }
 
 pub fn senaryo_oku(metin: &str) -> Result<senaryo::Senaryo, String> {
+    crate::animasyon::yukle(); // klasöre eklenen animasyonlar anında geçerli olur
     let s = senaryo::ayristir(metin)?;
     dogrula(&s)?;
     Ok(s)

@@ -12,7 +12,8 @@ const SAYFA: &str = include_str!("../web/index.html");
 const LOGO: &str = include_str!("../logo/logo.svg");
 pub const SURUM: &str = env!("CARGO_PKG_VERSION");
 
-pub const ORNEKLER: [(&str, &str); 10] = [
+pub const ORNEKLER: [(&str, &str); 11] = [
+    ("animasyon-galerisi", include_str!("../senaryolar/animasyon-galerisi.txt")),
     ("tv-referans", include_str!("../senaryolar/tv-referans.txt")),
     ("tv-afis", include_str!("../senaryolar/tv-afis.txt")),
     ("ornek-gibi", include_str!("../senaryolar/ornek-gibi.txt")),
@@ -137,9 +138,13 @@ fn isle(mut s: TcpStream, o: Arc<Ortak>) {
         ("GET", "/") => yanit(&mut s, 200, "text/html; charset=utf-8", SAYFA.as_bytes()),
         ("GET", "/logo.svg") => yanit(&mut s, 200, "image/svg+xml", LOGO.as_bytes()),
         ("GET", "/bilgi") => {
+            crate::animasyon::yukle();
             let ff = crate::ffmpeg::bul().map(|p| p.display().to_string()).unwrap_or_default();
             let adlar: Vec<String> = ORNEKLER.iter().map(|(a, _)| format!("\"{a}\"")).collect();
-            let j = format!("{{\"surum\":\"{SURUM}\",\"ffmpeg\":\"{}\",\"klasor\":\"{}\",\"ornekler\":[{}]}}", json_kacis(&ff), json_kacis(&cikti_klasoru().display().to_string()), adlar.join(","));
+            let liste = |l: Vec<(String, String, bool)>| l.iter().map(|(a, b, o)| format!("{{\"ad\":\"{}\",\"acik\":\"{}\",\"ozel\":{o}}}", json_kacis(a), json_kacis(b))).collect::<Vec<_>>().join(",");
+            let efekt: Vec<String> = crate::senaryo::EFEKTLER.iter().zip(crate::senaryo::EFEKT_ACIK).map(|(a, b)| format!("{{\"ad\":\"{a}\",\"acik\":\"{b}\",\"ozel\":false}}")).collect();
+            let kl: Vec<String> = crate::animasyon::klasorler().iter().map(|k| format!("\"{}\"", json_kacis(&k.display().to_string()))).collect();
+            let j = format!("{{\"surum\":\"{SURUM}\",\"ffmpeg\":\"{}\",\"klasor\":\"{}\",\"ornekler\":[{}],\"girisler\":[{}],\"cikislar\":[{}],\"efektler\":[{}],\"animasyon_klasorleri\":[{}]}}", json_kacis(&ff), json_kacis(&cikti_klasoru().display().to_string()), adlar.join(","), liste(crate::senaryo::giris_listesi()), liste(crate::senaryo::cikis_listesi()), efekt.join(","), kl.join(","));
             yanit(&mut s, 200, "application/json; charset=utf-8", j.as_bytes())
         }
         ("GET", y) if y.starts_with("/ornek/") => match ORNEKLER.iter().find(|(a, _)| *a == &y[7..]) {

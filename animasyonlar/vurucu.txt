@@ -1,0 +1,50 @@
+# Dikkat çekici, güçlü girişler. Hızlı yanıp sönme (strobe) yoktur.
+
+animasyon agirlik
+aciklama Yukarıdan ağır düşer, hafif ezilip yerine oturur
+sure 1.2
+anahtar 0.0 dy=-1.2 olcek=1.2 parlak=0.4
+anahtar 0.55 dy=0.03 olcek=1.05 parlak=1
+anahtar 0.75 dy=-0.015 olcek=0.97
+anahtar 1.0
+
+animasyon firtina
+aciklama Dönerek küçülen bir sarmaldan geliyormuş gibi
+sure 1.6
+anahtar 0.0 olcek=0.05 aci=540 dx=0.4 dy=-0.3 parlak=0
+anahtar 0.5 olcek=0.7 aci=180 dx=-0.15 dy=0.08 parlak=0.8
+anahtar 1.0
+
+animasyon zemin-kayma
+aciklama Alt kenardan yatay süzülerek yükselir
+sure 1.4
+anahtar 0.0 dy=0.4 dx=-0.5 olcek=0.85 parlak=0
+anahtar 1.0
+
+animasyon dev
+aciklama Önce dev ve şeffaf, hızla çekilip oturur
+sure 0.9
+anahtar 0.0 olcek=4.0 parlak=0
+anahtar 0.5 olcek=1.4 parlak=0.8
+anahtar 1.0
+
+animasyon mekik
+aciklama Soldan sağa sallanarak gelir ve durur
+sure 1.5
+anahtar 0.0 dx=-1.0 aci=-70 parlak=0.3
+anahtar 0.4 dx=0.12 aci=35
+anahtar 0.7 dx=-0.05 aci=-12
+anahtar 1.0
+
+animasyon acilis-perdesi
+aciklama Yatay incelikten açılır gibi (dar başlar, genişler)
+sure 1.1
+anahtar 0.0 aci=84 olcek=0.9 parlak=0
+anahtar 1.0
+
+animasyon uzay
+aciklama Derin uzaktan hızlanarak gelir, hafif aşar
+sure 1.4
+anahtar 0.0 olcek=0.03 parlak=0
+anahtar 0.7 olcek=1.25 parlak=1
+anahtar 1.0
