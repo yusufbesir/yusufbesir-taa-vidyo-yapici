@@ -142,7 +142,7 @@ fn isle(mut s: TcpStream, o: Arc<Ortak>) {
             let ff = crate::ffmpeg::bul().map(|p| p.display().to_string()).unwrap_or_default();
             let adlar: Vec<String> = ORNEKLER.iter().map(|(a, _)| format!("\"{a}\"")).collect();
             let liste = |l: Vec<(String, String, bool)>| l.iter().map(|(a, b, o)| format!("{{\"ad\":\"{}\",\"acik\":\"{}\",\"ozel\":{o}}}", json_kacis(a), json_kacis(b))).collect::<Vec<_>>().join(",");
-            let efekt: Vec<String> = crate::senaryo::EFEKTLER.iter().zip(crate::senaryo::EFEKT_ACIK).map(|(a, b)| format!("{{\"ad\":\"{a}\",\"acik\":\"{b}\",\"ozel\":false}}")).collect();
+            let efekt: Vec<String> = crate::senaryo::efekt_listesi().iter().map(|(a, b)| format!("{{\"ad\":\"{a}\",\"acik\":\"{b}\",\"ozel\":false}}")).collect();
             let kl: Vec<String> = crate::animasyon::klasorler().iter().map(|k| format!("\"{}\"", json_kacis(&k.display().to_string()))).collect();
             let j = format!("{{\"surum\":\"{SURUM}\",\"ffmpeg\":\"{}\",\"klasor\":\"{}\",\"ornekler\":[{}],\"girisler\":[{}],\"cikislar\":[{}],\"efektler\":[{}],\"animasyon_klasorleri\":[{}]}}", json_kacis(&ff), json_kacis(&cikti_klasoru().display().to_string()), adlar.join(","), liste(crate::senaryo::giris_listesi()), liste(crate::senaryo::cikis_listesi()), efekt.join(","), kl.join(","));
             yanit(&mut s, 200, "application/json; charset=utf-8", j.as_bytes())

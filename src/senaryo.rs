@@ -7,7 +7,7 @@ use ab_glyph::FontRef;
 pub enum Gecis { Tv, Perde, Yok }
 
 #[derive(Clone, Debug)]
-pub struct Sahne { pub metin: String, pub renk: String, pub giris: String, pub cikis: String, pub sure: f32, pub harf: f32, pub efekt: Vec<String> }
+pub struct Sahne { pub metin: String, pub renk: String, pub giris: String, pub cikis: String, pub sure: f32, pub harf: f32, pub efekt: Vec<String>, pub font: String, pub derinlik: f32 }
 
 #[derive(Clone, Debug)]
 pub struct Senaryo { pub w: u32, pub h: u32, pub fiziksel: Option<(f32, f32)>, pub fps: u32, pub acilis: Gecis, pub kapanis: Gecis, pub sahneler: Vec<Sahne> }
@@ -19,6 +19,8 @@ pub const EFEKTLER: [&str; 10] = ["parlama", "pirilti", "cerceve", "cift-cerceve
 const ESKI_GIRIS_ACIK: [&str; 12] = ["Giriş animasyonu yok (hemen görünür)", "Dönerek büyüyerek girer", "Yukarıdan zıplayarak gelir", "Yandan dönerek kayar", "Dev boyuttan yerine küçülür", "Alttan yükselir", "Üstten iner", "Yavaşça belirir, satırlar sırayla", "Yaylanarak büyür", "Harf harf yazılır", "Soldan sağa açılır", "Parçacıklardan toplanır"];
 const ESKI_CIKIS_ACIK: [&str; 8] = ["Çıkış animasyonu yok", "Yukarı kayarak çıkar", "Aşağı kayarak çıkar", "Dönerek kaybolur", "Yavaşça söner", "Dönerek küçülüp kaybolur", "Soldan sağa silinir", "Parçacıklara dağılır"];
 /// (ad, açıklama, özel_mi) listeleri; arayüz açılır listeleri bundan beslenir.
+/// Tüm efektler: (ad, açıklama). Önce yazı efektleri, sonra dekorlar.
+pub fn efekt_listesi() -> Vec<(String, String)> { EFEKTLER.iter().zip(EFEKT_ACIK).map(|(a, b)| (a.to_string(), b.to_string())).chain(crate::dekor::ADLAR.iter().map(|d| (d.0.to_string(), d.1.to_string()))).collect() }
 pub fn giris_listesi() -> Vec<(String, String, bool)> { GIRISLER.iter().zip(ESKI_GIRIS_ACIK).map(|(a, b)| (a.to_string(), b.to_string(), false)).chain(crate::animasyon::liste()).collect() }
 pub fn cikis_listesi() -> Vec<(String, String, bool)> { CIKISLAR.iter().zip(ESKI_CIKIS_ACIK).map(|(a, b)| (a.to_string(), b.to_string(), false)).chain(crate::animasyon::liste()).collect() }
 pub const EFEKT_ACIK: [&str; 10] = ["Yazıdan geçen ışık", "Pırıltı yıldızları", "Koşan ışıklı çerçeve", "Çift çizgi çerçeve", "Süzülen parçacıklar", "Uçan kıvılcımlar", "Yağan kar", "Eğik yağmur", "Merkezden yayılan halkalar", "Kayan yıldızlar"];
@@ -40,16 +42,18 @@ pub fn ayristir(metin: &str) -> Result<Senaryo, String> {
         if let Some(r) = satir.strip_prefix("sahne") {
             let a = r.find('"').ok_or_else(|| hata("sahne metni tırnak içinde olmalı"))?;
             let b = r[a + 1..].find('"').ok_or_else(|| hata("kapanış tırnağı yok"))? + a + 1;
-            let mut sh = Sahne { metin: r[a + 1..b].to_string(), renk: "beyaz".into(), giris: "donerek".into(), cikis: "yok".into(), sure: 4.5, harf: 330.0, efekt: vec!["parlama".into()] };
+            let mut sh = Sahne { metin: r[a + 1..b].to_string(), renk: "beyaz".into(), giris: "donerek".into(), cikis: "yok".into(), sure: 4.5, harf: 330.0, efekt: vec!["parlama".into()], font: String::new(), derinlik: 1.0 };
             for kv in r[b + 1..].split_whitespace() {
                 let (k, v) = kv.split_once('=').ok_or_else(|| hata(&format!("anahtar=değer bekleniyor: {kv}")))?;
                 match k {
-                    "renk" => { if palet(v).is_none() { return Err(hata(&format!("bilinmeyen renk: {v}"))); } sh.renk = v.into() }
+                    "renk" | "palet" => { if crate::stil::paletli(v).is_none() { return Err(hata(&format!("bilinmeyen renk/palet: {v}"))); } sh.renk = v.into() }
+                    "font" => { if !crate::stil::font_var_mi(v) { return Err(hata(&format!("bilinmeyen font: {v} (olanlar: {})", crate::stil::FONTLAR.iter().map(|f| f.0).collect::<Vec<_>>().join(", ")))); } sh.font = v.into() }
+                    "derinlik" => { sh.derinlik = v.parse().map_err(|_| hata("derinlik sayı olmalı"))?; if !(0.0..=3.0).contains(&sh.derinlik) { return Err(hata("derinlik 0 ile 3 arası")); } }
                     "giris" => { if !giris_adlari().iter().any(|x| x == v) { return Err(hata(&format!("bilinmeyen giriş: {v} (olanlar: {})", giris_adlari().join(", ")))); } sh.giris = v.into() }
                     "cikis" => { if !cikis_adlari().iter().any(|x| x == v) { return Err(hata(&format!("bilinmeyen çıkış: {v} (olanlar: {})", cikis_adlari().join(", ")))); } sh.cikis = v.into() }
                     "sure" => sh.sure = v.parse().map_err(|_| hata("sure sayı olmalı"))?,
                     "harf" => sh.harf = v.parse().map_err(|_| hata("harf sayı olmalı"))?,
-                    "efekt" => { sh.efekt = v.split(',').filter(|e| *e != "yok").map(String::from).collect(); for e in &sh.efekt { if !EFEKTLER.contains(&e.as_str()) { return Err(hata(&format!("bilinmeyen efekt: {e}"))); } } }
+                    "efekt" => { sh.efekt = v.split(',').filter(|e| *e != "yok").map(String::from).collect(); for e in &sh.efekt { if !EFEKTLER.contains(&e.as_str()) && crate::dekor::ADLAR.iter().all(|d| d.0 != e) { return Err(hata(&format!("bilinmeyen efekt: {e}"))); } } }
                     _ => return Err(hata(&format!("bilinmeyen anahtar: {k}"))),
                 }
             }
@@ -301,15 +305,15 @@ pub fn dikey_satirlar(s: &str) -> Vec<String> {
     out
 }
 
-pub struct Hazir { pub maskeler: Vec<Maske>, pub d: f32, pub yuz: Renk, pub yan: Renk, pub zemin: Renk }
+pub struct Hazir { pub maskeler: Vec<Maske>, pub d: f32, pub yuz: Renk, pub yan: Renk, pub zemin: Renk, pub vurgu: Renk }
 
 pub fn hazirla(font: &FontRef, s: &Senaryo) -> Vec<Hazir> {
     let tvli = s.acilis == Gecis::Tv || s.kapanis == Gecis::Tv;
     s.sahneler.iter().map(|sh| {
-        let (yuz, z) = palet(&sh.renk).unwrap();
-        let yan = Renk(yuz.0 / 2, yuz.1 / 2, yuz.2 / 3); // aynı tonun koyusu: altın yan yüz altın kalır
-        let (maskeler, d) = yerlesim(font, s.w, s.sanal_h(), sh);
-        Hazir { maskeler, d, yuz, yan, zemin: if tvli { Renk(18, 20, 24) } else { z } }
+        let pl = crate::stil::paletli(&sh.renk).unwrap();
+        let sf = crate::stil::font(&sh.font);
+        let (maskeler, d) = yerlesim(sf.as_ref().unwrap_or(font), s.w, s.sanal_h(), sh);
+        Hazir { maskeler, d: d * sh.derinlik, yuz: pl.yuz, yan: pl.yan, zemin: if tvli { Renk(18, 20, 24) } else { pl.zemin }, vurgu: pl.vurgu }
     }).collect()
 }
 
@@ -329,12 +333,13 @@ pub fn kare_uret(s: &Senaryo, hz: &[Hazir], t: f32, no: u32) -> Vec<u8> {
     let mut k = anim::bos_kare(w, h, z.zemin);
     // ilk sahne açılışla birlikte zaten görünür: girişi açılış geçişi yapar
     let giris = if idx == 0 && s.acilis != Gecis::Yok { "yok" } else { sh.giris.as_str() };
-    if sh.efekt.iter().any(|e| e == "parcacik") { efekt::parcaciklar(&mut k, w, h, t, 60, z.yuz, idx as u32 + 7); }
+    if sh.efekt.iter().any(|e| e == "parcacik") { efekt::parcaciklar(&mut k, w, h, t, 60, z.vurgu, idx as u32 + 7); }
     if sh.efekt.iter().any(|e| e == "kar") { efekt::kar(&mut k, w, h, t, 90, idx as u32 + 11); }
-    if sh.efekt.iter().any(|e| e == "yagmur") { efekt::yagmur(&mut k, w, h, t, 70, z.yuz, idx as u32 + 13); }
-    if sh.efekt.iter().any(|e| e == "halka") { efekt::halkalar(&mut k, w, h, t, z.yuz); }
-    if sh.efekt.iter().any(|e| e == "kayan-yildiz") { efekt::kayan_yildizlar(&mut k, w, h, t, z.yuz, idx as u32 + 17); }
-    if sh.efekt.iter().any(|e| e == "kivilcim") { efekt::kivilcimlar(&mut k, w, h, t, 40, z.yuz, idx as u32 + 3); }
+    if sh.efekt.iter().any(|e| e == "yagmur") { efekt::yagmur(&mut k, w, h, t, 70, z.vurgu, idx as u32 + 13); }
+    if sh.efekt.iter().any(|e| e == "halka") { efekt::halkalar(&mut k, w, h, t, z.vurgu); }
+    if sh.efekt.iter().any(|e| e == "kayan-yildiz") { efekt::kayan_yildizlar(&mut k, w, h, t, z.vurgu, idx as u32 + 17); }
+    for e in &sh.efekt { crate::dekor::ciz(e, &mut k, w, h, t, z.vurgu, idx as u32 + 5); }
+    if sh.efekt.iter().any(|e| e == "kivilcim") { efekt::kivilcimlar(&mut k, w, h, t, 40, z.vurgu, idx as u32 + 3); }
     for (li, m) in z.maskeler.iter().enumerate() {
         let ti = yerel - li as f32 * 0.15;
         if giris == "toplan" && (0.0..1.4).contains(&ti) { anim::dagilma(&mut k, m, z.yuz, 1.0 - ti / 1.4, (idx * 10 + li) as u32); continue; }
@@ -346,8 +351,8 @@ pub fn kare_uret(s: &Senaryo, hz: &[Hazir], t: f32, no: u32) -> Vec<u8> {
         let konum = (yerel - 1.0) / 1.3;
         efekt::isik_supurme(&mut k, w, h, z.zemin, if (0.0..=1.0).contains(&konum) { konum } else { -1.0 });
     }
-    if sh.efekt.iter().any(|e| e == "cerceve") { efekt::kosan_cerceve(&mut k, w, h, t, z.yuz, (w / 70).max(6), (w / 25).max(10)); }
-    if sh.efekt.iter().any(|e| e == "cift-cerceve") { efekt::cift_cerceve(&mut k, w, h, z.yuz, (w / 240).max(3), (w / 22).max(12)); }
+    if sh.efekt.iter().any(|e| e == "cerceve") { efekt::kosan_cerceve(&mut k, w, h, t, z.vurgu, (w / 70).max(6), (w / 25).max(10)); }
+    if sh.efekt.iter().any(|e| e == "cift-cerceve") { efekt::cift_cerceve(&mut k, w, h, z.vurgu, (w / 240).max(3), (w / 22).max(12)); }
     if sh.efekt.iter().any(|e| e == "pirilti") { efekt::piriltilar(&mut k, w, h, t, 18, Renk(255, 255, 255), idx as u32 + 1); }
     let (kapat_basla, acik_bitis) = (toplam - ka, ac);
     let normal = tv::Tup { sv: 1.0, sh: 1.0, flas: 0.0, parlak: 0.985 + 0.015 * (no as f32 * 0.9).sin(), gurultu: 0.0 };

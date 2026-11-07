@@ -2,9 +2,11 @@
 pub mod anim;
 pub mod cizim;
 pub mod efekt;
+pub mod dekor;
 pub mod tv;
 pub mod senaryo;
 pub mod animasyon;
+pub mod stil;
 pub mod ffmpeg;
 pub mod png;
 pub mod uret;
