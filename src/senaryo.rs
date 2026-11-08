@@ -4,8 +4,8 @@ use crate::{efekt, tv, *};
 use ab_glyph::FontRef;
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum Gecis { Tv, Perde, Kapi, Iris, Slayt, Fade, Neon, Sil, Jaluzi, Mozaik, Dalga, Cubuk, Elmas, Kare, Yok }
-pub const GECISLER: [(&str, &str); 15] = [("yok", "Geçiş yok"), ("tv", "Tüplü TV"), ("perde", "Üstten ve alttan perde"), ("kapi", "Ortadan açılan kapı"), ("iris", "Daire iris"), ("slayt", "Üstten slayt kapağı"), ("fade", "Yumuşak karartma"), ("neon", "Neon yanması (tek sefer, yumuşak)"), ("sil", "Soldan sağa silme"), ("jaluzi", "Yatay jaluzi şeritleri"), ("mozaik", "Kare mozaik dağılması"), ("dalga", "Dalgalı kenarla yukarıdan iner"), ("cubuk", "Dikey çubuklar sırayla iner"), ("elmas", "Elmas (eşkenar dörtgen) iris"), ("kare", "Dikdörtgen iris")];
+pub enum Gecis { Tv, Perde, Kapi, Iris, Slayt, Fade, Neon, Sil, Jaluzi, Mozaik, Dalga, Cubuk, Elmas, Kare, Saat, Capraz, Damali, Yanlar, Yok }
+pub const GECISLER: [(&str, &str); 19] = [("yok", "Geçiş yok"), ("tv", "Tüplü TV"), ("perde", "Üstten ve alttan perde"), ("kapi", "Ortadan açılan kapı"), ("iris", "Daire iris"), ("slayt", "Üstten slayt kapağı"), ("fade", "Yumuşak karartma"), ("neon", "Neon yanması (tek sefer, yumuşak)"), ("sil", "Soldan sağa silme"), ("jaluzi", "Yatay jaluzi şeritleri"), ("mozaik", "Kare mozaik dağılması"), ("dalga", "Dalgalı kenarla yukarıdan iner"), ("cubuk", "Dikey çubuklar sırayla iner"), ("elmas", "Elmas (eşkenar dörtgen) iris"), ("kare", "Dikdörtgen iris"), ("saat", "Saat yelkovanı gibi dönerek kapanır"), ("capraz", "Çapraz yumuşak silme"), ("damali", "Dama tahtası kapanma"), ("yanlar", "İki yandan ortaya kapanır")];
 
 #[derive(Clone, Debug)]
 pub struct Sahne { pub metin: String, pub renk: String, pub giris: String, pub cikis: String, pub sure: f32, pub harf: f32, pub efekt: Vec<String>, pub font: String, pub derinlik: f32, pub egri: String }
@@ -31,7 +31,7 @@ pub fn giris_adlari() -> Vec<String> { GIRISLER.iter().map(|x| x.to_string()).ch
 pub fn cikis_adlari() -> Vec<String> { CIKISLAR.iter().map(|x| x.to_string()).chain(crate::animasyon::liste().into_iter().map(|x| x.0)).collect() }
 
 fn gecis(s: &str) -> Result<Gecis, String> {
-    match s { "tv" => Ok(Gecis::Tv), "perde" => Ok(Gecis::Perde), "kapi" => Ok(Gecis::Kapi), "iris" => Ok(Gecis::Iris), "slayt" => Ok(Gecis::Slayt), "fade" => Ok(Gecis::Fade), "neon" => Ok(Gecis::Neon), "sil" => Ok(Gecis::Sil), "jaluzi" => Ok(Gecis::Jaluzi), "mozaik" => Ok(Gecis::Mozaik), "dalga" => Ok(Gecis::Dalga), "cubuk" => Ok(Gecis::Cubuk), "elmas" => Ok(Gecis::Elmas), "kare" => Ok(Gecis::Kare), "yok" => Ok(Gecis::Yok), _ => Err(format!("bilinmeyen geçiş: {s} (tv|perde|kapi|iris|slayt|fade|neon|sil|jaluzi|mozaik|dalga|cubuk|elmas|kare|yok)")) }
+    match s { "tv" => Ok(Gecis::Tv), "perde" => Ok(Gecis::Perde), "kapi" => Ok(Gecis::Kapi), "iris" => Ok(Gecis::Iris), "slayt" => Ok(Gecis::Slayt), "fade" => Ok(Gecis::Fade), "neon" => Ok(Gecis::Neon), "sil" => Ok(Gecis::Sil), "jaluzi" => Ok(Gecis::Jaluzi), "mozaik" => Ok(Gecis::Mozaik), "dalga" => Ok(Gecis::Dalga), "cubuk" => Ok(Gecis::Cubuk), "elmas" => Ok(Gecis::Elmas), "kare" => Ok(Gecis::Kare), "saat" => Ok(Gecis::Saat), "capraz" => Ok(Gecis::Capraz), "damali" => Ok(Gecis::Damali), "yanlar" => Ok(Gecis::Yanlar), "yok" => Ok(Gecis::Yok), _ => Err(format!("bilinmeyen geçiş: {s} (tv|perde|kapi|iris|slayt|fade|neon|sil|jaluzi|mozaik|dalga|cubuk|elmas|kare|saat|capraz|damali|yanlar|yok)")) }
 }
 
 pub fn ayristir(metin: &str) -> Result<Senaryo, String> {
@@ -366,6 +366,42 @@ pub fn kaplama(g: &Gecis, t: &mut [u8], w: u32, h: u32, kapali: f32, renk: Renk)
                 let a = ((d - r) / yum).clamp(0.0, 1.0);
                 let i = ((y * w + x) * 3) as usize;
                 for c in 0..3 { t[i + c] = (t[i + c] as f32 * (1.0 - a)) as u8; }
+            } }
+        }
+        Gecis::Saat => {
+            let (cx, cy) = (w as f32 / 2.0, h as f32 / 2.0);
+            let acik = 1.0 - kapali; // açık kalan oran (saat yönünde)
+            for y in 0..h { for x in 0..w {
+                let mut a = (x as f32 - cx).atan2(-(y as f32 - cy)); if a < 0.0 { a += std::f32::consts::TAU; }
+                let f = a / std::f32::consts::TAU;
+                if f >= acik { let i = ((y * w + x) * 3) as usize; t[i] = 0; t[i + 1] = 0; t[i + 2] = 0; }
+            } }
+        }
+        Gecis::Capraz => {
+            let yum = 0.08;
+            for y in 0..h { for x in 0..w {
+                let d = (x as f32 / w as f32 + y as f32 / h as f32) * 0.5;
+                let e = d - (1.0 - kapali) * (1.0 + yum) + yum;
+                if e <= 0.0 { continue; }
+                let a = (e / yum).clamp(0.0, 1.0);
+                let i = ((y * w + x) * 3) as usize;
+                for c in 0..3 { t[i + c] = (t[i + c] as f32 * (1.0 - a)) as u8; }
+            } }
+        }
+        Gecis::Damali => {
+            let n = 6u32; let bw = (w / n).max(1); let bh = (h / (n * 2)).max(1);
+            for y in 0..h { for x in 0..w {
+                let (cx, cy) = (x / bw, y / bh);
+                let sira = ((cx + cy) % 2) as f32 * 0.5;
+                let yerel = ((kapali * 1.5 - sira)).clamp(0.0, 1.0);
+                if yerel >= 0.999 { let i = ((y * w + x) * 3) as usize; t[i] = 0; t[i + 1] = 0; t[i + 2] = 0; }
+                else if yerel > 0.0 { let i = ((y * w + x) * 3) as usize; for c in 0..3 { t[i + c] = (t[i + c] as f32 * (1.0 - yerel)) as u8; } }
+            } }
+        }
+        Gecis::Yanlar => {
+            let k = (w as f32 / 2.0 * kapali) as u32;
+            for y in 0..h { for x in 0..w {
+                if x < k || x >= w - k.min(w) { let i = ((y * w + x) * 3) as usize; t[i] = 0; t[i + 1] = 0; t[i + 2] = 0; }
             } }
         }
         _ => {}
