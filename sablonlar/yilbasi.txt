@@ -1,0 +1,9 @@
+# baslik: Yeni yıl
+# kategori: Kutlama
+# varsayilan: MUTLU|YILLAR
+ekran 950x1800
+fiziksel 8x25
+fps 25
+acilis iris
+kapanis iris
+sahne "{1}|{2}" palet=buz-cyan giris=zoom-patla cikis=sondur sure=7 efekt=kar,havai-fisek,cerceve-isik

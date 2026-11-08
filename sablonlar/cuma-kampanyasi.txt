@@ -1,0 +1,10 @@
+# baslik: Büyük cuma
+# kategori: Kampanya
+# varsayilan: BÜYÜK|CUMA|%70|İNDİRİM
+ekran 950x1800
+fiziksel 8x25
+fps 25
+acilis neon
+kapanis neon
+sahne "{1}|{2}" palet=sicak-beyaz giris=derin cikis=sondur sure=4.5 efekt=parlama,cerceve-isik
+sahne "{3}|{4}" palet=altin-gece giris=zoom-patla cikis=sondur sure=4.5 efekt=kayan-yildiz,cerceve-isik

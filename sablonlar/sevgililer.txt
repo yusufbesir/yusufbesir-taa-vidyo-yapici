@@ -1,0 +1,10 @@
+# baslik: Sevgililer günü
+# kategori: Kutlama
+# varsayilan: SEVGİLİLER|GÜNÜ|KUTLU|OLSUN
+ekran 950x1800
+fiziksel 8x25
+fps 25
+acilis fade
+kapanis fade
+sahne "{1}|{2}" palet=gul-kurusu giris=belir cikis=sondur sure=4.5 efekt=kalp,cerceve-nokta
+sahne "{3}|{4}" palet=pembe-altin giris=nefes-gir cikis=sondur sure=4.5 efekt=kalp,pirilti-bulutu,cerceve-nokta

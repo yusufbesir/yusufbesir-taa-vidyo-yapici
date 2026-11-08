@@ -1,0 +1,10 @@
+# baslik: Şaşırt beni
+# aciklama: Tek tıkla yazınıza uygun farklı bir video üretir; beğenmezseniz tekrar basın.
+ekran 950x1800
+fiziksel 8x25
+fps 25
+acilis fade
+kapanis fade
+sahne "ŞAŞIRT|BENİ" palet=altin-gece giris=zoom-patla cikis=sondur sure=3.5 efekt=parlama
+sahne "TEK TIK|FARKLI|VİDEO" palet=sicak-beyaz giris=belir cikis=sondur sure=3.5 efekt=cerceve-ince
+sahne "BEĞENMEZ|SENİZ|TEKRAR" palet=altin-cyan giris=belir cikis=sondur sure=3.5 efekt=cerceve-ince

@@ -1,0 +1,9 @@
+# baslik: Son günler
+# kategori: Kampanya
+# varsayilan: SON|3|GÜN
+ekran 950x1800
+fiziksel 8x25
+fps 25
+acilis kapi
+kapanis kapi
+sahne "{1}|+{2}|{3}" palet=kirmizi-altin giris=zoom-patla cikis=sondur sure=7 efekt=parlama,cerceve-cift

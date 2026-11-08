@@ -205,3 +205,20 @@ pub fn elastik(t: f32) -> f32 {
     let t = t.clamp(0.0, 1.0);
     if t <= 0.0 { 0.0 } else if t >= 1.0 { 1.0 } else { 2f32.powf(-10.0 * t) * ((t * 10.0 - 0.75) * (2.0 * std::f32::consts::PI / 3.0)).sin() + 1.0 }
 }
+
+/// Hareket eğrileri: (ad, açıklama). `yok` düz (animasyonun kendi karakteri).
+pub const EGRILER: &[(&str, &str)] = &[("yok", "Animasyonun kendi karakteri"), ("yavasla", "Hızlı başlar, yumuşakça durur"), ("hizlan", "Yavaş başlar, hızlanarak oturur"), ("geri", "Hedefi biraz aşıp geri döner"), ("esnek", "Yay gibi titreyerek oturur"), ("sek", "Zıplayarak oturur"), ("ustel", "Çok hızlı başlar, uzun süzülür")];
+
+/// Zaman eğrisi: giriş ilerlemesi k (0..1) için yeni ilerleme; `geri` ve `esnek` 1'i aşabilir.
+pub fn egri_k(ad: &str, k: f32) -> f32 {
+    let k = k.clamp(0.0, 1.0);
+    match ad {
+        "yavasla" => 1.0 - (1.0 - k).powi(3),
+        "hizlan" => k * k * k,
+        "geri" => geri(k),
+        "esnek" => if k <= 0.0 { 0.0 } else if k >= 1.0 { 1.0 } else { 2f32.powf(-10.0 * k) * ((k * 10.0 - 0.75) * (2.0 * std::f32::consts::PI / 3.0)).sin() + 1.0 },
+        "sek" => ziplama(k),
+        "ustel" => if k >= 1.0 { 1.0 } else { 1.0 - 2f32.powf(-10.0 * k) },
+        _ => k,
+    }
+}

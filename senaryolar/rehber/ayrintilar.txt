@@ -1,0 +1,10 @@
+# baslik: Ayrıntılar
+# aciklama: Animasyon, font, renk, geçiş ve çerçeve Ayrıntılar bölümünde; açmazsanız ekranı kalabalıklaştırmaz.
+ekran 950x1800
+fiziksel 8x25
+fps 25
+acilis fade
+kapanis fade
+sahne "DAHA|FAZLASI|AYRINTILAR" palet=altin-gece giris=zoom cikis=sondur sure=3.5 efekt=cerceve-ince
+sahne "FONT|RENK|ÇERÇEVE" palet=sicak-beyaz giris=belir cikis=sondur sure=3.5 efekt=cerceve-kose
+sahne "GEÇİŞ|ANİMASYON|EFEKT" palet=altin-cyan giris=belir cikis=sondur sure=3.5 efekt=cerceve-kose

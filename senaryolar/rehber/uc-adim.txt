@@ -1,0 +1,11 @@
+# baslik: 3 adımda video
+# aciklama: Yaz, görünüşü seç, videoyu yap. Başka bir şey gerekmez.
+ekran 950x1800
+fiziksel 8x25
+fps 25
+acilis fade
+kapanis fade
+sahne "3 ADIMDA|VİDEO" palet=altin-gece giris=zoom cikis=sondur sure=3.5 efekt=cerceve-ince
+sahne "ADIM 1|YAZIYI|YAZIN" palet=sicak-beyaz giris=belir cikis=sondur sure=3.5 efekt=cerceve-ince
+sahne "ADIM 2|TARZI|SEÇİN" palet=sicak-beyaz giris=belir cikis=sondur sure=3.5 efekt=cerceve-ince
+sahne "ADIM 3|VİDEOYU|YAPIN" palet=altin-cyan giris=belir cikis=sondur sure=3.5 efekt=cerceve-ince

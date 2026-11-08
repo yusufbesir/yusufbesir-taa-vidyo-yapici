@@ -1,0 +1,292 @@
+# Üretilmiş animasyon paketi 2 (biçim için temel.txt'ye bakın). Dönen, zıplayan, sallanan, derinlikli girişler.
+
+animasyon spiral-sol
+aciklama Soldan dönerek küçükten büyüyerek gelir
+sure 1.7
+gecikme 0.18
+anahtar 0 dx=-1.100 dy=0.000 aci=360 olcek=0.2 parlak=0
+
+animasyon ziplayan-sol
+aciklama Soldan gelir, yerinde üç kez azalan salınım yapar
+sure 1.7
+gecikme 0.18
+anahtar 0 dx=-1.200 dy=0.000 parlak=0.3
+anahtar 0.45 dx=0.060 dy=0.000 parlak=1
+anahtar 0.65 dx=-0.030 dy=0.000
+anahtar 0.82 dx=0.015 dy=0.000
+anahtar 1
+
+animasyon salin-sol
+aciklama Soldan sallanarak yerine oturur
+sure 1.6
+gecikme 0.18
+anahtar 0 dx=-0.500 dy=0.000 aci=-25 parlak=0
+anahtar 0.55 dx=0.000 dy=0.000 aci=10 parlak=1
+anahtar 0.8 aci=-4
+anahtar 1
+
+animasyon kabuk-sol
+aciklama Soldan derinlik kazanarak gelir (3B vurgulu)
+sure 1.6
+gecikme 0.2
+anahtar 0 dx=-0.550 dy=0.000 derinlik=0 olcek=0.55 parlak=0
+anahtar 0.7 dx=0.000 dy=0.000 derinlik=2.6 olcek=1.05 parlak=1
+anahtar 1
+
+animasyon spiral-sag
+aciklama Sağdan dönerek küçükten büyüyerek gelir
+sure 1.7
+gecikme 0.18
+anahtar 0 dx=1.100 dy=0.000 aci=360 olcek=0.2 parlak=0
+
+animasyon ziplayan-sag
+aciklama Sağdan gelir, yerinde üç kez azalan salınım yapar
+sure 1.7
+gecikme 0.18
+anahtar 0 dx=1.200 dy=0.000 parlak=0.3
+anahtar 0.45 dx=-0.060 dy=0.000 parlak=1
+anahtar 0.65 dx=0.030 dy=0.000
+anahtar 0.82 dx=-0.015 dy=0.000
+anahtar 1
+
+animasyon salin-sag
+aciklama Sağdan sallanarak yerine oturur
+sure 1.6
+gecikme 0.18
+anahtar 0 dx=0.500 dy=0.000 aci=25 parlak=0
+anahtar 0.55 dx=0.000 dy=0.000 aci=-10 parlak=1
+anahtar 0.8 aci=4
+anahtar 1
+
+animasyon kabuk-sag
+aciklama Sağdan derinlik kazanarak gelir (3B vurgulu)
+sure 1.6
+gecikme 0.2
+anahtar 0 dx=0.550 dy=0.000 derinlik=0 olcek=0.55 parlak=0
+anahtar 0.7 dx=0.000 dy=0.000 derinlik=2.6 olcek=1.05 parlak=1
+anahtar 1
+
+animasyon spiral-ust
+aciklama Üstten dönerek küçükten büyüyerek gelir
+sure 1.7
+gecikme 0.18
+anahtar 0 dx=0.000 dy=-1.100 aci=360 olcek=0.2 parlak=0
+
+animasyon ziplayan-ust
+aciklama Üstten gelir, yerinde üç kez azalan salınım yapar
+sure 1.7
+gecikme 0.18
+anahtar 0 dx=0.000 dy=-1.200 parlak=0.3
+anahtar 0.45 dx=0.000 dy=0.060 parlak=1
+anahtar 0.65 dx=0.000 dy=-0.030
+anahtar 0.82 dx=0.000 dy=0.015
+anahtar 1
+
+animasyon salin-ust
+aciklama Üstten sallanarak yerine oturur
+sure 1.6
+gecikme 0.18
+anahtar 0 dx=0.000 dy=-0.500 aci=-25 parlak=0
+anahtar 0.55 dx=0.000 dy=0.000 aci=10 parlak=1
+anahtar 0.8 aci=-4
+anahtar 1
+
+animasyon kabuk-ust
+aciklama Üstten derinlik kazanarak gelir (3B vurgulu)
+sure 1.6
+gecikme 0.2
+anahtar 0 dx=0.000 dy=-0.550 derinlik=0 olcek=0.55 parlak=0
+anahtar 0.7 dx=0.000 dy=0.000 derinlik=2.6 olcek=1.05 parlak=1
+anahtar 1
+
+animasyon spiral-alt
+aciklama Alttan dönerek küçükten büyüyerek gelir
+sure 1.7
+gecikme 0.18
+anahtar 0 dx=0.000 dy=1.100 aci=360 olcek=0.2 parlak=0
+
+animasyon ziplayan-alt
+aciklama Alttan gelir, yerinde üç kez azalan salınım yapar
+sure 1.7
+gecikme 0.18
+anahtar 0 dx=0.000 dy=1.200 parlak=0.3
+anahtar 0.45 dx=0.000 dy=-0.060 parlak=1
+anahtar 0.65 dx=0.000 dy=0.030
+anahtar 0.82 dx=0.000 dy=-0.015
+anahtar 1
+
+animasyon salin-alt
+aciklama Alttan sallanarak yerine oturur
+sure 1.6
+gecikme 0.18
+anahtar 0 dx=0.000 dy=0.500 aci=25 parlak=0
+anahtar 0.55 dx=0.000 dy=0.000 aci=-10 parlak=1
+anahtar 0.8 aci=4
+anahtar 1
+
+animasyon kabuk-alt
+aciklama Alttan derinlik kazanarak gelir (3B vurgulu)
+sure 1.6
+gecikme 0.2
+anahtar 0 dx=0.000 dy=0.550 derinlik=0 olcek=0.55 parlak=0
+anahtar 0.7 dx=0.000 dy=0.000 derinlik=2.6 olcek=1.05 parlak=1
+anahtar 1
+
+animasyon nefes-gir
+aciklama Hafif küçükten büyüyüp nefes alır gibi yerine oturur
+sure 1.8
+gecikme 0.2
+anahtar 0 olcek=0.85 parlak=0
+anahtar 0.7 olcek=1.05 parlak=1
+anahtar 1
+
+animasyon patla-ic
+aciklama Büyük ölçekten çarparak küçülür
+sure 1.2
+gecikme 0.12
+anahtar 0 olcek=3 parlak=0.1
+anahtar 1
+
+animasyon minik-buyur
+aciklama Noktadan büyür, hafif aşar, oturur
+sure 1.4
+gecikme 0.15
+anahtar 0 olcek=0.01 parlak=0
+anahtar 0.7 olcek=1.15 parlak=1
+anahtar 1
+
+animasyon dalga-gir
+aciklama Aşağıdan yukarı dalgalanarak yerine gelir
+sure 1.8
+gecikme 0.2
+anahtar 0 dy=0.15 parlak=0
+anahtar 0.4 dy=-0.08 parlak=1
+anahtar 0.7 dy=0.04
+anahtar 1
+
+animasyon sallanan
+aciklama Küçük gelir, sağa sola sallanarak durur
+sure 1.8
+gecikme 0.2
+anahtar 0 olcek=0.6 aci=20 parlak=0
+anahtar 0.35 olcek=0.9 aci=-14 parlak=1
+anahtar 0.6 olcek=1 aci=8
+anahtar 0.8 aci=-3
+anahtar 1
+
+animasyon yildiz-donus
+aciklama Hızlı iki tur dönerek ortaya iner
+sure 2.0
+gecikme 0.2
+anahtar 0 aci=720 olcek=0.05 parlak=0
+anahtar 1
+
+animasyon tersine-donus
+aciklama Ters yönde bir tur dönerek açılır
+sure 1.5
+gecikme 0.18
+anahtar 0 aci=-360 olcek=0.3 parlak=0
+anahtar 1
+
+animasyon ince-belir
+aciklama Çok yavaş ve yumuşak belirir
+sure 2.6
+gecikme 0.4
+anahtar 0 parlak=0
+anahtar 1
+
+animasyon agir-dusus
+aciklama Yukarıdan düşer, yerde üç kez zıplar
+sure 1.8
+gecikme 0.18
+anahtar 0 dy=-1.2 parlak=0.4
+anahtar 0.5 dy=0 parlak=1
+anahtar 0.65 dy=-0.09
+anahtar 0.76 dy=0
+anahtar 0.85 dy=-0.035
+anahtar 1
+
+animasyon yukselen
+aciklama Yavaşça aşağıdan yükselir
+sure 2.4
+gecikme 0.25
+anahtar 0 dy=0.6 parlak=0
+anahtar 1
+
+animasyon inen
+aciklama Yavaşça yukarıdan iner
+sure 2.4
+gecikme 0.25
+anahtar 0 dy=-0.6 parlak=0
+anahtar 1
+
+animasyon mercek-yakin
+aciklama Çok yakından uzaklaşarak yerine gelir
+sure 1.5
+gecikme 0.15
+anahtar 0 olcek=3.5 parlak=0.2
+anahtar 1
+
+animasyon mercek-uzak
+aciklama Uzaktan hızla yaklaşır
+sure 1.5
+gecikme 0.15
+anahtar 0 olcek=0.15 parlak=0.1
+anahtar 0.8 olcek=1.08 parlak=1
+anahtar 1
+
+animasyon cark
+aciklama Yandan yuvarlanarak girer
+sure 1.5
+gecikme 0.18
+anahtar 0 dx=-0.6 aci=-90 olcek=0.5 parlak=0
+anahtar 1
+
+animasyon kapak-ac
+aciklama Eğik ve derinsiz başlar, kapak gibi açılır
+sure 1.5
+gecikme 0.18
+anahtar 0 derinlik=0 olcek=1.4 aci=45 parlak=0
+anahtar 1
+
+animasyon hizli-patlama
+aciklama Çok hızlı büyük ölçekten çarpar
+sure 0.55
+gecikme 0.07
+egri dogrusal
+anahtar 0 olcek=2 parlak=0.4
+anahtar 1
+
+animasyon yavas-buyume
+aciklama Üç saniyede yavaşça büyür
+sure 3.0
+gecikme 0.3
+anahtar 0 olcek=0.6 parlak=0
+anahtar 1
+
+animasyon sekme-orta
+aciklama Ortada büyüyüp küçülerek yerine oturur
+sure 1.5
+gecikme 0.15
+anahtar 0 olcek=0.3 parlak=0
+anahtar 0.4 olcek=1.2 parlak=1
+anahtar 0.6 olcek=0.9
+anahtar 0.8 olcek=1.05
+anahtar 1
+
+animasyon gelgit-iki
+aciklama Soldan başlar, sağa sola azalarak salınır
+sure 1.8
+gecikme 0.2
+anahtar 0 dx=-0.8 parlak=0.2
+anahtar 0.4 dx=0.15 parlak=1
+anahtar 0.65 dx=-0.07
+anahtar 0.85 dx=0.02
+anahtar 1
+
+animasyon bukul
+aciklama Eğilmiş ve küçük başlar, doğrulur
+sure 1.4
+gecikme 0.18
+anahtar 0 aci=-60 dy=0.2 olcek=0.7 parlak=0
+anahtar 1

@@ -1,0 +1,10 @@
+# baslik: Özel dikim
+# kategori: Terzi
+# varsayilan: ÖZEL|DİKİM|ÖLÇÜYE|GÖRE
+ekran 950x1800
+fiziksel 8x25
+fps 25
+acilis kapi
+kapanis kapi
+sahne "{1}|{2}" palet=altin-gece giris=kabuk-ust cikis=sondur sure=4.5 efekt=parlama,cerceve-altin
+sahne "{3}|{4}" palet=sicak-beyaz giris=belir cikis=sondur sure=4.5 efekt=pirilti,cerceve-altin

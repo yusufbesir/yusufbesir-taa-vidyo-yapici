@@ -1,0 +1,10 @@
+# baslik: Okunabilirlik şeridi
+# aciklama: Yeşil şerit iyi demektir. Sarı şerit yazının küçük, soluk ya da hızlı olduğunu söyler.
+ekran 950x1800
+fiziksel 8x25
+fps 25
+acilis fade
+kapanis fade
+sahne "YAZI|BÜYÜK|OLMALI" palet=altin-gece giris=zoom cikis=sondur sure=3.5 efekt=cerceve-ince
+sahne "YEŞİL|ŞERİT|İYİ" palet=neon-yesil giris=belir cikis=sondur sure=3.5 efekt=cerceve-ince
+sahne "SARI|ŞERİT|DİKKAT" palet=altin-gece giris=belir cikis=sondur sure=3.5 efekt=cerceve-ince

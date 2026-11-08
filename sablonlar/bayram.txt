@@ -1,0 +1,9 @@
+# baslik: Bayram tebriği
+# kategori: Kutlama
+# varsayilan: BAYRAMINIZ|KUTLU|OLSUN
+ekran 950x1800
+fiziksel 8x25
+fps 25
+acilis iris
+kapanis iris
+sahne "{1}|{2}|{3}" palet=altin-cyan giris=yaylan-alt cikis=sondur sure=8 efekt=cicek-yagmuru,pirilti-bulutu,cerceve-yildiz

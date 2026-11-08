@@ -1,0 +1,10 @@
+# baslik: Videoyu LED'e aktar
+# aciklama: Video hazır olunca Klasörü aç düğmesiyle dosyayı bulun, LED ekran denetim programına yükleyin.
+ekran 950x1800
+fiziksel 8x25
+fps 25
+acilis fade
+kapanis fade
+sahne "VİDEO|HAZIR" palet=altin-gece giris=zoom cikis=sondur sure=3.5 efekt=cerceve-ince
+sahne "KLASÖRÜ|AÇIN" palet=sicak-beyaz giris=belir cikis=sondur sure=3.5 efekt=cerceve-ince
+sahne "LED|EKRANA|YÜKLEYİN" palet=altin-cyan giris=belir cikis=sondur sure=3.5 efekt=cerceve-ince
