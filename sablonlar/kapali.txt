@@ -1,0 +1,9 @@
+# baslik: Bugün kapalıyız
+# kategori: Duyuru
+# varsayilan: DUYURU|BUGÜN|KAPALIYIZ
+ekran 950x1800
+fiziksel 8x25
+fps 25
+acilis fade
+kapanis fade
+sahne "{1}|{2}|{3}" palet=sicak-beyaz giris=ince-belir cikis=sondur sure=7 efekt=cerceve-ince

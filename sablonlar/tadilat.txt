@@ -1,0 +1,10 @@
+# baslik: Hızlı tadilat
+# kategori: Terzi
+# varsayilan: ÜCRETSİZ|ÖLÇÜ|HIZLI|TADİLAT
+ekran 950x1800
+fiziksel 8x25
+fps 25
+acilis tv
+kapanis tv
+sahne "{1}|{2}" palet=altin-gece giris=zoom cikis=yukari sure=4.5 efekt=parlama,cerceve-cift
+sahne "{3}|{4}" palet=sicak-beyaz giris=sicra-asagi cikis=yukari sure=4.5 efekt=pirilti,cerceve-cift

@@ -169,11 +169,152 @@ pub fn pirilti_bulutu(t: &mut [u8], w: u32, h: u32, z: f32, n: u32, renk: Renk, 
     }
 }
 
+
+// ---- Çerçeveler: kenar payı LED güvenli alanında; yumuşak, ani parlama yok ----
+
+fn karistir(t: &mut [u8], i: usize, r: Renk, a: f32) {
+    let a = a.clamp(0.0, 1.0);
+    t[i] = (t[i] as f32 + (r.0 as f32 - t[i] as f32) * a) as u8;
+    t[i + 1] = (t[i + 1] as f32 + (r.1 as f32 - t[i + 1] as f32) * a) as u8;
+    t[i + 2] = (t[i + 2] as f32 + (r.2 as f32 - t[i + 2] as f32) * a) as u8;
+}
+
+/// Dolu dikdörtgen (kenarları dahil), alfa karışımı.
+fn dik(t: &mut [u8], w: u32, h: u32, x0: f32, y0: f32, x1: f32, y1: f32, r: Renk, a: f32) {
+    let (xa, xb, ya, yb) = (x0.max(0.0) as u32, (x1.min(w as f32)) as u32, y0.max(0.0) as u32, (y1.min(h as f32)) as u32);
+    for y in ya..yb { for x in xa..xb { karistir(t, ((y * w + x) * 3) as usize, r, a); } }
+}
+
+/// Dikdörtgen çizgisi (içe doğru kalınlık).
+fn halka_dik(t: &mut [u8], w: u32, h: u32, pay: f32, kalin: f32, r: Renk, a: f32) {
+    let (x0, y0, x1, y1) = (pay, pay, w as f32 - pay, h as f32 - pay);
+    dik(t, w, h, x0, y0, x1, y0 + kalin, r, a);
+    dik(t, w, h, x0, y1 - kalin, x1, y1, r, a);
+    dik(t, w, h, x0, y0 + kalin, x0 + kalin, y1 - kalin, r, a);
+    dik(t, w, h, x1 - kalin, y0 + kalin, x1, y1 - kalin, r, a);
+}
+
+/// Dikdörtgen çevresinde 0..1 konum.
+fn cevre(w: u32, h: u32, pay: f32, u: f32) -> (f32, f32) {
+    let (x0, y0, x1, y1) = (pay, pay, w as f32 - pay, h as f32 - pay);
+    let (gw, gh) = (x1 - x0, y1 - y0);
+    let toplam = 2.0 * (gw + gh);
+    let d = u.rem_euclid(1.0) * toplam;
+    if d < gw { (x0 + d, y0) } else if d < gw + gh { (x1, y0 + d - gw) } else if d < 2.0 * gw + gh { (x1 - (d - gw - gh), y1) } else { (x0, y1 - (d - 2.0 * gw - gh)) }
+}
+
+fn nefes(z: f32, hiz: f32, alt: f32) -> f32 { alt + (1.0 - alt) * (0.5 + 0.5 * (z * hiz).sin()) }
+
+fn cerceve_ince(t: &mut [u8], w: u32, h: u32, z: f32, r: Renk) { halka_dik(t, w, h, w as f32 * 0.035, (w as f32 / 170.0).max(3.0), r, nefes(z, 1.2, 0.7)); }
+
+fn cerceve_cift(t: &mut [u8], w: u32, h: u32, z: f32, r: Renk) {
+    let k = (w as f32 / 120.0).max(4.0);
+    halka_dik(t, w, h, w as f32 * 0.03, k, r, nefes(z, 1.0, 0.8));
+    halka_dik(t, w, h, w as f32 * 0.03 + k * 2.6, k * 0.45, r, nefes(z, 1.0, 0.6));
+}
+
+fn cerceve_kose(t: &mut [u8], w: u32, h: u32, z: f32, r: Renk) {
+    let (pay, k, uz) = (w as f32 * 0.04, (w as f32 / 100.0).max(5.0), w as f32 * 0.16);
+    let a = nefes(z, 1.4, 0.75);
+    let (x1, y1) = (w as f32 - pay, h as f32 - pay);
+    for (cx, cy, sx, sy) in [(pay, pay, 1.0f32, 1.0f32), (x1, pay, -1.0, 1.0), (pay, y1, 1.0, -1.0), (x1, y1, -1.0, -1.0)] {
+        let (xa, xb) = if sx > 0.0 { (cx, cx + uz) } else { (cx - uz, cx) };
+        let (ya, yb) = if sy > 0.0 { (cy, cy + k) } else { (cy - k, cy) };
+        dik(t, w, h, xa, ya, xb, yb, r, a);
+        let (xa, xb) = if sx > 0.0 { (cx, cx + k) } else { (cx - k, cx) };
+        let (ya, yb) = if sy > 0.0 { (cy, cy + uz) } else { (cy - uz, cy) };
+        dik(t, w, h, xa, ya, xb, yb, r, a);
+    }
+}
+
+fn cerceve_nokta(t: &mut [u8], w: u32, h: u32, z: f32, r: Renk) {
+    let pay = w as f32 * 0.045;
+    let n = 56;
+    let boy = (w as f32 / 70.0).max(4.0);
+    for k in 0..n {
+        let u = k as f32 / n as f32;
+        let (x, y) = cevre(w, h, pay, u);
+        let faz = (u - z * 0.18).rem_euclid(1.0);
+        let a = 0.25 + 0.75 * (0.5 + 0.5 * (faz * 6.2832 * 3.0).cos());
+        elips(t, w, h, x, y, boy, boy, 0.0, r, a);
+    }
+}
+
+fn cerceve_neon(t: &mut [u8], w: u32, h: u32, z: f32, r: Renk) {
+    let pay = w as f32 * 0.04;
+    let k = (w as f32 / 150.0).max(3.0);
+    let n = nefes(z, 0.9, 0.75);
+    for (kat, alfa) in [(5.0f32, 0.10f32), (3.2, 0.18), (1.8, 0.35)] { halka_dik(t, w, h, pay - k * (kat - 1.0) / 2.0, k * kat, r, alfa * n); }
+    halka_dik(t, w, h, pay, k, Renk(255.min(r.0 as u32 + 90) as u8, 255.min(r.1 as u32 + 90) as u8, 255.min(r.2 as u32 + 90) as u8), 0.95 * n);
+}
+
+fn cerceve_yildiz(t: &mut [u8], w: u32, h: u32, z: f32, r: Renk) {
+    let pay = w as f32 * 0.07;
+    let (x1, y1) = (w as f32 - pay, h as f32 - pay);
+    let boy = w as f32 * 0.07;
+    for (i, (cx, cy)) in [(pay, pay), (x1, pay), (pay, y1), (x1, y1)].iter().enumerate() {
+        let a = nefes(z + i as f32 * 1.3, 1.1, 0.55);
+        elips(t, w, h, *cx, *cy, boy, boy * 0.16, 0.0, r, a);
+        elips(t, w, h, *cx, *cy, boy * 0.16, boy, 0.0, r, a);
+        elips(t, w, h, *cx, *cy, boy * 0.55, boy * 0.09, 0.785, r, a * 0.7);
+        elips(t, w, h, *cx, *cy, boy * 0.55, boy * 0.09, -0.785, r, a * 0.7);
+    }
+    halka_dik(t, w, h, pay, (w as f32 / 260.0).max(2.0), r, 0.5);
+    for k in 0..14u32 {
+        let (x, y) = cevre(w, h, pay, hash(k * 17 + 3));
+        let a = nefes(z * 0.8 + hash(k + 40) * 6.28, 1.0, 0.1) * 0.85;
+        elips(t, w, h, x, y, boy * 0.12, boy * 0.12, 0.0, r, a);
+    }
+}
+
+fn cerceve_dalga(t: &mut [u8], w: u32, h: u32, z: f32, r: Renk) {
+    let kal = (w as f32 / 130.0).max(3.0);
+    let genlik = w as f32 * 0.02;
+    for x in (0..w).step_by(2) {
+        let fx = x as f32 / w as f32 * 6.2832 * 2.0;
+        for (taban, isaret) in [(w as f32 * 0.05, 1.0f32), (h as f32 - w as f32 * 0.05, -1.0)] {
+            let y = taban + (fx + z * 1.2 * isaret).sin() * genlik;
+            dik(t, w, h, x as f32, y - kal / 2.0, x as f32 + 2.0, y + kal / 2.0, r, 0.9);
+        }
+    }
+}
+
+fn cerceve_isik(t: &mut [u8], w: u32, h: u32, z: f32, r: Renk) {
+    let pay = w as f32 * 0.04;
+    halka_dik(t, w, h, pay, (w as f32 / 220.0).max(2.0), r, 0.3);
+    let boy = (w as f32 / 60.0).max(5.0);
+    for k in 0..40 {
+        let iz = k as f32 / 40.0;
+        let u = z * 0.12 - iz * 0.18;
+        let (x, y) = cevre(w, h, pay, u);
+        elips(t, w, h, x, y, boy * (1.0 - iz * 0.5), boy * (1.0 - iz * 0.5), 0.0, r, 1.0 - iz);
+    }
+}
+
+fn cerceve_altin(t: &mut [u8], w: u32, h: u32, z: f32, r: Renk) {
+    let k = (w as f32 / 70.0).max(6.0);
+    let pay = w as f32 * 0.025;
+    halka_dik(t, w, h, pay, k, r, 0.95);
+    halka_dik(t, w, h, pay + k * 1.8, k * 0.35, r, nefes(z, 1.0, 0.7));
+    let b = k * 2.6;
+    let (x1, y1) = (w as f32 - pay, h as f32 - pay);
+    for (cx, cy) in [(pay, pay), (x1, pay), (pay, y1), (x1, y1)] { dik(t, w, h, cx - b / 2.0, cy - b / 2.0, cx + b / 2.0, cy + b / 2.0, r, 1.0); }
+}
+
+fn cerceve_serit(t: &mut [u8], w: u32, h: u32, z: f32, r: Renk) {
+    let k = (h as f32 / 110.0).max(6.0);
+    let a = nefes(z, 1.0, 0.8);
+    for (y, kal) in [(h as f32 * 0.035, k), (h as f32 * 0.035 + k * 1.8, k * 0.4), (h as f32 * 0.965 - k, k), (h as f32 * 0.965 - k * 2.8, k * 0.4)] { dik(t, w, h, w as f32 * 0.05, y, w as f32 * 0.95, y + kal, r, a); }
+}
+
 pub const ADLAR: &[(&str, &str)] = &[
     ("cicek-yagmuru", "Yağan çiçekler (palet vurgu rengi)"), ("papatya", "Süzülen papatyalar"), ("yaprak", "Dönerek düşen sonbahar yaprakları"),
     ("kelebek", "Kanat çırpan kelebekler"), ("ugur-bocegi", "Yürüyen uğur böcekleri"), ("ari", "Vızıldayan arılar"),
     ("ates-bocegi", "Yavaş yanıp sönen ateş böcekleri"), ("kalp", "Yükselen kalpler"), ("yildiz-yagmuru", "Dönerek düşen yıldızlar"),
     ("konfeti", "Konfeti yağmuru"), ("balon", "Yükselen balonlar"), ("havai-fisek", "Havai fişek (tam ekran flaş yok)"), ("pirilti-bulutu", "Yavaş parlayan ışıltılar"),
+    ("cerceve-ince", "Çerçeve: ince çizgi (yavaş nefes)"), ("cerceve-cift", "Çerçeve: kalın ve ince çift çizgi"), ("cerceve-kose", "Çerçeve: köşe işaretleri"),
+    ("cerceve-nokta", "Çerçeve: yürüyen LED noktaları"), ("cerceve-neon", "Çerçeve: neon ışıltılı çizgi"), ("cerceve-yildiz", "Çerçeve: köşe yıldızları ve ışıltı"),
+    ("cerceve-dalga", "Çerçeve: üstte ve altta dalga"), ("cerceve-isik", "Çerçeve: çevrede dönen ışık kuyruğu"), ("cerceve-altin", "Çerçeve: kalın altın kenar, köşe kareleri"), ("cerceve-serit", "Çerçeve: üst ve alt şerit bant"),
 ];
 
 /// Ad bilinen bir dekor ise çizer ve true döner.
@@ -192,6 +333,16 @@ pub fn ciz(ad: &str, t: &mut [u8], w: u32, h: u32, z: f32, renk: Renk, tohum: u3
         "balon" => balon(t, w, h, z, 6, renk, tohum),
         "havai-fisek" => havai_fisek(t, w, h, z, 3, renk, tohum),
         "pirilti-bulutu" => pirilti_bulutu(t, w, h, z, 24, renk, tohum),
+        "cerceve-ince" => cerceve_ince(t, w, h, z, renk),
+        "cerceve-cift" => cerceve_cift(t, w, h, z, renk),
+        "cerceve-kose" => cerceve_kose(t, w, h, z, renk),
+        "cerceve-nokta" => cerceve_nokta(t, w, h, z, renk),
+        "cerceve-neon" => cerceve_neon(t, w, h, z, renk),
+        "cerceve-yildiz" => cerceve_yildiz(t, w, h, z, renk),
+        "cerceve-dalga" => cerceve_dalga(t, w, h, z, renk),
+        "cerceve-isik" => cerceve_isik(t, w, h, z, renk),
+        "cerceve-altin" => cerceve_altin(t, w, h, z, renk),
+        "cerceve-serit" => cerceve_serit(t, w, h, z, renk),
         _ => return false,
     }
     true

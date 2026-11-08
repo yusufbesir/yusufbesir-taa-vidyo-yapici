@@ -4,8 +4,8 @@ use crate::{efekt, tv, *};
 use ab_glyph::FontRef;
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum Gecis { Tv, Perde, Kapi, Iris, Slayt, Fade, Neon, Yok }
-pub const GECISLER: [(&str, &str); 8] = [("yok", "Geçiş yok"), ("tv", "Tüplü TV"), ("perde", "Üstten ve alttan perde"), ("kapi", "Ortadan açılan kapı"), ("iris", "Daire iris"), ("slayt", "Üstten slayt kapağı"), ("fade", "Yumuşak karartma"), ("neon", "Neon yanması (tek sefer, yumuşak)")];
+pub enum Gecis { Tv, Perde, Kapi, Iris, Slayt, Fade, Neon, Sil, Jaluzi, Mozaik, Dalga, Cubuk, Elmas, Kare, Yok }
+pub const GECISLER: [(&str, &str); 15] = [("yok", "Geçiş yok"), ("tv", "Tüplü TV"), ("perde", "Üstten ve alttan perde"), ("kapi", "Ortadan açılan kapı"), ("iris", "Daire iris"), ("slayt", "Üstten slayt kapağı"), ("fade", "Yumuşak karartma"), ("neon", "Neon yanması (tek sefer, yumuşak)"), ("sil", "Soldan sağa silme"), ("jaluzi", "Yatay jaluzi şeritleri"), ("mozaik", "Kare mozaik dağılması"), ("dalga", "Dalgalı kenarla yukarıdan iner"), ("cubuk", "Dikey çubuklar sırayla iner"), ("elmas", "Elmas (eşkenar dörtgen) iris"), ("kare", "Dikdörtgen iris")];
 
 #[derive(Clone, Debug)]
 pub struct Sahne { pub metin: String, pub renk: String, pub giris: String, pub cikis: String, pub sure: f32, pub harf: f32, pub efekt: Vec<String>, pub font: String, pub derinlik: f32 }
@@ -31,7 +31,7 @@ pub fn giris_adlari() -> Vec<String> { GIRISLER.iter().map(|x| x.to_string()).ch
 pub fn cikis_adlari() -> Vec<String> { CIKISLAR.iter().map(|x| x.to_string()).chain(crate::animasyon::liste().into_iter().map(|x| x.0)).collect() }
 
 fn gecis(s: &str) -> Result<Gecis, String> {
-    match s { "tv" => Ok(Gecis::Tv), "perde" => Ok(Gecis::Perde), "kapi" => Ok(Gecis::Kapi), "iris" => Ok(Gecis::Iris), "slayt" => Ok(Gecis::Slayt), "fade" => Ok(Gecis::Fade), "neon" => Ok(Gecis::Neon), "yok" => Ok(Gecis::Yok), _ => Err(format!("bilinmeyen geçiş: {s} (tv|perde|kapi|iris|slayt|fade|neon|yok)")) }
+    match s { "tv" => Ok(Gecis::Tv), "perde" => Ok(Gecis::Perde), "kapi" => Ok(Gecis::Kapi), "iris" => Ok(Gecis::Iris), "slayt" => Ok(Gecis::Slayt), "fade" => Ok(Gecis::Fade), "neon" => Ok(Gecis::Neon), "sil" => Ok(Gecis::Sil), "jaluzi" => Ok(Gecis::Jaluzi), "mozaik" => Ok(Gecis::Mozaik), "dalga" => Ok(Gecis::Dalga), "cubuk" => Ok(Gecis::Cubuk), "elmas" => Ok(Gecis::Elmas), "kare" => Ok(Gecis::Kare), "yok" => Ok(Gecis::Yok), _ => Err(format!("bilinmeyen geçiş: {s} (tv|perde|kapi|iris|slayt|fade|neon|sil|jaluzi|mozaik|dalga|cubuk|elmas|kare|yok)")) }
 }
 
 pub fn ayristir(metin: &str) -> Result<Senaryo, String> {
@@ -246,6 +246,71 @@ pub fn kaplama(g: &Gecis, t: &mut [u8], w: u32, h: u32, kapali: f32, renk: Renk)
             let yum = (w as f32 * 0.03).max(8.0);
             for y in 0..h { for x in 0..w {
                 let d = ((x as f32 - cx).powi(2) + (y as f32 - cy).powi(2)).sqrt();
+                if d <= r { continue; }
+                let a = ((d - r) / yum).clamp(0.0, 1.0);
+                let i = ((y * w + x) * 3) as usize;
+                for c in 0..3 { t[i + c] = (t[i + c] as f32 * (1.0 - a)) as u8; }
+            } }
+        }
+        Gecis::Sil => {
+            let sinir = (w as f32 * kapali) as u32;
+            for y in 0..h { for x in 0..w.min(sinir + cizgi) { let i = ((y * w + x) * 3) as usize; if x < sinir { t[i] = 0; t[i + 1] = 0; t[i + 2] = 0; } else if kapali < 1.0 { t[i] = renk.0; t[i + 1] = renk.1; t[i + 2] = renk.2; } } }
+        }
+        Gecis::Jaluzi => {
+            let serit = (h / 14).max(8);
+            for y in 0..h {
+                let u = (y % serit) as f32 / serit as f32;
+                if u < kapali { for x in 0..w { let i = ((y * w + x) * 3) as usize; t[i] = 0; t[i + 1] = 0; t[i + 2] = 0; } }
+            }
+        }
+        Gecis::Mozaik => {
+            let k = (w / 10).max(8);
+            for y in 0..h { for x in 0..w {
+                let (bx, by) = (x / k, y / k);
+                let e = crate::efekt::hash(bx * 131 + by * 977 + 7);
+                if e < kapali { let i = ((y * w + x) * 3) as usize; t[i] = 0; t[i + 1] = 0; t[i + 2] = 0; }
+            } }
+        }
+        Gecis::Dalga => {
+            let genlik = w as f32 * 0.08;
+            for x in 0..w {
+                let sinir = (h as f32 + 2.0 * genlik) * kapali - genlik + (x as f32 / w as f32 * 6.2832 * 2.0).sin() * genlik * (1.0 - (2.0 * kapali - 1.0).abs());
+                for y in 0..h {
+                    let d = sinir - y as f32;
+                    let i = ((y * w + x) * 3) as usize;
+                    if d >= 0.0 { t[i] = 0; t[i + 1] = 0; t[i + 2] = 0; }
+                    else if d > -(cizgi as f32) && kapali < 1.0 { t[i] = renk.0; t[i + 1] = renk.1; t[i + 2] = renk.2; }
+                }
+            }
+        }
+        Gecis::Cubuk => {
+            let n = 8u32; let bw = (w / n).max(1);
+            for x in 0..w {
+                let b = (x / bw).min(n - 1) as f32;
+                let yerel = ((kapali * (1.0 + 0.6) - b / n as f32 * 0.6) ).clamp(0.0, 1.0);
+                let alt = (h as f32 * yerel) as u32;
+                for y in 0..alt.min(h) { let i = ((y * w + x) * 3) as usize; t[i] = 0; t[i + 1] = 0; t[i + 2] = 0; }
+            }
+        }
+        Gecis::Elmas => {
+            let (cx, cy) = (w as f32 / 2.0, h as f32 / 2.0);
+            let r = 1.0 - kapali;
+            let yum = 0.05;
+            for y in 0..h { for x in 0..w {
+                let d = (x as f32 - cx).abs() / cx + (y as f32 - cy).abs() / cy;
+                let dd = d * 0.5;
+                if dd <= r { continue; }
+                let a = ((dd - r) / yum).clamp(0.0, 1.0);
+                let i = ((y * w + x) * 3) as usize;
+                for c in 0..3 { t[i + c] = (t[i + c] as f32 * (1.0 - a)) as u8; }
+            } }
+        }
+        Gecis::Kare => {
+            let (cx, cy) = (w as f32 / 2.0, h as f32 / 2.0);
+            let r = 1.0 - kapali;
+            let yum = 0.04;
+            for y in 0..h { for x in 0..w {
+                let d = ((x as f32 - cx).abs() / cx).max((y as f32 - cy).abs() / cy);
                 if d <= r { continue; }
                 let a = ((d - r) / yum).clamp(0.0, 1.0);
                 let i = ((y * w + x) * 3) as usize;

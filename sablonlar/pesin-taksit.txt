@@ -1,0 +1,9 @@
+# baslik: Peşin fiyatına taksit
+# kategori: Kampanya
+# varsayilan: PEŞİN|FİYATINA|3|TAKSİT
+ekran 950x1800
+fiziksel 8x25
+fps 25
+acilis tv
+kapanis tv
+sahne "~|{1}|{2}|+{3}|{4}|~" palet=sicak-beyaz giris=donerek cikis=yukari sure=8 efekt=parlama

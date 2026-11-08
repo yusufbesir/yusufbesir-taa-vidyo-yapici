@@ -1,0 +1,10 @@
+# baslik: Açılış daveti
+# kategori: Açılış
+# varsayilan: AÇILIŞ|BUGÜN|SİZE|DAVET
+ekran 950x1800
+fiziksel 8x25
+fps 25
+acilis perde
+kapanis perde
+sahne "{1}|{2}" palet=altin-gece giris=yaylan-alt cikis=kucul sure=4.5 efekt=konfeti,cerceve-altin
+sahne "{3}|{4}" palet=sicak-beyaz giris=belir cikis=sondur sure=4.5 efekt=pirilti,cerceve-altin

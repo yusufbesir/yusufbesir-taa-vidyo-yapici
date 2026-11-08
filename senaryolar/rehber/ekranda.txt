@@ -1,0 +1,11 @@
+# baslik: Ekranda nasıl görünür
+# aciklama: Sağdaki görüntü LED panelin noktalı halidir. 3 m ve 15 m arasında geçerek okunabilirliği deneyin.
+ekran 950x1800
+fiziksel 8x25
+fps 25
+acilis fade
+kapanis fade
+sahne "EKRANDA|NASIL|GÖRÜNÜR" palet=altin-gece giris=zoom cikis=sondur sure=3.5 efekt=cerceve-ince
+sahne "SOLDA|TASARIM" palet=sicak-beyaz giris=belir cikis=sondur sure=3.5 efekt=cerceve-ince
+sahne "SAĞDA|LED|EKRAN" palet=altin-cyan giris=belir cikis=sondur sure=3.5 efekt=cerceve-ince
+sahne "3 M VE|15 M|DENEYİN" palet=sicak-beyaz giris=belir cikis=sondur sure=3.5 efekt=cerceve-ince

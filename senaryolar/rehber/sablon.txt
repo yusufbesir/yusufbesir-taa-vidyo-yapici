@@ -1,0 +1,10 @@
+# baslik: Hazır şablon
+# aciklama: Şablon seçin, yalnız yazıları değiştirin: renk, animasyon ve çerçeve hazırdır.
+ekran 950x1800
+fiziksel 8x25
+fps 25
+acilis fade
+kapanis fade
+sahne "HAZIR|ŞABLON|SEÇİN" palet=altin-gece giris=zoom cikis=sondur sure=3.5 efekt=cerceve-ince
+sahne "SADECE|YAZIYI|DEĞİŞTİRİN" palet=sicak-beyaz giris=belir cikis=sondur sure=3.5 efekt=cerceve-ince
+sahne "GERİSİ|HAZIR" palet=altin-cyan giris=belir cikis=sondur sure=3.5 efekt=cerceve-altin

@@ -8,6 +8,7 @@ pub mod tv;
 pub mod senaryo;
 pub mod animasyon;
 pub mod stil;
+pub mod sablon;
 pub mod ffmpeg;
 pub mod png;
 pub mod uret;
