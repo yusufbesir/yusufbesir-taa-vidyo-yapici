@@ -56,7 +56,7 @@ const ALANLAR: [&str; 6] = ["dx", "dy", "olcek", "aci", "parlak", "derinlik"];
 static OZEL: RwLock<Vec<Ozel>> = RwLock::new(Vec::new());
 
 /// Yerleşik özel animasyon dosyaları (programa gömülü).
-const GOMULU: &[(&str, &str)] = &[("temel.txt", include_str!("../animasyonlar/temel.txt")), ("vurucu.txt", include_str!("../animasyonlar/vurucu.txt")), ("yon.txt", include_str!("../animasyonlar/yon.txt")), ("donus.txt", include_str!("../animasyonlar/donus.txt")), ("vurgu.txt", include_str!("../animasyonlar/vurgu.txt")), ("sirali.txt", include_str!("../animasyonlar/sirali.txt")), ("yeni.txt", include_str!("../animasyonlar/yeni.txt"))];
+const GOMULU: &[(&str, &str)] = &[("temel.txt", include_str!("../animasyonlar/temel.txt")), ("vurucu.txt", include_str!("../animasyonlar/vurucu.txt")), ("yon.txt", include_str!("../animasyonlar/yon.txt")), ("donus.txt", include_str!("../animasyonlar/donus.txt")), ("vurgu.txt", include_str!("../animasyonlar/vurgu.txt")), ("sirali.txt", include_str!("../animasyonlar/sirali.txt")), ("yeni.txt", include_str!("../animasyonlar/yeni.txt")), ("yeni2.txt", include_str!("../animasyonlar/yeni2.txt"))];
 
 /// Metin dosyasındaki animasyonları çözer. Biçim:
 /// ```text

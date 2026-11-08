@@ -360,12 +360,61 @@ fn zemin_plazma(t: &mut [u8], w: u32, h: u32, z: f32, r: Renk) {
     }
 }
 
+
+fn hsh(a: u32) -> f32 { let mut x = a.wrapping_mul(2654435761) ^ 0x9e3779b9; x ^= x >> 15; x = x.wrapping_mul(2246822519); x ^= x >> 13; (x & 0xffff) as f32 / 65535.0 }
+fn zemin_serit(t: &mut [u8], w: u32, h: u32, z: f32, r: Renk) {
+    let n = 9; let ad = (w + h) as f32 / n as f32;
+    for y in 0..h { for x in 0..w {
+        let u = ((x + y) as f32 - z * 40.0) / ad;
+        let f = u - u.floor();
+        if f < 0.22 {
+            let a = 0.10 * (1.0 - (f - 0.11).abs() / 0.11);
+            let i = ((y * w + x) * 3) as usize;
+            let c = [r.0, r.1, r.2];
+            for k in 0..3 { t[i + k] = (t[i + k] as f32 * (1.0 - a) + c[k] as f32 * a) as u8; }
+        }
+    } }
+}
+fn zemin_yildizli(t: &mut [u8], w: u32, h: u32, z: f32, r: Renk) {
+    for k in 0..60u32 {
+        let (x, y) = (hsh(k * 3 + 1) * w as f32, hsh(k * 3 + 2) * h as f32);
+        let faz = hsh(k * 3 + 3) * 6.28;
+        let a = 0.10 + 0.35 * (0.5 + 0.5 * (z * 1.3 + faz).sin());
+        let b = (w as f32 / 220.0).max(2.0) * (0.7 + hsh(k + 99));
+        elips(t, w, h, x, y, b, b, 0.0, r, a);
+    }
+}
+fn zemin_nabiz(t: &mut [u8], w: u32, h: u32, z: f32, r: Renk) {
+    let (cx, cy) = (w as f32 / 2.0, h as f32 / 2.0);
+    let en = (cx * cx + cy * cy).sqrt();
+    for y in 0..h { for x in 0..w {
+        let d = (((x as f32 - cx).powi(2) + (y as f32 - cy).powi(2)).sqrt()) / en;
+        let f = ((d * 3.0 - z * 0.25) % 1.0 + 1.0) % 1.0;
+        let a = 0.14 * (1.0 - ((f - 0.5).abs() * 2.0)).powi(3);
+        if a < 0.004 { continue; }
+        let i = ((y * w + x) * 3) as usize;
+        let c = [r.0, r.1, r.2];
+        for k in 0..3 { t[i + k] = (t[i + k] as f32 * (1.0 - a) + c[k] as f32 * a) as u8; }
+    } }
+}
+fn zemin_sutun(t: &mut [u8], w: u32, h: u32, z: f32, r: Renk) {
+    let n = 14u32; let bw = w / n;
+    for k in 0..n {
+        let boy = (0.10 + 0.14 * (0.5 + 0.5 * (z * (0.9 + hsh(k) * 0.8) + hsh(k + 50) * 6.28).sin())) * h as f32;
+        for y in (h as f32 - boy) as u32..h { for x in k * bw + bw / 6..(k + 1) * bw - bw / 6 {
+            let i = ((y * w + x) * 3) as usize;
+            let c = [r.0, r.1, r.2];
+            for q in 0..3 { t[i + q] = (t[i + q] as f32 * 0.88 + c[q] as f32 * 0.12) as u8; }
+        } }
+    }
+}
+
 pub const ADLAR: &[(&str, &str)] = &[
     ("cicek-yagmuru", "Yağan çiçekler (palet vurgu rengi)"), ("papatya", "Süzülen papatyalar"), ("yaprak", "Dönerek düşen sonbahar yaprakları"),
     ("kelebek", "Kanat çırpan kelebekler"), ("ugur-bocegi", "Yürüyen uğur böcekleri"), ("ari", "Vızıldayan arılar"),
     ("ates-bocegi", "Yavaş yanıp sönen ateş böcekleri"), ("kalp", "Yükselen kalpler"), ("yildiz-yagmuru", "Dönerek düşen yıldızlar"),
     ("konfeti", "Konfeti yağmuru"), ("balon", "Yükselen balonlar"), ("havai-fisek", "Havai fişek (tam ekran flaş yok)"), ("pirilti-bulutu", "Yavaş parlayan ışıltılar"),
-    ("cerceve-ince", "Çerçeve: ince çizgi (yavaş nefes)"), ("cerceve-cift", "Çerçeve: kalın ve ince çift çizgi"), ("cerceve-kose", "Çerçeve: köşe işaretleri"),
+    ("cerceve-ince", "Çerçeve: ince çizgi (yavaş nefes)"), ("zemin-serit", "Zemin: kayan çapraz şeritler"), ("zemin-yildizli", "Zemin: yanıp sönen yıldızlar"), ("zemin-nabiz", "Zemin: merkezden yayılan nabız"), ("zemin-sutun", "Zemin: dalgalanan alt sütunlar"), ("cerceve-cift", "Çerçeve: kalın ve ince çift çizgi"), ("cerceve-kose", "Çerçeve: köşe işaretleri"),
     ("cerceve-nokta", "Çerçeve: yürüyen LED noktaları"), ("cerceve-neon", "Çerçeve: neon ışıltılı çizgi"), ("cerceve-yildiz", "Çerçeve: köşe yıldızları ve ışıltı"),
     ("cerceve-dalga", "Çerçeve: üstte ve altta dalga"), ("cerceve-isik", "Çerçeve: çevrede dönen ışık kuyruğu"), ("cerceve-altin", "Çerçeve: kalın altın kenar, köşe kareleri"), ("cerceve-serit", "Çerçeve: üst ve alt şerit bant"),
     ("zemin-gradyan", "Zemin: yumuşak nefes alan renk geçişi"), ("zemin-dalga", "Zemin: akan yatay ışık dalgaları"), ("zemin-izgara", "Zemin: LED noktası ızgarası, merkezden dalga"), ("zemin-plazma", "Zemin: yavaş plazma bulutları"),
@@ -397,6 +446,10 @@ pub fn ciz(ad: &str, t: &mut [u8], w: u32, h: u32, z: f32, renk: Renk, tohum: u3
         "cerceve-isik" => cerceve_isik(t, w, h, z, renk),
         "cerceve-altin" => cerceve_altin(t, w, h, z, renk),
         "cerceve-serit" => cerceve_serit(t, w, h, z, renk),
+        "zemin-serit" => zemin_serit(t, w, h, z, renk),
+        "zemin-yildizli" => zemin_yildizli(t, w, h, z, renk),
+        "zemin-nabiz" => zemin_nabiz(t, w, h, z, renk),
+        "zemin-sutun" => zemin_sutun(t, w, h, z, renk),
         "zemin-gradyan" => zemin_gradyan(t, w, h, z, renk),
         "zemin-dalga" => zemin_dalga(t, w, h, z, renk),
         "zemin-izgara" => zemin_izgara(t, w, h, z, renk),
