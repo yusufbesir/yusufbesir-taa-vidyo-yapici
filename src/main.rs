@@ -81,6 +81,7 @@ fn main() {
     if let Some(i) = a.iter().position(|x| x == "--senaryo") {
         let yol = a.get(i + 1).expect("--senaryo dosya.txt");
         let metin = std::fs::read_to_string(yol).expect("senaryo dosyası okunamadı");
+        let metin = if metin.contains("# varsayilan:") { sablon::doldur(&metin, &[]) } else { metin }; // şablon yer tutucuları varsayılanla dolar
         let mut sen = match senaryo::ayristir(&metin) { Ok(s) => s, Err(e) => { eprintln!("HATA: {e}"); std::process::exit(2); } };
         if a.iter().any(|x| x == "--genislik") { sen.w = w; }
         if a.iter().any(|x| x == "--yukseklik") { sen.h = h; }
