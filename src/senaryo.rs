@@ -8,10 +8,10 @@ pub enum Gecis { Tv, Perde, Kapi, Iris, Slayt, Fade, Neon, Sil, Jaluzi, Mozaik, 
 pub const GECISLER: [(&str, &str); 15] = [("yok", "Geçiş yok"), ("tv", "Tüplü TV"), ("perde", "Üstten ve alttan perde"), ("kapi", "Ortadan açılan kapı"), ("iris", "Daire iris"), ("slayt", "Üstten slayt kapağı"), ("fade", "Yumuşak karartma"), ("neon", "Neon yanması (tek sefer, yumuşak)"), ("sil", "Soldan sağa silme"), ("jaluzi", "Yatay jaluzi şeritleri"), ("mozaik", "Kare mozaik dağılması"), ("dalga", "Dalgalı kenarla yukarıdan iner"), ("cubuk", "Dikey çubuklar sırayla iner"), ("elmas", "Elmas (eşkenar dörtgen) iris"), ("kare", "Dikdörtgen iris")];
 
 #[derive(Clone, Debug)]
-pub struct Sahne { pub metin: String, pub renk: String, pub giris: String, pub cikis: String, pub sure: f32, pub harf: f32, pub efekt: Vec<String>, pub font: String, pub derinlik: f32 }
+pub struct Sahne { pub metin: String, pub renk: String, pub giris: String, pub cikis: String, pub sure: f32, pub harf: f32, pub efekt: Vec<String>, pub font: String, pub derinlik: f32, pub egri: String }
 
 #[derive(Clone, Debug)]
-pub struct Senaryo { pub w: u32, pub h: u32, pub fiziksel: Option<(f32, f32)>, pub fps: u32, pub acilis: Gecis, pub kapanis: Gecis, pub sahneler: Vec<Sahne> }
+pub struct Senaryo { pub w: u32, pub h: u32, pub fiziksel: Option<(f32, f32)>, pub fps: u32, pub acilis: Gecis, pub kapanis: Gecis, pub koruma: bool, pub sahneler: Vec<Sahne> }
 
 pub const GIRISLER: [&str; 12] = ["yok", "donerek", "zipla", "yandan", "zoom", "alttan", "ustten", "belir", "elastik", "daktilo", "sil", "toplan"];
 pub const CIKISLAR: [&str; 8] = ["yok", "yukari", "asagi", "donerek", "sondur", "kucul", "sil", "dagil"];
@@ -35,7 +35,7 @@ fn gecis(s: &str) -> Result<Gecis, String> {
 }
 
 pub fn ayristir(metin: &str) -> Result<Senaryo, String> {
-    let mut s = Senaryo { w: 980, h: 1800, fiziksel: None, fps: 25, acilis: Gecis::Yok, kapanis: Gecis::Yok, sahneler: vec![] };
+    let mut s = Senaryo { w: 980, h: 1800, fiziksel: None, fps: 25, acilis: Gecis::Yok, kapanis: Gecis::Yok, koruma: true, sahneler: vec![] };
     for (no, ham) in metin.lines().enumerate() {
         let satir = ham.split('#').next().unwrap().trim();
         if satir.is_empty() { continue; }
@@ -43,12 +43,13 @@ pub fn ayristir(metin: &str) -> Result<Senaryo, String> {
         if let Some(r) = satir.strip_prefix("sahne") {
             let a = r.find('"').ok_or_else(|| hata("sahne metni tırnak içinde olmalı"))?;
             let b = r[a + 1..].find('"').ok_or_else(|| hata("kapanış tırnağı yok"))? + a + 1;
-            let mut sh = Sahne { metin: r[a + 1..b].to_string(), renk: "beyaz".into(), giris: "donerek".into(), cikis: "yok".into(), sure: 4.5, harf: 330.0, efekt: vec!["parlama".into()], font: String::new(), derinlik: 1.0 };
+            let mut sh = Sahne { metin: dinamik_metin(&r[a + 1..b]), renk: "beyaz".into(), giris: "donerek".into(), cikis: "yok".into(), sure: 4.5, harf: 330.0, efekt: vec!["parlama".into()], font: String::new(), derinlik: 1.0, egri: String::new() };
             for kv in r[b + 1..].split_whitespace() {
                 let (k, v) = kv.split_once('=').ok_or_else(|| hata(&format!("anahtar=değer bekleniyor: {kv}")))?;
                 match k {
                     "renk" | "palet" => { if crate::stil::paletli(v).is_none() { return Err(hata(&format!("bilinmeyen renk/palet: {v}"))); } sh.renk = v.into() }
                     "font" => { if !crate::stil::font_var_mi(v) { return Err(hata(&format!("bilinmeyen font: {v} (olanlar: {})", crate::stil::FONTLAR.iter().map(|f| f.0).collect::<Vec<_>>().join(", ")))); } sh.font = v.into() }
+                    "egri" => { if !v.is_empty() && !anim::EGRILER.iter().any(|e| e.0 == v) { return Err(hata(&format!("bilinmeyen eğri: {v} ({:?})", anim::EGRILER.iter().map(|e| e.0).collect::<Vec<_>>()))); } sh.egri = if v == "yok" { String::new() } else { v.into() } }
                     "derinlik" => { sh.derinlik = v.parse().map_err(|_| hata("derinlik sayı olmalı"))?; if !(0.0..=3.0).contains(&sh.derinlik) { return Err(hata("derinlik 0 ile 3 arası")); } }
                     "giris" => { if !giris_adlari().iter().any(|x| x == v) { return Err(hata(&format!("bilinmeyen giriş: {v} (olanlar: {})", giris_adlari().join(", ")))); } sh.giris = v.into() }
                     "cikis" => { if !cikis_adlari().iter().any(|x| x == v) { return Err(hata(&format!("bilinmeyen çıkış: {v} (olanlar: {})", cikis_adlari().join(", ")))); } sh.cikis = v.into() }
@@ -71,6 +72,7 @@ pub fn ayristir(metin: &str) -> Result<Senaryo, String> {
             "fps" => s.fps = v.parse().map_err(|_| hata("fps"))?,
             "acilis" => s.acilis = gecis(v).map_err(|e| hata(&e))?,
             "kapanis" => s.kapanis = gecis(v).map_err(|e| hata(&e))?,
+            "koruma" => s.koruma = match v { "acik" => true, "kapali" => false, _ => return Err(hata("koruma acik veya kapali olmalı")) },
             _ => return Err(hata(&format!("bilinmeyen komut: {k}"))),
         }
     }
@@ -117,8 +119,17 @@ pub fn toplam_sn(s: &Senaryo) -> f32 { acilis_sn(&s.acilis) + s.sahneler.iter().
 const GIRIS_SN: f32 = 0.9;
 const CIKIS_SN: f32 = 0.9;
 
+/// Kütüphane animasyonunu eğriyle çağırır; eğri 0..1 dışına taşarsa (geri/esnek) başlangıç ve son poz arasında doğrusal uzatır.
+fn poz_egri(ad: &str, k: f32, c: &crate::animasyon::Ctx) -> Option<Poz> {
+    if (0.0..=1.0).contains(&k) { return crate::animasyon::poz(ad, k, c); }
+    let (bas, son) = (crate::animasyon::poz(ad, 0.0, c)?, crate::animasyon::poz(ad, 1.0, c)?);
+    let (taban, u) = if k > 1.0 { (son, 1.0 - k) } else { (bas, -k) };
+    let f = |a: f32, b: f32, c0: f32| c0 + (a - b) * u;
+    Some(Poz { dx: f(bas.dx, son.dx, taban.dx), dy: f(bas.dy, son.dy, taban.dy), aci: f(bas.aci, son.aci, taban.aci), olcek: f(bas.olcek, son.olcek, taban.olcek).max(0.01), parlak: f(bas.parlak, son.parlak, taban.parlak).clamp(0.0, 1.0), derinlik: f(bas.derinlik, son.derinlik, taban.derinlik).max(0.0) })
+}
+
 /// Bir satırın pozu: `t` sahne içi zaman.
-pub fn satir_poz(giris: &str, cikis: &str, t: f32, sure: f32, li: usize, d: f32, ekran: (u32, u32)) -> Poz {
+pub fn satir_poz(giris: &str, cikis: &str, egri: &str, t: f32, sure: f32, li: usize, d: f32, ekran: (u32, u32)) -> Poz {
     let (w, h) = (ekran.0 as f32, ekran.1 as f32);
     let pi = std::f32::consts::PI;
     let faz = li as f32 * 0.9;
@@ -129,7 +140,7 @@ pub fn satir_poz(giris: &str, cikis: &str, t: f32, sure: f32, li: usize, d: f32,
         if kutuphane_cikis.is_some() {
             let k = ((t - (sure - cs)) / cs).clamp(0.0, 1.0);
             let c = crate::animasyon::Ctx { w, h, li, d, sal };
-            if let Some(p) = crate::animasyon::poz(cikis, 1.0 - k, &c) { return p; }
+            if let Some(p) = poz_egri(cikis, 1.0 - anim::egri_k(egri, k), &c) { return p; }
         }
         let k = ((t - (sure - cs)) / cs).clamp(0.0, 1.0);
         let e = k * k * (3.0 - 2.0 * k);
@@ -156,7 +167,7 @@ pub fn satir_poz(giris: &str, cikis: &str, t: f32, sure: f32, li: usize, d: f32,
         if ti < 0.0 { return Poz { parlak: 0.0, ..sal }; }
         if ti < gsn {
             let c = crate::animasyon::Ctx { w, h, li, d, sal };
-            if let Some(p) = crate::animasyon::poz(giris, ti / gsn, &c) { return p; }
+            if let Some(p) = poz_egri(giris, anim::egri_k(egri, ti / gsn), &c) { return p; }
         }
         return sal;
     }
@@ -215,6 +226,46 @@ pub fn perde(t: &mut [u8], w: u32, h: u32, kapali: f32, renk: Renk) {
 }
 
 /// Açılış/kapanış kaplaması. `kapali`: 0 açık, 1 tam kapalı (siyah). Tv ayrıca işlenir.
+/// Sahne metnindeki canlı öğeleri video üretildiği ana göre çözer: `{tarih}` (gg.aa.yyyy), `{gun:2026-12-31}` (o tarihe kalan gün sayısı).
+pub fn dinamik_metin(m: &str) -> String {
+    if !m.contains('{') { return m.to_string(); }
+    let bugun = bugun_gun_no();
+    let (y, a, g) = tarih_ayir(bugun);
+    let mut o = m.replace("{tarih}", &format!("{g:02}.{a:02}.{y}"));
+    while let Some(i) = o.find("{gun:") {
+        let Some(j) = o[i..].find('}') else { break };
+        let ic = o[i + 5..i + j].to_string();
+        let kalan = ic.split('-').map(|x| x.parse::<i64>().ok()).collect::<Option<Vec<_>>>().filter(|v| v.len() == 3).map(|v| (gun_no(v[0], v[1], v[2]) - bugun).max(0));
+        o.replace_range(i..i + j + 1, &kalan.map(|k| k.to_string()).unwrap_or_else(|| "?".into()));
+    }
+    o
+}
+/// 1970-01-01'den beri gün sayısı (sivil takvim).
+fn gun_no(y: i64, m: i64, d: i64) -> i64 {
+    let y = if m <= 2 { y - 1 } else { y };
+    let era = y.div_euclid(400);
+    let yoe = y - era * 400;
+    let doy = (153 * (if m > 2 { m - 3 } else { m + 9 }) + 2) / 5 + d - 1;
+    let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+    era * 146097 + doe - 719468
+}
+fn tarih_ayir(z: i64) -> (i64, i64, i64) {
+    let z = z + 719468;
+    let era = z.div_euclid(146097);
+    let doe = z - era * 146097;
+    let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
+    let y = yoe + era * 400;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let d = doy - (153 * mp + 2) / 5 + 1;
+    let m = if mp < 10 { mp + 3 } else { mp - 9 };
+    (if m <= 2 { y + 1 } else { y }, m, d)
+}
+fn bugun_gun_no() -> i64 {
+    let sn = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs() as i64).unwrap_or(0);
+    (sn + 3 * 3600).div_euclid(86400) // Türkiye saati (UTC+3)
+}
+
 pub fn kaplama(g: &Gecis, t: &mut [u8], w: u32, h: u32, kapali: f32, renk: Renk) {
     let kapali = kapali.clamp(0.0, 1.0);
     if kapali <= 0.0 { return; }
@@ -453,7 +504,7 @@ pub fn kare_uret(s: &Senaryo, hz: &[Hazir], t: f32, no: u32) -> Vec<u8> {
         let ti = yerel - li as f32 * 0.15;
         if giris == "toplan" && (0.0..1.4).contains(&ti) { anim::dagilma(&mut k, m, z.yuz, 1.0 - ti / 1.4, (idx * 10 + li) as u32); continue; }
         if sh.cikis == "dagil" && yerel > sh.sure - 1.2 { anim::dagilma(&mut k, m, z.yuz, ((yerel - (sh.sure - 1.2)) / 1.2).clamp(0.0, 1.0), (idx * 10 + li) as u32 + 50); continue; }
-        let p = satir_poz(giris, &sh.cikis, yerel, sh.sure, li, z.d, (w, h));
+        let p = satir_poz(giris, &sh.cikis, &sh.egri, yerel, sh.sure, li, z.d, (w, h));
         anim::kare3d_kirpmali(&mut k, m, z.yuz, z.yan, &p, satir_kirp(giris, &sh.cikis, yerel, sh.sure, li));
     }
     if sh.efekt.iter().any(|e| e == "parlama") {
@@ -514,5 +565,23 @@ mod t {
         }
         // sahne 1 ortasında yazı var
         assert!(kare_uret(&s, &hz, 3.0, 1).iter().any(|&b| b > 150));
+    }
+    #[test]
+    fn yeni_gecis_ve_efektler_cizilir() {
+        let f = FontRef::try_from_slice(include_bytes!("../fonts/InterDisplay-Bold.otf")).unwrap();
+        for (g, _) in GECISLER.iter() {
+            let m = format!("ekran 120x240\nacilis {g}\nkapanis {g}\nsahne \"TAA\" sure=3 harf=80\n");
+            let s = ayristir(&m).unwrap_or_else(|e| panic!("{g}: {e}"));
+            let hz = hazirla(&f, &s);
+            let toplam = toplam_sn(&s);
+            for t in [0.05, toplam * 0.5, toplam - 0.05] { assert_eq!(kare_uret(&s, &hz, t, 2).len(), (s.w * s.h * 3) as usize, "{g}"); }
+        }
+        for (e, _) in efekt_listesi() {
+            let m = format!("ekran 120x240\nsahne \"TAA\" sure=3 harf=80 efekt={e}\n");
+            let s = ayristir(&m).unwrap_or_else(|er| panic!("{e}: {er}"));
+            let hz = hazirla(&f, &s);
+            let k = kare_uret(&s, &hz, 2.0, 1);
+            assert!(k.iter().any(|&b| b > 100), "{e}: kare boş");
+        }
     }
 }

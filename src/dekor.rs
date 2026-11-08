@@ -307,6 +307,59 @@ fn cerceve_serit(t: &mut [u8], w: u32, h: u32, z: f32, r: Renk) {
     for (y, kal) in [(h as f32 * 0.035, k), (h as f32 * 0.035 + k * 1.8, k * 0.4), (h as f32 * 0.965 - k, k), (h as f32 * 0.965 - k * 2.8, k * 0.4)] { dik(t, w, h, w as f32 * 0.05, y, w as f32 * 0.95, y + kal, r, a); }
 }
 
+// ---- Hareketli zeminler: yazının arkasında, düşük opaklıkta (kontrast korunur) ----
+
+fn zemin_gradyan(t: &mut [u8], w: u32, h: u32, z: f32, r: Renk) {
+    for y in 0..h {
+        let a = 0.05 + 0.13 * (0.5 + 0.5 * (z * 0.45 + y as f32 / h as f32 * 3.1416).sin());
+        for x in 0..w { karistir(t, ((y * w + x) * 3) as usize, r, a); }
+    }
+}
+
+fn zemin_dalga(t: &mut [u8], w: u32, h: u32, z: f32, r: Renk) {
+    let ks = 6.2832 / (h as f32 / 5.0);
+    for y in 0..h {
+        for x in (0..w).step_by(2) {
+            let a = 0.14 * (0.5 + 0.5 * (y as f32 * ks + (x as f32 / w as f32 * 3.0) + z * 0.9).sin());
+            let i = ((y * w + x) * 3) as usize; karistir(t, i, r, a); karistir(t, i + 3, r, a);
+        }
+    }
+}
+
+fn zemin_izgara(t: &mut [u8], w: u32, h: u32, z: f32, r: Renk) {
+    let adim = (w / 14).max(12);
+    let boy = (adim as f32 * 0.10).max(2.0);
+    let (cx, cy) = (w as f32 / 2.0, h as f32 / 2.0);
+    let mut y = adim / 2;
+    while y < h {
+        let mut x = adim / 2;
+        while x < w {
+            let d = (((x as f32 - cx).powi(2) + (y as f32 - cy).powi(2)).sqrt()) / w as f32;
+            let a = 0.10 + 0.22 * (0.5 + 0.5 * (d * 9.0 - z * 1.2).sin());
+            elips(t, w, h, x as f32, y as f32, boy, boy, 0.0, r, a);
+            x += adim;
+        }
+        y += adim;
+    }
+}
+
+fn zemin_plazma(t: &mut [u8], w: u32, h: u32, z: f32, r: Renk) {
+    let blok = 8u32;
+    let (fw, fh) = (w as f32, h as f32);
+    let mut y = 0;
+    while y < h {
+        let mut x = 0;
+        while x < w {
+            let (u, v) = (x as f32 / fw * 4.0, y as f32 / fh * 7.0);
+            let n = ((u * 2.1 + z * 0.6).sin() + (v * 1.3 - z * 0.5).sin() + ((u + v) * 1.1 + z * 0.4).sin() + ((u * u + v * v).sqrt() * 1.7 - z * 0.7).sin()) / 4.0;
+            let a = 0.03 + 0.14 * (0.5 + 0.5 * n);
+            for yy in y..(y + blok).min(h) { for xx in x..(x + blok).min(w) { karistir(t, ((yy * w + xx) * 3) as usize, r, a); } }
+            x += blok;
+        }
+        y += blok;
+    }
+}
+
 pub const ADLAR: &[(&str, &str)] = &[
     ("cicek-yagmuru", "Yağan çiçekler (palet vurgu rengi)"), ("papatya", "Süzülen papatyalar"), ("yaprak", "Dönerek düşen sonbahar yaprakları"),
     ("kelebek", "Kanat çırpan kelebekler"), ("ugur-bocegi", "Yürüyen uğur böcekleri"), ("ari", "Vızıldayan arılar"),
@@ -315,6 +368,7 @@ pub const ADLAR: &[(&str, &str)] = &[
     ("cerceve-ince", "Çerçeve: ince çizgi (yavaş nefes)"), ("cerceve-cift", "Çerçeve: kalın ve ince çift çizgi"), ("cerceve-kose", "Çerçeve: köşe işaretleri"),
     ("cerceve-nokta", "Çerçeve: yürüyen LED noktaları"), ("cerceve-neon", "Çerçeve: neon ışıltılı çizgi"), ("cerceve-yildiz", "Çerçeve: köşe yıldızları ve ışıltı"),
     ("cerceve-dalga", "Çerçeve: üstte ve altta dalga"), ("cerceve-isik", "Çerçeve: çevrede dönen ışık kuyruğu"), ("cerceve-altin", "Çerçeve: kalın altın kenar, köşe kareleri"), ("cerceve-serit", "Çerçeve: üst ve alt şerit bant"),
+    ("zemin-gradyan", "Zemin: yumuşak nefes alan renk geçişi"), ("zemin-dalga", "Zemin: akan yatay ışık dalgaları"), ("zemin-izgara", "Zemin: LED noktası ızgarası, merkezden dalga"), ("zemin-plazma", "Zemin: yavaş plazma bulutları"),
 ];
 
 /// Ad bilinen bir dekor ise çizer ve true döner.
@@ -343,6 +397,10 @@ pub fn ciz(ad: &str, t: &mut [u8], w: u32, h: u32, z: f32, renk: Renk, tohum: u3
         "cerceve-isik" => cerceve_isik(t, w, h, z, renk),
         "cerceve-altin" => cerceve_altin(t, w, h, z, renk),
         "cerceve-serit" => cerceve_serit(t, w, h, z, renk),
+        "zemin-gradyan" => zemin_gradyan(t, w, h, z, renk),
+        "zemin-dalga" => zemin_dalga(t, w, h, z, renk),
+        "zemin-izgara" => zemin_izgara(t, w, h, z, renk),
+        "zemin-plazma" => zemin_plazma(t, w, h, z, renk),
         _ => return false,
     }
     true

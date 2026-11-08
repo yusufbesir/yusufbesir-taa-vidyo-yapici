@@ -78,3 +78,10 @@ ARASTIRMA-DIS-LED-EKRAN.md: beyaz kısık, flaş yok, tarama çizgisi yok, kalı
 
 ## Durum
 Çekirdek, senaryo motoru, arayüz, kurulum ve kaldırma hazır (29 test; Linux'ta arayüz ve kurulum mantığı denendi). Render CPU'da çalışır (10 sn video yaklaşık 2,5-3 dk). Windows exe'nin kendisi bir Windows bilgisayarda henüz denenmedi.
+
+## Yenilikler (0.6.0)
+- Sadeleşen arayüz: 1 Ne yazsın, 2 Nasıl görünsün, 3 Hazır; gerisi kapalı "Ayrıntılar" altında.
+- 18 hazır şablon, 16 yeni font, 18 yeni palet, özel renk (`renk=hex-ffcc00`).
+- 10 çerçeve, 4 hareketli zemin, 7 yeni geçiş, 36 yeni animasyon, hareket eğrileri.
+- Yanıp sönme koruması (`koruma acik|kapali`), canlı metin (`{tarih}`, `{gun:YYYY-MM-DD}`), güvenli alan çizgisi.
+- Rehber: üstteki "Rehber" düğmesi, örnekleri canlı oynatır.
