@@ -131,6 +131,7 @@ TAKSİT</textarea>
     <div id="sablonEtiket"></div>
     <div class="sira">
       <button class="btn" id="sablonAc">Hazır şablonlar</button>
+      <button class="btn" id="sablonKaydet" title="Şu anki tasarımı şablon olarak sakla">Şablon kaydet</button>
       <select id="ornek" style="max-width:190px" title="Örnek senaryo"></select>
     </div>
     <div class="sablonlar" id="sablonlar"></div>
@@ -182,6 +183,9 @@ TAKSİT</textarea>
           <div><div class="etiket" style="margin-top:0">Dosya adı</div><input type="text" id="dosya" value="video"></div>
           <div><div class="etiket" style="margin-top:0">Biçim</div><select id="kodek"><option value="mp4">MP4 (önerilen)</option><option value="hap">HAP (4'e bölünen ölçü)</option></select></div>
         </div>
+        <div class="etiket">Panel profili (ekran ölçüsü)</div>
+        <select id="ekran"><option value="950x1800">950×1800 dikey LED (varsayılan)</option><option value="1080x1920">1080×1920 dikey Full HD</option><option value="1080x1080">1080×1080 kare</option><option value="1920x1080">1920×1080 yatay Full HD</option><option value="576x1024">576×1024 küçük dikey</option><option value="1280x720">1280×720 yatay</option></select>
+        <label class="sira mut" style="margin-top:12px"><input type="checkbox" id="dongu"> Dikişsiz döngü (başı ve sonu yumuşak karartır, tekrarda sıçrama olmaz)</label>
         <label class="sira mut" style="margin-top:12px"><input type="checkbox" id="koruma" checked> Yanıp sönme koruması (ani tam ekran parlamaları yumuşatır)</label>
       </div></details>
       <details class="bolum"><summary>Gelişmiş senaryo metni</summary><div>
@@ -256,7 +260,7 @@ function globalAyarla(m, k, v) {
   return satir.join('\n');
 }
 function uygulaOzel(m) {
-  for (const [k, v] of Object.entries(ozel)) m = (k === 'acilis' || k === 'kapanis' || k === 'koruma') ? globalAyarla(m, k, v) : sahneAyarla(m, k, v);
+  for (const [k, v] of Object.entries(ozel)) m = (k === 'acilis' || k === 'kapanis' || k === 'koruma' || k === 'ekran' || k === 'dongu') ? globalAyarla(m, k, v) : sahneAyarla(m, k, v);
   return m;
 }
 function ilkSahne(m) {
@@ -279,6 +283,7 @@ function esle() {
   for (const k of ['giris', 'cikis', 'acilis', 'kapanis']) if ([...$('#' + k).options].some(o => o.value === s[k])) $('#' + k).value = s[k];
   $('#derinlik').value = s.derinlik; $('#derinlikV').textContent = (+s.derinlik).toFixed(1);
   $('#koruma').checked = s.koruma;
+  const ek = (sen.value.match(/^\s*ekran\s+(\S+)/m) || [])[1]; if (ek && [...$('#ekran').options].some(o => o.value === ek)) $('#ekran').value = ek;
 }
 function ozelYaz(k, v) { ozel[k] = v; sen.value = uygulaOzel(sen.value); degisti(); }
 
@@ -323,6 +328,15 @@ function sablonListesi() {
   $('#sablonlar').innerHTML = Object.entries(gr).map(([k, l]) => `<h4>${k}</h4><div class="chips">${l.map(s => `<span class="chip" data-sab="${s.ad}">${s.baslik}</span>`).join('')}</div>`).join('');
 }
 
+async function sablonKaydet() {
+  const ad = (prompt('Şablon adı:') || '').trim(); if (!ad) return;
+  const r = await api('/sablon-kaydet?ad=' + encodeURIComponent(ad), sen.value);
+  if (!r.ok) { alert(await r.text()); return; }
+  bilgi = await (await api('/bilgi')).json(); sablonListesi();
+  alert('Kaydedildi. "Hazır şablonlar" altında "Benim" başlığında bulursunuz.');
+}
+$('#sablonKaydet').onclick = sablonKaydet;
+
 async function baslat() {
   bilgi = await (await api('/bilgi')).json();
   $('#surum').textContent = 'v' + bilgi.surum + (bilgi.ffmpeg ? '' : ' · ffmpeg bulunamadı');
@@ -365,6 +379,8 @@ $('#giris').onchange = e => ozelYaz('giris', e.target.value);
 $('#cikis').onchange = e => ozelYaz('cikis', e.target.value);
 $('#acilis').onchange = e => ozelYaz('acilis', e.target.value);
 $('#kapanis').onchange = e => ozelYaz('kapanis', e.target.value);
+$('#ekran').onchange = e => ozelYaz('ekran', e.target.value);
+$('#dongu').onchange = e => ozelYaz('dongu', e.target.checked ? 'acik' : 'kapali');
 $('#koruma').onchange = e => ozelYaz('koruma', e.target.checked ? 'acik' : 'kapali');
 $('#hexUygula').onclick = () => ozelYaz('palet', 'hex-' + $('#hex').value.slice(1));
 $('#derinlik').oninput = e => { $('#derinlikV').textContent = (+e.target.value).toFixed(1); ozel.derinlik = e.target.value; sen.value = uygulaOzel(sen.value); degisti(); };
