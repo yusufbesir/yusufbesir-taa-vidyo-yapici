@@ -1,7 +1,7 @@
 # TAA Paket program bildirimi (docs/program-sozlesmesi.md; denetim: tools/sozlesme_denetle.py --program program.toml --surum-dosyasi Cargo.toml --paket-kok <taa-paket>)
 ad = "taa-vidyo-yapici"
 gorunen_ad = "TAA Vidyo Yapıcı"
-surum = "0.7.0"                 # Cargo.toml [package] version ile aynı olmalı
+surum = "0.7.1"                 # Cargo.toml [package] version ile aynı olmalı
 arayuz = "1"
 gerektirir = {}                 # yalnız ab_glyph; taa-* crate kullanmaz
 sunar  = ["video.uret@1"]
