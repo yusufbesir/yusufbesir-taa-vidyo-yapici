@@ -72,6 +72,7 @@ pub fn ayristir(metin: &str) -> Result<Senaryo, String> {
             "fps" => s.fps = v.parse().map_err(|_| hata("fps"))?,
             "acilis" => s.acilis = gecis(v).map_err(|e| hata(&e))?,
             "kapanis" => s.kapanis = gecis(v).map_err(|e| hata(&e))?,
+            "dongu" => match v { "acik" => { if matches!(s.acilis, Gecis::Yok) { s.acilis = Gecis::Fade; } if matches!(s.kapanis, Gecis::Yok) { s.kapanis = Gecis::Fade; } } "kapali" => {} _ => return Err(hata("dongu acik veya kapali olmalı")) },
             "koruma" => s.koruma = match v { "acik" => true, "kapali" => false, _ => return Err(hata("koruma acik veya kapali olmalı")) },
             _ => return Err(hata(&format!("bilinmeyen komut: {k}"))),
         }

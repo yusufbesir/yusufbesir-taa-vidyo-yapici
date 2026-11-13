@@ -85,3 +85,8 @@ ARASTIRMA-DIS-LED-EKRAN.md: beyaz kısık, flaş yok, tarama çizgisi yok, kalı
 - 10 çerçeve, 4 hareketli zemin, 7 yeni geçiş, 36 yeni animasyon, hareket eğrileri.
 - Yanıp sönme koruması (`koruma acik|kapali`), canlı metin (`{tarih}`, `{gun:YYYY-MM-DD}`), güvenli alan çizgisi.
 - Rehber: üstteki "Rehber" düğmesi, örnekleri canlı oynatır.
+
+## Yenilikler (0.7.0)
+- "Şablon kaydet": tasarımı adla saklar (Videolar\TAA Vidyo Yapıcı\Şablonlarım), şablon listesinde "Benim" başlığında görünür.
+- Panel profili (Çıktı bölümü): sık ekran ölçüleri tek seçimle.
+- Dikişsiz döngü (`dongu acik`): başı ve sonu yumuşak karartır.

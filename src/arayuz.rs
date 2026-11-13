@@ -45,6 +45,17 @@ fn json_kacis(s: &str) -> String {
 }
 
 /// Videoların yazılacağı klasör (LED_CIKTI ile değiştirilebilir).
+fn sablon_klasoru() -> PathBuf { let k = cikti_klasoru().join("Şablonlarım"); let _ = std::fs::create_dir_all(&k); k }
+fn guvenli_ad(a: &str) -> String { let t: String = a.trim().chars().map(|c| if c.is_alphanumeric() || c == '-' || c == '_' { c } else { '-' }).collect(); t.trim_matches('-').chars().take(40).collect() }
+/// Kullanıcının kaydettiği şablonlar: (ad "u-…", içerik).
+fn kullanici_sablonlari() -> Vec<(String, String)> {
+    let mut v: Vec<(String, String)> = std::fs::read_dir(sablon_klasoru()).into_iter().flatten().flatten()
+        .filter(|e| e.path().extension().map(|x| x == "txt").unwrap_or(false))
+        .filter_map(|e| { let ad = e.path().file_stem()?.to_string_lossy().to_string(); let m = std::fs::read_to_string(e.path()).ok()?; Some((format!("u-{ad}"), m)) }).collect();
+    v.sort(); v
+}
+fn kullanici_sablon_bul(ad: &str) -> Option<String> { kullanici_sablonlari().into_iter().find(|x| x.0 == ad).map(|x| x.1) }
+
 pub fn cikti_klasoru() -> PathBuf {
     let k = if let Ok(p) = std::env::var("LED_CIKTI") { PathBuf::from(p) }
         else if let Ok(p) = std::env::var("USERPROFILE") { PathBuf::from(p).join("Videos").join("TAA Vidyo Yapıcı") }
@@ -150,6 +161,8 @@ fn isle(mut s: TcpStream, o: Arc<Ortak>) {
             let gecisler: Vec<String> = crate::senaryo::GECISLER.iter().map(|g| format!("{{\"ad\":\"{}\",\"acik\":\"{}\"}}", g.0, json_kacis(g.1))).collect();
             let stiller: Vec<String> = crate::oto::STILLER.iter().map(|g| format!("{{\"ad\":\"{}\",\"acik\":\"{}\"}}", g.0, json_kacis(g.1))).collect();
             let sablonlar: Vec<String> = crate::sablon::SABLONLAR.iter().map(|(a, m)| format!("{{\"ad\":\"{}\",\"baslik\":\"{}\",\"kategori\":\"{}\",\"varsayilan\":\"{}\"}}", a, json_kacis(&crate::sablon::baslik(m, "baslik")), json_kacis(&crate::sablon::baslik(m, "kategori")), json_kacis(&crate::sablon::baslik(m, "varsayilan")))).collect();
+            let mut sablonlar = sablonlar;
+            for (a, m) in kullanici_sablonlari() { sablonlar.push(format!("{{\"ad\":\"{}\",\"baslik\":\"{}\",\"kategori\":\"Benim\",\"varsayilan\":\"\"}}", json_kacis(&a), json_kacis(&crate::sablon::baslik(&m, "baslik")))); }
             let rehber: Vec<String> = crate::sablon::REHBER.iter().map(|(a, m)| format!("{{\"ad\":\"{}\",\"baslik\":\"{}\",\"aciklama\":\"{}\"}}", a, json_kacis(&crate::sablon::baslik(m, "baslik")), json_kacis(&crate::sablon::baslik(m, "aciklama")))).collect();
             let egriler: Vec<String> = crate::anim::EGRILER.iter().map(|g| format!("{{\"ad\":\"{}\",\"acik\":\"{}\"}}", g.0, json_kacis(g.1))).collect();
             let j = format!("{{\"egriler\":[{}],\"paletler\":[{}],\"fontlar\":[{}],\"gecisler\":[{}],\"stiller\":[{}],\"surum\":\"{SURUM}\",\"ffmpeg\":\"{}\",\"klasor\":\"{}\",\"ornekler\":[{}],\"girisler\":[{}],\"cikislar\":[{}],\"efektler\":[{}],\"animasyon_klasorleri\":[{}],\"sablonlar\":[{}],\"rehber\":[{}]}}", egriler.join(","), paletler.join(","), fontlar.join(","), gecisler.join(","), stiller.join(","), json_kacis(&ff), json_kacis(&cikti_klasoru().display().to_string()), adlar.join(","), liste(crate::senaryo::giris_listesi()), liste(crate::senaryo::cikis_listesi()), efekt.join(","), kl.join(","), sablonlar.join(","), rehber.join(","));
@@ -159,10 +172,18 @@ fn isle(mut s: TcpStream, o: Arc<Ortak>) {
             Some((_, m)) => yanit(&mut s, 200, metin, m.as_bytes()),
             None => yanit(&mut s, 404, metin, b"yok"),
         },
-        ("GET", y) if y.starts_with("/sablon/") => match crate::sablon::sablon_bul(&y[8..]) {
+        ("GET", y) if y.starts_with("/sablon/") => match crate::sablon::sablon_bul(&y[8..]).map(|m| m.to_string()).or_else(|| kullanici_sablon_bul(&url_coz(&y[8..]))) {
             Some(m) => yanit(&mut s, 200, metin, m.as_bytes()),
             None => yanit(&mut s, 404, metin, b"yok"),
         },
+        ("POST", "/sablon-kaydet") => {
+            let ad = guvenli_ad(&sorgu(&yol, "ad").unwrap_or_default());
+            if ad.is_empty() || yazi.trim().is_empty() { yanit(&mut s, 400, metin, "Şablon adı ve içerik gerekli".as_bytes()); }
+            else {
+                let icerik = format!("# baslik: {ad}\n# kategori: Benim\n{}\n", yazi.lines().filter(|l| !l.trim_start().starts_with("# baslik:") && !l.trim_start().starts_with("# kategori:")).collect::<Vec<_>>().join("\n"));
+                match std::fs::write(sablon_klasoru().join(format!("{ad}.txt")), icerik) { Ok(_) => yanit(&mut s, 200, metin, format!("u-{ad}").as_bytes()), Err(e) => yanit(&mut s, 500, metin, e.to_string().as_bytes()) }
+            }
+        }
         ("GET", y) if y.starts_with("/rehber/") => match crate::sablon::rehber_bul(&y[8..]) {
             Some(m) => yanit(&mut s, 200, metin, m.as_bytes()),
             None => yanit(&mut s, 404, metin, b"yok"),
