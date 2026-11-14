@@ -111,6 +111,16 @@ dialog video{width:100%;max-height:60vh;background:#000;border-radius:8px;margin
 .rehber span{color:var(--mut);font-size:12.5px}
 @media (max-width:1000px){main{grid-template-columns:1fr;padding:14px}.sag{position:static}canvas{height:52vh}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* açılış ekranı: LED şerit; temaya göre renklenir, gerçek yükleme bitince kapanır */
+#yukleEkrani{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:var(--bg);color:var(--tx);transition:opacity .22s}
+body:has(#yukleEkrani){overflow:hidden}
+#yukleEkrani.kapan{opacity:0;pointer-events:none}
+#yukleEkrani .ledler{display:grid;grid-template-columns:repeat(24,10px);gap:5px}
+#yukleEkrani .ledler i{width:10px;height:10px;border-radius:50%;background:var(--line);animation:acilisLed 1.2s ease-in-out infinite;animation-delay:calc(var(--k)*50ms)}
+#yukleEkrani b{font:700 28px/1 var(--fh);letter-spacing:.14em;text-transform:uppercase}
+#yukleEkrani small{font:12px var(--fm);color:var(--mut);letter-spacing:.08em}
+@keyframes acilisLed{0%,100%{background:var(--line);box-shadow:none}50%{background:var(--ac);box-shadow:0 0 10px var(--ac)}}
+@media (prefers-reduced-motion:reduce){#yukleEkrani .ledler i{animation:none;background:var(--ac)}}
 /* ---- temalar (Stitch konseptleri) ---- */
 @font-face{font-family:"TAA Dar";src:url(/yz/dar.ttf);font-display:swap}
 @font-face{font-family:"TAA Raf";src:url(/yz/raf.ttf);font-display:swap}
@@ -141,6 +151,7 @@ header select{width:auto;padding:4px 8px;font-size:13px}
 </style>
 </head>
 <body>
+<div id="yukleEkrani" role="status" aria-label="Yükleniyor"><div class="ledler"><i style="--k:0"></i><i style="--k:1"></i><i style="--k:2"></i><i style="--k:3"></i><i style="--k:4"></i><i style="--k:5"></i><i style="--k:6"></i><i style="--k:7"></i><i style="--k:8"></i><i style="--k:9"></i><i style="--k:10"></i><i style="--k:11"></i><i style="--k:12"></i><i style="--k:13"></i><i style="--k:14"></i><i style="--k:15"></i><i style="--k:16"></i><i style="--k:17"></i><i style="--k:18"></i><i style="--k:19"></i><i style="--k:20"></i><i style="--k:21"></i><i style="--k:22"></i><i style="--k:23"></i></div><b>TAA Vidyo Yapıcı</b><small>LED ekran video stüdyosu</small></div>
 <header>
   <img src="/logo.svg" alt="">
   <h1>TAA Vidyo Yapıcı</h1>
@@ -265,6 +276,8 @@ TAKSİT</textarea>
 
 <script>
 'use strict';
+window.acilisKapat = () => { const a = document.getElementById('yukleEkrani'); if (!a) return; a.classList.add('kapan'); setTimeout(() => a.remove(), 300); };
+setTimeout(() => window.acilisKapat(), 6000);
 (() => { const s = document.getElementById('tema'); let t = 'a'; try { t = localStorage.getItem('taa-tema') || 'a'; } catch (e) {} if (!['a','b','c'].includes(t)) t = 'a'; s.value = t; s.addEventListener('change', () => { const v = s.value; if (v === 'a') delete document.documentElement.dataset.tema; else document.documentElement.dataset.tema = v; try { localStorage.setItem('taa-tema', v); } catch (e) {} }); })();
 // Tema renkleri: vurgu ve zemin, tema başına kalıcı; "Varsayılana dön" ile sıfırlanır.
 (() => {
@@ -397,6 +410,7 @@ $('#sablonKaydet').onclick = sablonKaydet;
 
 async function baslat() {
   bilgi = await (await api('/bilgi')).json();
+  window.acilisKapat && window.acilisKapat();
   $('#surum').textContent = 'v' + bilgi.surum + (bilgi.ffmpeg ? '' : ' · ffmpeg bulunamadı');
   $('#stiller').innerHTML = bilgi.stiller.map(s => `<div class="stil" data-ad="${s.ad}" title="${s.acik}">${s.ad[0].toUpperCase() + s.ad.slice(1)}</div>`).join('');
   const renk = ad => bilgi.paletler.find(p => p.ad === ad);
