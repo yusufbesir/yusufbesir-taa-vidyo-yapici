@@ -5,8 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TAA Vidyo Yapıcı</title>
 <link rel="icon" href="/logo.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("taa-tema");if(t==="b"||t==="c")document.documentElement.dataset.tema=t}catch(e){}</script>
 <style>
-:root{color-scheme:dark;--bg:#0c0e13;--panel:#131620;--panel2:#1a1e2a;--line:#252a39;--tx:#eceef4;--mut:#8d95a9;--ac:#ffb81c;--ac2:#ffce30;--ok:#4ade80;--uy:#fbbf24;--r:14px}
+:root{color-scheme:dark;--onac:#1a1200;--fh:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--fm:ui-monospace,Consolas,monospace;--bg:#0c0e13;--panel:#131620;--panel2:#1a1e2a;--line:#252a39;--tx:#eceef4;--mut:#8d95a9;--ac:#ffb81c;--ac2:#ffce30;--ok:#4ade80;--uy:#fbbf24;--r:14px}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 button,select,input,textarea{font:inherit;color:inherit}
@@ -22,7 +23,7 @@ main{display:grid;grid-template-columns:minmax(340px,430px) minmax(0,1fr);gap:24
 .sag{position:sticky;top:16px;min-width:0}
 .kart{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px}
 .baslik{display:flex;align-items:center;gap:10px;margin:0 0 14px;font-size:17px;font-weight:650}
-.no{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:7px;background:var(--ac);color:#1a1200;font-size:13px;font-weight:800}
+.no{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:7px;background:var(--ac);color:var(--onac);font-size:13px;font-weight:800}
 .baslik small{margin-left:auto;font-weight:400;color:var(--mut);font-size:12px}
 textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;resize:vertical}
 textarea:focus,input:focus,select:focus,button:focus-visible,summary:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
@@ -30,7 +31,7 @@ textarea:focus,input:focus,select:focus,button:focus-visible,summary:focus-visib
 .sira{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
 .btn{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 14px;cursor:pointer}
 .btn:hover{border-color:#3a4258}
-.btn.ana{background:var(--ac);color:#1a1200;border-color:var(--ac);font-weight:700}
+.btn.ana{background:var(--ac);color:var(--onac);border-color:var(--ac);font-weight:700}
 .btn.ana:hover{filter:brightness(1.07)}
 .btn.buyuk{padding:12px 22px;font-size:16px}
 .btn:disabled{opacity:.5;cursor:default}
@@ -57,7 +58,7 @@ select,input[type=text],input[type=search]{width:100%;background:var(--bg);borde
 .sablonlar.acik{display:block}
 .sablonlar h4{margin:12px 0 6px;font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--mut);font-weight:600}
 .sablonlar h4:first-child{margin-top:0}
-.etiketSablon{display:inline-flex;gap:8px;align-items:center;margin-top:10px;padding:4px 10px;border-radius:999px;background:rgba(255,184,28,.12);color:var(--ac2);font-size:12.5px}
+.etiketSablon{display:inline-flex;gap:8px;align-items:center;margin-top:10px;padding:4px 10px;border-radius:999px;background:color-mix(in srgb,var(--ac) 14%,transparent);color:var(--ac2);font-size:12.5px}
 .etiketSablon button{background:none;border:0;color:inherit;cursor:pointer;padding:0 2px}
 /* ayrıntılar */
 details.ayr{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
@@ -88,7 +89,7 @@ input[type=range]{width:100%;accent-color:var(--ac)}
 .ust{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0 10px}
 .seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
 .seg button{background:var(--panel2);border:0;padding:5px 11px;cursor:pointer;font-size:13px}
-.seg button.sec{background:var(--ac);color:#1a1200;font-weight:700}
+.seg button.sec{background:var(--ac);color:var(--onac);font-weight:700}
 .ust .bosluk{flex:1}
 .onizle:fullscreen{background:#05060a;padding:20px;overflow:auto}
 .sahneler{display:grid;grid-template-columns:1fr 1fr;gap:16px;justify-items:center;align-items:start}
@@ -110,14 +111,54 @@ dialog video{width:100%;max-height:60vh;background:#000;border-radius:8px;margin
 .rehber span{color:var(--mut);font-size:12.5px}
 @media (max-width:1000px){main{grid-template-columns:1fr;padding:14px}.sag{position:static}canvas{height:52vh}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* açılış ekranı: LED şerit; temaya göre renklenir, gerçek yükleme bitince kapanır */
+#yukleEkrani{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:var(--bg);color:var(--tx);transition:opacity .22s}
+body:has(#yukleEkrani){overflow:hidden}
+#yukleEkrani.kapan{opacity:0;pointer-events:none}
+#yukleEkrani .ledler{display:grid;grid-template-columns:repeat(24,10px);gap:5px}
+#yukleEkrani .ledler i{width:10px;height:10px;border-radius:50%;background:var(--line);animation:acilisLed 1.2s ease-in-out infinite;animation-delay:calc(var(--k)*50ms)}
+#yukleEkrani b{font:700 28px/1 var(--fh);letter-spacing:.14em;text-transform:uppercase}
+#yukleEkrani small{font:12px var(--fm);color:var(--mut);letter-spacing:.08em}
+@keyframes acilisLed{0%,100%{background:var(--line);box-shadow:none}50%{background:var(--ac);box-shadow:0 0 10px var(--ac)}}
+@media (prefers-reduced-motion:reduce){#yukleEkrani .ledler i{animation:none;background:var(--ac)}}
+/* ---- temalar (Stitch konseptleri) ---- */
+@font-face{font-family:"TAA Dar";src:url(/yz/dar.ttf);font-display:swap}
+@font-face{font-family:"TAA Raf";src:url(/yz/raf.ttf);font-display:swap}
+.baslik,header h1,details.ayr>summary{font-family:var(--fh)}
+.etiket,.mut,.sablonlar h4,header .s{font-family:var(--fm)}
+header select{width:auto;padding:4px 8px;font-size:13px}
+/* B: Montaj Masası — krem kâğıt, mürekkep çizgi, sinyal kırmızısı, sert köşe */
+[data-tema=b]{color-scheme:light;--onac:#fff;--fh:"TAA Dar",system-ui,sans-serif;--fm:ui-monospace,Consolas,monospace;--bg:#f3ede0;--panel:#fff9ec;--panel2:#eee8db;--line:#121212;--tx:#1d1c14;--mut:#5c403d;--ac:#d62828;--ac2:#b20112;--ok:#1b7a3a;--uy:#8a5a00;--r:0}
+[data-tema=b] *:not(.nokta):not(.pal i):not(.durum b){border-radius:0!important}
+[data-tema=b] .baslik,[data-tema=b] header h1,[data-tema=b] details.ayr>summary{text-transform:uppercase;letter-spacing:.04em;font-weight:700}
+[data-tema=b] .baslik{font-size:20px}
+[data-tema=b] .btn:hover,[data-tema=b] .link:hover{background:#121212;color:#f3ede0;border-color:#121212}
+[data-tema=b] .btn.ana:hover{background:#121212;filter:none}
+[data-tema=b] .stil.sec,[data-tema=b] .chip.sec,[data-tema=b] .pal.sec{color:#fff;background:var(--ac);box-shadow:none}
+[data-tema=b] .no{background:#121212;color:#f3ede0}
+[data-tema=b] canvas{border-color:#121212}
+[data-tema=b] dialog::backdrop{background:rgba(18,18,18,.6)}
+/* C: Donanım Rafı — grafit-mor panel, magenta + limon LED */
+[data-tema=c]{--onac:#1a0011;--fh:"TAA Raf",system-ui,sans-serif;--fm:ui-monospace,Consolas,monospace;--bg:#14121b;--panel:#201e28;--panel2:#2b2932;--line:#3d3a47;--tx:#e6e0ed;--mut:#a79fb5;--ac:#ff2e93;--ac2:#ff74b4;--ok:#b6ff3b;--uy:#ffd23b;--r:6px}
+[data-tema=c] .kart,[data-tema=c] details.ayr{background:linear-gradient(#25222d,#1c1a24);box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 2px 0 #0b0911;position:relative}
+[data-tema=c] .kart::before,[data-tema=c] .kart::after{content:"";position:absolute;top:7px;width:6px;height:6px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#8d8a98,#34313d);box-shadow:0 0 0 1px #0b0911}
+[data-tema=c] .kart::before{left:7px}[data-tema=c] .kart::after{right:7px}
+[data-tema=c] .baslik,[data-tema=c] header h1{text-transform:uppercase;letter-spacing:.08em;font-weight:400;font-size:15px}
+[data-tema=c] .durum b{box-shadow:0 0 8px currentColor}
+[data-tema=c] .btn.ana{box-shadow:0 0 14px rgba(255,46,147,.45)}
+[data-tema=c] .ilerleme div{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+[data-tema=c] canvas{border:2px solid #3d3a47;box-shadow:0 0 0 4px #14121b,0 0 0 5px #4a4656}
 </style>
 </head>
 <body>
+<div id="yukleEkrani" role="status" aria-label="Yükleniyor"><div class="ledler"><i style="--k:0"></i><i style="--k:1"></i><i style="--k:2"></i><i style="--k:3"></i><i style="--k:4"></i><i style="--k:5"></i><i style="--k:6"></i><i style="--k:7"></i><i style="--k:8"></i><i style="--k:9"></i><i style="--k:10"></i><i style="--k:11"></i><i style="--k:12"></i><i style="--k:13"></i><i style="--k:14"></i><i style="--k:15"></i><i style="--k:16"></i><i style="--k:17"></i><i style="--k:18"></i><i style="--k:19"></i><i style="--k:20"></i><i style="--k:21"></i><i style="--k:22"></i><i style="--k:23"></i></div><b>TAA Vidyo Yapıcı</b><small>LED ekran video stüdyosu</small></div>
 <header>
   <img src="/logo.svg" alt="">
   <h1>TAA Vidyo Yapıcı</h1>
   <span class="s" id="surum"></span>
   <span class="bosluk"></span>
+  <label class="mut" title="Vurgu rengi">Vurgu <input type="color" id="renkVurgu" aria-label="Vurgu rengi" style="width:30px;height:24px;padding:0;border:1px solid var(--line);background:none"></label><label class="mut" title="Zemin rengi">Zemin <input type="color" id="renkZemin" aria-label="Zemin rengi" style="width:30px;height:24px;padding:0;border:1px solid var(--line);background:none"></label><button class="link" id="renkSifirla" title="Bu temanın renklerini varsayılana döndür">Varsayılana dön</button>
+  <select id="tema" title="Tema" aria-label="Tema"><option value="a">Tema: Amber Stüdyo</option><option value="b">Tema: Montaj Masası</option><option value="c">Tema: Donanım Rafı</option></select>
   <button class="link" id="rehberAc">Rehber</button>
   <button class="link" id="klasor">Klasörü aç</button>
 </header>
@@ -235,6 +276,36 @@ TAKSİT</textarea>
 
 <script>
 'use strict';
+window.acilisKapat = () => { const a = document.getElementById('yukleEkrani'); if (!a) return; a.classList.add('kapan'); setTimeout(() => a.remove(), 300); };
+setTimeout(() => window.acilisKapat(), 6000);
+(() => { const s = document.getElementById('tema'); let t = 'a'; try { t = localStorage.getItem('taa-tema') || 'a'; } catch (e) {} if (!['a','b','c'].includes(t)) t = 'a'; s.value = t; s.addEventListener('change', () => { const v = s.value; if (v === 'a') delete document.documentElement.dataset.tema; else document.documentElement.dataset.tema = v; try { localStorage.setItem('taa-tema', v); } catch (e) {} }); })();
+// Tema renkleri: vurgu ve zemin, tema başına kalıcı; "Varsayılana dön" ile sıfırlanır.
+(() => {
+  const k = () => 'taa-renk-' + (document.documentElement.dataset.tema || 'a');
+  const oku = () => { try { return JSON.parse(localStorage.getItem(k()) || '{}') || {}; } catch (e) { return {}; } };
+  const yaz = (o) => { try { if (Object.keys(o).length) localStorage.setItem(k(), JSON.stringify(o)); else localStorage.removeItem(k()); } catch (e) { /* kalıcılık yok */ } };
+  const hex = (v) => /^#[0-9a-f]{6}$/i.test(v) ? v.toLowerCase() : null;
+  const parlak = (h) => { const n = parseInt(h.slice(1), 16); return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255; };
+  const kok = document.documentElement.style;
+  const uygula = () => {
+    ['--ac', '--ac2', '--onac', '--bg'].forEach((p) => kok.removeProperty(p));
+    const o = oku(); const a = hex(o.ac || ''), z = hex(o.bg || '');
+    if (a) { kok.setProperty('--ac', a); kok.setProperty('--ac2', a); kok.setProperty('--onac', parlak(a) > 0.6 ? '#111111' : '#ffffff'); }
+    if (z) kok.setProperty('--bg', z);
+    const cs = getComputedStyle(document.documentElement);
+    const ra = document.getElementById('renkVurgu'), rz = document.getElementById('renkZemin');
+    if (ra) ra.value = hex(o.ac || '') || hex(rgb(cs.getPropertyValue('--ac').trim())) || '#ffb81c';
+    if (rz) rz.value = hex(o.bg || '') || hex(rgb(cs.getPropertyValue('--bg').trim())) || '#0c0e13';
+  };
+  const rgb = (s) => { if (/^#[0-9a-f]{6}$/i.test(s)) return s; const m = /^#([0-9a-f])([0-9a-f])([0-9a-f])$/i.exec(s); return m ? '#' + m[1] + m[1] + m[2] + m[2] + m[3] + m[3] : s; };
+  const ra = document.getElementById('renkVurgu'), rz = document.getElementById('renkZemin'), sf = document.getElementById('renkSifirla'), ts = document.getElementById('tema');
+  if (!ra || !rz || !sf || !ts) return;
+  ra.addEventListener('input', () => { const o = oku(); o.ac = ra.value; yaz(o); uygula(); });
+  rz.addEventListener('input', () => { const o = oku(); o.bg = rz.value; yaz(o); uygula(); });
+  sf.addEventListener('click', () => { yaz({}); uygula(); });
+  ts.addEventListener('change', () => setTimeout(uygula, 0));
+  uygula();
+})();
 const $ = s => document.querySelector(s);
 const api = (yol, govde, ek) => fetch(yol, {method: govde === undefined ? 'GET' : 'POST', headers: {'X-LED': '1'}, body: govde, ...(ek || {})});
 let bilgi = null, stil = 'yumusak', tohum = 1, ozel = {}, elleDuzenlendi = false, sablon = null;
@@ -339,6 +410,7 @@ $('#sablonKaydet').onclick = sablonKaydet;
 
 async function baslat() {
   bilgi = await (await api('/bilgi')).json();
+  window.acilisKapat && window.acilisKapat();
   $('#surum').textContent = 'v' + bilgi.surum + (bilgi.ffmpeg ? '' : ' · ffmpeg bulunamadı');
   $('#stiller').innerHTML = bilgi.stiller.map(s => `<div class="stil" data-ad="${s.ad}" title="${s.acik}">${s.ad[0].toUpperCase() + s.ad.slice(1)}</div>`).join('');
   const renk = ad => bilgi.paletler.find(p => p.ad === ad);
