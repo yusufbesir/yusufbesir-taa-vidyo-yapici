@@ -146,6 +146,7 @@ header select{width:auto;padding:4px 8px;font-size:13px}
   <h1>TAA Vidyo Yapıcı</h1>
   <span class="s" id="surum"></span>
   <span class="bosluk"></span>
+  <label class="mut" title="Vurgu rengi">Vurgu <input type="color" id="renkVurgu" aria-label="Vurgu rengi" style="width:30px;height:24px;padding:0;border:1px solid var(--line);background:none"></label><label class="mut" title="Zemin rengi">Zemin <input type="color" id="renkZemin" aria-label="Zemin rengi" style="width:30px;height:24px;padding:0;border:1px solid var(--line);background:none"></label><button class="link" id="renkSifirla" title="Bu temanın renklerini varsayılana döndür">Varsayılana dön</button>
   <select id="tema" title="Tema" aria-label="Tema"><option value="a">Tema: Amber Stüdyo</option><option value="b">Tema: Montaj Masası</option><option value="c">Tema: Donanım Rafı</option></select>
   <button class="link" id="rehberAc">Rehber</button>
   <button class="link" id="klasor">Klasörü aç</button>
@@ -265,6 +266,33 @@ TAKSİT</textarea>
 <script>
 'use strict';
 (() => { const s = document.getElementById('tema'); let t = 'a'; try { t = localStorage.getItem('taa-tema') || 'a'; } catch (e) {} if (!['a','b','c'].includes(t)) t = 'a'; s.value = t; s.addEventListener('change', () => { const v = s.value; if (v === 'a') delete document.documentElement.dataset.tema; else document.documentElement.dataset.tema = v; try { localStorage.setItem('taa-tema', v); } catch (e) {} }); })();
+// Tema renkleri: vurgu ve zemin, tema başına kalıcı; "Varsayılana dön" ile sıfırlanır.
+(() => {
+  const k = () => 'taa-renk-' + (document.documentElement.dataset.tema || 'a');
+  const oku = () => { try { return JSON.parse(localStorage.getItem(k()) || '{}') || {}; } catch (e) { return {}; } };
+  const yaz = (o) => { try { if (Object.keys(o).length) localStorage.setItem(k(), JSON.stringify(o)); else localStorage.removeItem(k()); } catch (e) { /* kalıcılık yok */ } };
+  const hex = (v) => /^#[0-9a-f]{6}$/i.test(v) ? v.toLowerCase() : null;
+  const parlak = (h) => { const n = parseInt(h.slice(1), 16); return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255; };
+  const kok = document.documentElement.style;
+  const uygula = () => {
+    ['--ac', '--ac2', '--onac', '--bg'].forEach((p) => kok.removeProperty(p));
+    const o = oku(); const a = hex(o.ac || ''), z = hex(o.bg || '');
+    if (a) { kok.setProperty('--ac', a); kok.setProperty('--ac2', a); kok.setProperty('--onac', parlak(a) > 0.6 ? '#111111' : '#ffffff'); }
+    if (z) kok.setProperty('--bg', z);
+    const cs = getComputedStyle(document.documentElement);
+    const ra = document.getElementById('renkVurgu'), rz = document.getElementById('renkZemin');
+    if (ra) ra.value = hex(o.ac || '') || hex(rgb(cs.getPropertyValue('--ac').trim())) || '#ffb81c';
+    if (rz) rz.value = hex(o.bg || '') || hex(rgb(cs.getPropertyValue('--bg').trim())) || '#0c0e13';
+  };
+  const rgb = (s) => { if (/^#[0-9a-f]{6}$/i.test(s)) return s; const m = /^#([0-9a-f])([0-9a-f])([0-9a-f])$/i.exec(s); return m ? '#' + m[1] + m[1] + m[2] + m[2] + m[3] + m[3] : s; };
+  const ra = document.getElementById('renkVurgu'), rz = document.getElementById('renkZemin'), sf = document.getElementById('renkSifirla'), ts = document.getElementById('tema');
+  if (!ra || !rz || !sf || !ts) return;
+  ra.addEventListener('input', () => { const o = oku(); o.ac = ra.value; yaz(o); uygula(); });
+  rz.addEventListener('input', () => { const o = oku(); o.bg = rz.value; yaz(o); uygula(); });
+  sf.addEventListener('click', () => { yaz({}); uygula(); });
+  ts.addEventListener('change', () => setTimeout(uygula, 0));
+  uygula();
+})();
 const $ = s => document.querySelector(s);
 const api = (yol, govde, ek) => fetch(yol, {method: govde === undefined ? 'GET' : 'POST', headers: {'X-LED': '1'}, body: govde, ...(ek || {})});
 let bilgi = null, stil = 'yumusak', tohum = 1, ozel = {}, elleDuzenlendi = false, sablon = null;
