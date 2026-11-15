@@ -38,6 +38,7 @@ struct Ortak {
     klip: Mutex<()>,
     son_nabiz: Mutex<Instant>,
     port: u16,
+    jeton: String,
 }
 
 fn json_kacis(s: &str) -> String {
@@ -97,8 +98,31 @@ fn url_coz(s: &str) -> String {
     String::from_utf8_lossy(&o).into_owned()
 }
 
+/// Oturum jetonu: her açılışta rastgele; yalnız bu süreçte yaşar. RandomState her örnekte rastgele anahtar kullanır.
+fn rastgele_jeton() -> String {
+    use std::collections::hash_map::RandomState;
+    use std::hash::{BuildHasher, Hasher};
+    let mut s = String::new();
+    for i in 0..4u64 {
+        let mut h = RandomState::new().build_hasher();
+        h.write_u64(i);
+        h.write_u128(std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0));
+        s.push_str(&format!("{:016x}", h.finish()));
+    }
+    s
+}
+/// Cookie başlığında `taa-oturum=<jeton>` var mı (sabit sürede karşılaştırır).
+fn cerez_jeton_var(cerez: &str, jeton: &str) -> bool {
+    cerez.split(';').filter_map(|p| p.trim().strip_prefix("taa-oturum=")).any(|v| v.len() == jeton.len() && v.bytes().zip(jeton.bytes()).fold(0u8, |a, (x, y)| a | (x ^ y)) == 0)
+}
+fn yanit_cerezli(s: &mut TcpStream, tur: &str, govde: &[u8], jeton: &str) {
+    let b = format!("HTTP/1.1 200 OK\r\nContent-Type: {tur}\r\nContent-Length: {}\r\nCache-Control: no-store\r\nSet-Cookie: taa-oturum={jeton}; HttpOnly; SameSite=Strict; Path=/\r\nConnection: close\r\n\r\n", govde.len());
+    let _ = s.write_all(b.as_bytes());
+    let _ = s.write_all(govde);
+}
+
 fn yanit(s: &mut TcpStream, kod: u16, tur: &str, govde: &[u8]) {
-    let ad = match kod { 200 => "OK", 400 => "Bad Request", 403 => "Forbidden", 404 => "Not Found", 409 => "Conflict", _ => "Error" };
+    let ad = match kod { 200 => "OK", 400 => "Bad Request", 401 => "Unauthorized", 403 => "Forbidden", 404 => "Not Found", 409 => "Conflict", _ => "Error" };
     let b = format!("HTTP/1.1 {kod} {ad}\r\nContent-Type: {tur}\r\nContent-Length: {}\r\nCache-Control: no-store\r\nConnection: close\r\n\r\n", govde.len());
     let _ = s.write_all(b.as_bytes());
     let _ = s.write_all(govde);
@@ -144,6 +168,12 @@ fn isle(mut s: TcpStream, o: Arc<Ortak>) {
     let Some((yontem, yol, bas, govde)) = oku(&mut s) else { return };
     let ana = bas.iter().find(|(a, _)| a == "host").map(|(_, v)| v.as_str()).unwrap_or("");
     if ana != format!("127.0.0.1:{}", o.port) && ana != format!("localhost:{}", o.port) { return yanit(&mut s, 403, "text/plain; charset=utf-8", b"yasak"); }
+    let cerez = bas.iter().find(|(a, _)| a == "cookie").map(|(_, v)| v.as_str()).unwrap_or("");
+    let yetkili = cerez_jeton_var(cerez, &o.jeton);
+    if yontem == "GET" && yol.split('?').next() == Some("/") && sorgu(&yol, "t").as_deref() == Some(o.jeton.as_str()) {
+        return yanit_cerezli(&mut s, "text/html; charset=utf-8", SAYFA.as_bytes(), &o.jeton);
+    }
+    if !yetkili { return yanit(&mut s, 401, "text/plain; charset=utf-8", b"oturum gerekli"); }
     let yazi = String::from_utf8_lossy(&govde).into_owned();
     let yolu = yol.split('?').next().unwrap_or("/").to_string();
     if yontem == "POST" && !bas.iter().any(|(a, v)| a == "x-led" && v == "1") { return yanit(&mut s, 403, "text/plain; charset=utf-8", b"yasak"); }
@@ -265,11 +295,13 @@ fn isle(mut s: TcpStream, o: Arc<Ortak>) {
 
 /// Sunucuyu başlatır ve (isteğe bağlı) tarayıcıyı açar. `port` 0 ise boş bir port seçilir. Dönmez.
 pub fn calistir(tarayici_ac: bool, port: u16) -> ! {
-    let dinle = match TcpListener::bind(("127.0.0.1", port)) { Ok(d) => d, Err(e) => { eprintln!("HATA: arayüz portu açılamadı: {e}"); std::process::exit(1) } };
+    // Port dolu/çakışıyorsa en çok 5 kez yeniden dener; sonra sistemin verdiği boş portla (0) açar. Yalnız 127.0.0.1.
+    let dinle = { let mut son = None; let mut p = port; for _ in 0..6 { match TcpListener::bind(("127.0.0.1", p)) { Ok(d) => { son = Some(d); break } Err(e) => { eprintln!("uyarı: port {p} açılamadı ({e}), yeniden deneniyor"); p = 0; std::thread::sleep(Duration::from_millis(150)); } } } match son { Some(d) => d, None => { eprintln!("HATA: arayüz portu açılamadı"); std::process::exit(1) } } };
     let port = dinle.local_addr().unwrap().port();
-    let adres = format!("http://127.0.0.1:{port}/");
+    let jeton = rastgele_jeton();
+    let adres = format!("http://127.0.0.1:{port}/?t={jeton}");
     println!("TAA Vidyo Yapıcı arayüzü: {adres}");
-    let o = Arc::new(Ortak { durum: Mutex::new(Durum::default()), iptal: AtomicBool::new(false), onizleme: Mutex::new(()), klip: Mutex::new(()), son_nabiz: Mutex::new(Instant::now()), port });
+    let o = Arc::new(Ortak { durum: Mutex::new(Durum::default()), iptal: AtomicBool::new(false), onizleme: Mutex::new(()), klip: Mutex::new(()), son_nabiz: Mutex::new(Instant::now()), port, jeton });
     if tarayici_ac {
         #[cfg(windows)]
         { use std::os::windows::process::CommandExt; let _ = std::process::Command::new("cmd").args(["/c", "start", "", &adres]).creation_flags(0x0800_0000).spawn(); }
@@ -293,6 +325,14 @@ pub fn calistir(tarayici_ac: bool, port: u16) -> ! {
 #[cfg(test)]
 mod t {
     use super::*;
+    #[test]
+    fn jeton_rastgele_ve_dogrulanir() {
+        let a = rastgele_jeton(); let b = rastgele_jeton();
+        assert_eq!(a.len(), 64); assert!(a.chars().all(|c| c.is_ascii_hexdigit())); assert_ne!(a, b);
+        assert!(cerez_jeton_var(&format!("x=1; taa-oturum={a}"), &a));
+        assert!(!cerez_jeton_var(&format!("taa-oturum={b}"), &a));
+        assert!(!cerez_jeton_var("", &a)); assert!(!cerez_jeton_var("taa-oturum=", &a));
+    }
     #[test]
     fn dosya_adi_guvenli() {
         assert_eq!(dosya_adi("..\\..\\kötü/ad", "mp4"), "kötü_ad.mp4");
