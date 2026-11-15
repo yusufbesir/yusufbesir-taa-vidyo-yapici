@@ -121,6 +121,13 @@ body:has(#yukleEkrani){overflow:hidden}
 #yukleEkrani small{font:12px var(--fm);color:var(--mut);letter-spacing:.08em}
 @keyframes acilisLed{0%,100%{background:var(--line);box-shadow:none}50%{background:var(--ac);box-shadow:0 0 10px var(--ac)}}
 @media (prefers-reduced-motion:reduce){#yukleEkrani .ledler i{animation:none;background:var(--ac)}}
+/* bina görünümleri (karşıdan / üstten) */
+.cerceve[hidden],.binaAyar[hidden],.binaAyar span[hidden]{display:none}
+.sahneler.bina{grid-template-columns:1fr}
+#binaFig canvas{width:100%;height:auto;max-height:70vh;background:var(--panel2);border:1px solid var(--line);border-radius:6px}
+.binaAyar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:12.5px;color:var(--mut);margin-top:6px}
+.binaAyar input[type=number]{width:70px;padding:4px 6px}
+.binaAyar select{width:auto;padding:4px 6px}
 /* ---- temalar (Stitch konseptleri) ---- */
 @font-face{font-family:"TAA Dar";src:url(/yz/dar.ttf);font-display:swap}
 @font-face{font-family:"TAA Raf";src:url(/yz/raf.ttf);font-display:swap}
@@ -242,14 +249,16 @@ TAKSİT</textarea>
     <div class="durum" id="durum" title="Ayrıntı için tıkla"><b></b><span id="durumMetin">Çözümleniyor…</span></div>
     <div id="oneriler" hidden></div>
     <div class="ust">
+      <div class="seg" id="gorunum"><button data-g="duz" class="sec">Düz</button><button data-g="karsi">Bina karşıdan</button><button data-g="ust">Bina üstten</button></div>
       <div class="seg" id="uzaklik"><button data-d="3" class="sec">3 m</button><button data-d="15">15 m</button></div>
       <label class="mut"><input type="checkbox" id="guvenli"> Güvenli alan</label>
       <span class="bosluk"></span>
       <button class="btn" id="tamEkran" title="Tam ekran">⛶</button>
     </div>
     <div class="sahneler">
-      <figure class="cerceve"><canvas id="tasarim"></canvas><figcaption>Tasarım</figcaption></figure>
-      <figure class="cerceve"><canvas id="sim"></canvas><figcaption id="simBaslik">Ekranda nasıl görünür · 3 m</figcaption></figure>
+      <figure class="cerceve" id="tasarimFig"><canvas id="tasarim"></canvas><figcaption>Tasarım</figcaption></figure>
+      <figure class="cerceve" id="simFig"><canvas id="sim"></canvas><figcaption id="simBaslik">Ekranda nasıl görünür · 3 m</figcaption></figure>
+      <figure class="cerceve" id="binaFig" hidden><canvas id="bina"></canvas><figcaption id="binaBaslik"></figcaption><div class="binaAyar" id="binaAyar" hidden><span id="binaGenKutu">Cephe genişliği (m, varsayım) <input type="number" id="binaGen" min="20" max="120"> yüksekliği <input type="number" id="binaYuk" min="28" max="80"></span><span id="binaYuzKutu">Ekranlı yüz <select id="binaYuz"><option value="sol">Sol uzun cephe</option><option value="alt">Alt köşe yüzü</option></select></span></div></figure>
     </div>
     <div class="kontrol" style="margin-top:12px">
       <button class="btn" id="oynat">⏸</button>
@@ -507,6 +516,79 @@ const klipGetir = debounce(async () => {
   } catch (e) { $('#hazir').textContent = 'önizleme alınamadı'; }
 }, 700);
 
+/* ---- bina görünümleri: karşıdan (cephe) ve üstten ----
+   Ölçüler VARSAYIMDIR (doğrulanmadı): ekran 8x25 m, iki adet; cephe boyutu ayardan değişir.
+   Üstten çokgen, Yusuf'un uydu fotoğrafındaki sarı çokgenin köşelerinden alınmıştır (540x640 görüntüde). */
+const bina = $('#bina'); let gorunum = 'duz';
+const BINA = {gen: 40, yuk: 30, yuz: 'sol'};
+try { Object.assign(BINA, JSON.parse(localStorage.getItem('taa-bina') || '{}')); } catch (e) { /* varsayılan */ }
+const BINA_KOSE = [[131, 132], [219, 144], [193, 254], [270, 264], [207, 511], [40, 500]];
+const renkOku = (ad, yedek) => getComputedStyle(document.documentElement).getPropertyValue(ad).trim() || yedek;
+function ortRenk() {
+  const k = document.createElement('canvas'); k.width = 1; k.height = 1; const x = k.getContext('2d', {willReadFrequently: true});
+  try { x.drawImage(sim, 0, 0, 1, 1); const d = x.getImageData(0, 0, 1, 1).data; return [d[0], d[1], d[2]]; } catch (e) { return [255, 184, 28]; }
+}
+function binaCiz() {
+  const cw = 960, ch = gorunum === 'ust' ? 720 : 620;
+  if (bina.width !== cw || bina.height !== ch) { bina.width = cw; bina.height = ch; }
+  const c = bina.getContext('2d'), ac = renkOku('--ac', '#ffb81c'), panel = renkOku('--panel', '#131620'), panel2 = renkOku('--panel2', '#1a1e2a'), cizgi = renkOku('--line', '#252a39'), yazi = renkOku('--tx', '#eceef4'), sus = renkOku('--mut', '#8d95a9'), zemin = renkOku('--bg', '#0c0e13');
+  const [r, g, b] = ortRenk();
+  c.clearRect(0, 0, cw, ch); c.fillStyle = zemin; c.fillRect(0, 0, cw, ch);
+  c.font = '14px system-ui,sans-serif'; c.textBaseline = 'middle';
+  if (gorunum === 'karsi') {
+    const FW = BINA.gen, FH = BINA.yuk, yer = ch - 60, S = Math.min((cw - 140) / FW, (yer - 50) / FH);
+    const x0 = (cw - FW * S) / 2, y0 = yer - FH * S;
+    c.fillStyle = panel; c.fillRect(0, yer, cw, ch - yer);
+    c.strokeStyle = cizgi; c.lineWidth = 2; c.beginPath(); c.moveTo(0, yer); c.lineTo(cw, yer); c.stroke();
+    c.fillStyle = panel2; c.fillRect(x0, y0, FW * S, FH * S); c.strokeStyle = sus; c.lineWidth = 2; c.strokeRect(x0, y0, FW * S, FH * S);
+    c.fillStyle = cizgi;
+    for (let yy = 3; yy < FH - 1; yy += 3) for (let xx = 2; xx < FW - 3; xx += 4) c.fillRect(x0 + xx * S, y0 + yy * S, 1.6 * S, 1.6 * S);
+    const ew = 8, eh = Math.min(25, FH - 3), ex = [FW * .28 - ew / 2, FW * .72 - ew / 2];
+    for (const px of ex) {
+      const sx = x0 + px * S, sy = yer - (eh + 2) * S;
+      c.save(); c.shadowColor = 'rgba(' + r + ',' + g + ',' + b + ',.85)'; c.shadowBlur = 34; c.fillStyle = '#000'; c.fillRect(sx, sy, ew * S, eh * S); c.restore();
+      c.drawImage(sim, sx, sy, ew * S, eh * S); c.strokeStyle = '#000'; c.lineWidth = 2; c.strokeRect(sx, sy, ew * S, eh * S);
+    }
+    c.fillStyle = sus; const ix = x0 + FW * S * .5, iy = yer - 1.75 * S;
+    c.fillRect(ix - 2, iy + 6, 5, 1.75 * S - 6); c.beginPath(); c.arc(ix, iy + 2, 4, 0, 7); c.fill();
+    c.strokeStyle = sus; c.lineWidth = 1; c.fillStyle = yazi;
+    c.beginPath(); c.moveTo(x0, y0 - 18); c.lineTo(x0 + FW * S, y0 - 18); c.stroke(); c.textAlign = 'center'; c.fillText(FW + ' m (varsayım)', x0 + FW * S / 2, y0 - 32);
+    c.beginPath(); c.moveTo(x0 - 22, y0); c.lineTo(x0 - 22, yer); c.stroke(); c.save(); c.translate(x0 - 36, y0 + FH * S / 2); c.rotate(-Math.PI / 2); c.fillText(FH + ' m (varsayım)', 0, 0); c.restore();
+    c.textAlign = 'left'; c.fillStyle = ac; c.fillText('2 ekran, her biri ' + ew + ' × ' + eh + ' m', 14, ch - 24);
+  } else {
+    const k = BINA_KOSE, mx = Math.min(...k.map(p => p[0])), Mx = Math.max(...k.map(p => p[0])), my = Math.min(...k.map(p => p[1])), My = Math.max(...k.map(p => p[1]));
+    const S = Math.min((cw - 360) / (Mx - mx), (ch - 120) / (My - my)), ox = 250 - mx * S, oy = 60 - my * S;
+    const P = p => [p[0] * S + ox, p[1] * S + oy];
+    c.fillStyle = panel; c.fillRect(0, 0, 150, ch); c.fillStyle = sus; c.textAlign = 'center'; c.fillText('SOKAK', 75, 30);
+    c.strokeStyle = cizgi; c.lineWidth = 2; c.setLineDash([10, 12]); c.beginPath(); c.moveTo(75, 60); c.lineTo(75, ch - 40); c.stroke(); c.setLineDash([]);
+    c.beginPath(); k.forEach((p, i) => { const q = P(p); i ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1]); }); c.closePath();
+    c.fillStyle = panel2; c.fill(); c.strokeStyle = ac; c.lineWidth = 3; c.stroke();
+    const kenar = BINA.yuz === 'alt' ? [P(k[5]), P(k[4])] : [P(k[0]), P(k[5])];
+    const nokta = t => [kenar[0][0] + (kenar[1][0] - kenar[0][0]) * t, kenar[0][1] + (kenar[1][1] - kenar[0][1]) * t];
+    const dn = BINA.yuz === 'alt' ? [0, 1] : [-1, 0];
+    for (const [t0, t1] of [[.22, .42], [.58, .78]]) {
+      const a = nokta(t0), z = nokta(t1);
+      const gr = c.createLinearGradient(a[0], a[1], a[0] + dn[0] * 130, a[1] + dn[1] * 130); gr.addColorStop(0, 'rgba(' + r + ',' + g + ',' + b + ',.55)'); gr.addColorStop(1, 'rgba(' + r + ',' + g + ',' + b + ',0)');
+      c.fillStyle = gr; c.beginPath(); c.moveTo(a[0], a[1]); c.lineTo(z[0], z[1]); c.lineTo(z[0] + dn[0] * 130, z[1] + dn[1] * 130); c.lineTo(a[0] + dn[0] * 130, a[1] + dn[1] * 130); c.closePath(); c.fill();
+      c.strokeStyle = 'rgb(' + r + ',' + g + ',' + b + ')'; c.lineWidth = 9; c.lineCap = 'round'; c.beginPath(); c.moveTo(a[0], a[1]); c.lineTo(z[0], z[1]); c.stroke(); c.lineCap = 'butt';
+    }
+    c.fillStyle = yazi; c.textAlign = 'left'; c.fillText('Üstten görünüm: çokgen uydu fotoğrafındaki köşe noktalarından, ölçeksiz', 14, ch - 40);
+    c.fillStyle = ac; c.fillText('Ekranlı yüz: ' + (BINA.yuz === 'alt' ? 'alt köşe yüzü' : 'sol uzun cephe') + ' (varsayım, doğrulanmadı)', 14, ch - 18);
+  }
+}
+function gorunumUygula() {
+  const b = gorunum !== 'duz'; $('#binaFig').hidden = !b; $('#tasarimFig').hidden = b; $('#simFig').hidden = b; document.querySelector('.sahneler').classList.toggle('bina', b);
+  $('#binaAyar').hidden = !b; $('#binaGenKutu').hidden = gorunum !== 'karsi'; $('#binaYuzKutu').hidden = gorunum !== 'ust';
+  $('#binaBaslik').textContent = gorunum === 'karsi' ? 'Bina karşıdan (cephe, varsayılan ölçülerle)' : gorunum === 'ust' ? 'Bina üstten' : '';
+  document.querySelectorAll('#gorunum button').forEach(x => x.classList.toggle('sec', x.dataset.g === gorunum));
+}
+$('#gorunum').onclick = e => { const g = e.target.dataset.g; if (!g) return; gorunum = g; gorunumUygula(); };
+const binaKaydet = () => { try { localStorage.setItem('taa-bina', JSON.stringify(BINA)); } catch (e) { /* kalıcılık yok */ } };
+$('#binaGen').value = BINA.gen; $('#binaYuk').value = BINA.yuk; $('#binaYuz').value = BINA.yuz;
+$('#binaGen').oninput = e => { BINA.gen = Math.max(20, Math.min(120, +e.target.value || 40)); binaKaydet(); };
+$('#binaYuk').oninput = e => { BINA.yuk = Math.max(28, Math.min(80, +e.target.value || 30)); binaKaydet(); };
+$('#binaYuz').onchange = e => { BINA.yuz = e.target.value === 'alt' ? 'alt' : 'sol'; binaKaydet(); };
+
 const dot = {c: null};
 function simCiz() {
   const W = kaynak.videoWidth, H = kaynak.videoHeight; if (!W) return;
@@ -537,7 +619,7 @@ function tasarimCiz() {
 let sonCizim = 0, surukle = false;
 function dongu(t) {
   if (kaynak.readyState >= 2 && t - sonCizim > 70) {
-    sonCizim = t; tasarimCiz(); simCiz();
+    sonCizim = t; tasarimCiz(); simCiz(); if (gorunum !== 'duz') binaCiz();
     const d = kaynak.duration || 0;
     if (!surukle) $('#zaman').value = d ? kaynak.currentTime / d * 1000 : 0;
     $('#sure').textContent = `${kaynak.currentTime.toFixed(1)} / ${d.toFixed(1)} sn`;
