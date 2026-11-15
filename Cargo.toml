@@ -5,3 +5,9 @@ edition = "2021"
 
 [dependencies]
 ab_glyph = "0.2"
+getrandom = "0.4.3"
+
+# Gömülü pencere (WebView2) yalnız Windows'ta; varsayılan tarayıcı hiç açılmaz.
+[target.'cfg(windows)'.dependencies]
+tao = "0.37.2"
+wry = "0.57.2"

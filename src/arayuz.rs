@@ -98,18 +98,11 @@ fn url_coz(s: &str) -> String {
     String::from_utf8_lossy(&o).into_owned()
 }
 
-/// Oturum jetonu: her açılışta rastgele; yalnız bu süreçte yaşar. RandomState her örnekte rastgele anahtar kullanır.
+/// Oturum jetonu: her açılışta rastgele (işletim sistemi rastgeleliği, getrandom); yalnız bu süreçte yaşar.
 fn rastgele_jeton() -> String {
-    use std::collections::hash_map::RandomState;
-    use std::hash::{BuildHasher, Hasher};
-    let mut s = String::new();
-    for i in 0..4u64 {
-        let mut h = RandomState::new().build_hasher();
-        h.write_u64(i);
-        h.write_u128(std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0));
-        s.push_str(&format!("{:016x}", h.finish()));
-    }
-    s
+    let mut b = [0u8; 32];
+    getrandom::fill(&mut b).expect("işletim sistemi rastgeleliği alınamadı");
+    b.iter().map(|x| format!("{x:02x}")).collect()
 }
 /// Cookie başlığında `taa-oturum=<jeton>` var mı (sabit sürede karşılaştırır).
 fn cerez_jeton_var(cerez: &str, jeton: &str) -> bool {
@@ -294,7 +287,10 @@ fn isle(mut s: TcpStream, o: Arc<Ortak>) {
 }
 
 /// Sunucuyu başlatır ve (isteğe bağlı) tarayıcıyı açar. `port` 0 ise boş bir port seçilir. Dönmez.
-pub fn calistir(tarayici_ac: bool, port: u16) -> ! {
+/// pencere_ac=false: yalnız hizmet (test/geliştirme); true: gömülü WebView2 penceresi. Varsayılan tarayıcı HİÇ açılmaz.
+pub fn calistir(pencere_ac: bool, port: u16) -> ! {
+    // Tek örnek: yalnız 127.0.0.1'deki sabit kilit portu; doluysa başka örnek çalışıyordur.
+    let _kilit = if pencere_ac { match TcpListener::bind(("127.0.0.1", 47893)) { Ok(k) => Some(k), Err(_) => { hata_goster("TAA Vidyo Yapıcı zaten açık."); std::process::exit(0) } } } else { None };
     // Port dolu/çakışıyorsa en çok 5 kez yeniden dener; sonra sistemin verdiği boş portla (0) açar. Yalnız 127.0.0.1.
     let dinle = { let mut son = None; let mut p = port; for _ in 0..6 { match TcpListener::bind(("127.0.0.1", p)) { Ok(d) => { son = Some(d); break } Err(e) => { eprintln!("uyarı: port {p} açılamadı ({e}), yeniden deneniyor"); p = 0; std::thread::sleep(Duration::from_millis(150)); } } } match son { Some(d) => d, None => { eprintln!("HATA: arayüz portu açılamadı"); std::process::exit(1) } } };
     let port = dinle.local_addr().unwrap().port();
@@ -302,24 +298,58 @@ pub fn calistir(tarayici_ac: bool, port: u16) -> ! {
     let adres = format!("http://127.0.0.1:{port}/?t={jeton}");
     println!("TAA Vidyo Yapıcı arayüzü: {adres}");
     let o = Arc::new(Ortak { durum: Mutex::new(Durum::default()), iptal: AtomicBool::new(false), onizleme: Mutex::new(()), klip: Mutex::new(()), son_nabiz: Mutex::new(Instant::now()), port, jeton });
-    if tarayici_ac {
-        #[cfg(windows)]
-        { use std::os::windows::process::CommandExt; let _ = std::process::Command::new("cmd").args(["/c", "start", "", &adres]).creation_flags(0x0800_0000).spawn(); }
-        #[cfg(not(windows))]
-        { let _ = std::process::Command::new("xdg-open").arg(&adres).spawn(); }
-    }
-    // Sekme kapatılıp 90 sn nabız gelmezse ve iş yoksa programı kapat (konsol gizli olduğu için)
-    let o2 = o.clone();
-    std::thread::spawn(move || loop {
-        std::thread::sleep(Duration::from_secs(5));
-        let bos = !o2.durum.lock().unwrap().calisiyor;
-        if bos && o2.son_nabiz.lock().unwrap().elapsed() > Duration::from_secs(90) { std::process::exit(0); }
+    let o_hizmet = o.clone();
+    std::thread::spawn(move || {
+        for ak in dinle.incoming().flatten() { let o = o_hizmet.clone(); std::thread::spawn(move || isle(ak, o)); }
     });
-    for ak in dinle.incoming().flatten() {
-        let o = o.clone();
-        std::thread::spawn(move || isle(ak, o));
+    if pencere_ac {
+        #[cfg(windows)]
+        { pencere(&adres); }
+        #[cfg(not(windows))]
+        { eprintln!("Gömülü pencere yalnız Windows'ta; --tarayici-yok ile hizmet çalışıyor: {adres}"); }
+    } else {
+        // Pencere yoksa (test): sekme/istemci kapanıp 90 sn nabız gelmezse ve iş yoksa kapan
+        let o2 = o.clone();
+        std::thread::spawn(move || loop {
+            std::thread::sleep(Duration::from_secs(5));
+            let bos = !o2.durum.lock().unwrap().calisiyor;
+            if bos && o2.son_nabiz.lock().unwrap().elapsed() > Duration::from_secs(90) { std::process::exit(0); }
+        });
     }
-    std::process::exit(0)
+    loop { std::thread::sleep(Duration::from_secs(3600)); }
+}
+
+/// Windows'ta kullanıcıya hata göstermek için (konsol gizli olduğundan): küçük PowerShell iletişim kutusu.
+#[cfg(windows)]
+fn hata_goster(metin: &str) {
+    use std::os::windows::process::CommandExt;
+    // WScript.Shell.Popup: 8 sn sonra kendiliğinden kapanır (gözetimsiz çalışmada takılmaz)
+    let kod = format!("(New-Object -ComObject WScript.Shell).Popup('{}', 8, 'TAA Vidyo Yapıcı', 48) | Out-Null", metin.replace('\'', ""));
+    let _ = std::process::Command::new("powershell").args(["-NoProfile", "-WindowStyle", "Hidden", "-Command", &kod]).creation_flags(0x0800_0000).status();
+}
+#[cfg(not(windows))]
+fn hata_goster(metin: &str) { eprintln!("{metin}"); }
+
+/// Gömülü pencere (tao + wry/WebView2). Pencere kapanınca süreç ve hizmet ANINDA sonlanır. WebView2 yoksa açık bir hata iletişim kutusu gösterilir.
+#[cfg(windows)]
+fn pencere(adres: &str) {
+    use tao::event::{Event, WindowEvent};
+    use tao::event_loop::{ControlFlow, EventLoopBuilder};
+    use tao::window::WindowBuilder;
+    use wry::WebViewBuilder;
+    let el = EventLoopBuilder::new().build();
+    let pencere = match WindowBuilder::new().with_title("TAA Vidyo Yapıcı").with_inner_size(tao::dpi::LogicalSize::new(1280.0, 860.0)).with_min_inner_size(tao::dpi::LogicalSize::new(900.0, 600.0)).build(&el) {
+        Ok(p) => p,
+        Err(e) => { hata_goster(&format!("Pencere açılamadı: {e}")); std::process::exit(2) }
+    };
+    let _gorunum = match WebViewBuilder::new().with_url(adres).build(&pencere) {
+        Ok(g) => g,
+        Err(e) => { hata_goster(&format!("WebView2 çalışma zamanı bulunamadı veya başlatılamadı. Microsoft Edge WebView2 Runtime kurun (aka.ms/webview2). Ayrıntı: {e}")); std::process::exit(3) }
+    };
+    el.run(move |olay, _, akis| {
+        *akis = ControlFlow::Wait;
+        if let Event::WindowEvent { event: WindowEvent::CloseRequested, .. } = olay { std::process::exit(0); }
+    });
 }
 
 #[cfg(test)]
