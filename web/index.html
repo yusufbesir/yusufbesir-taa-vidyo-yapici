@@ -517,15 +517,15 @@ const klipGetir = debounce(async () => {
 }, 700);
 
 /* ---- bina görünümleri: karşıdan (cephe) ve üstten ----
-   Ölçüler Yusuf'un bildirdiği değerlerdir (2026-11-15): iki ekran 8 x 25 m, cephe ~30 m (3'e bölünür: sol ekran, orta logo, sağ ekran),
-   logo çapı ~4 m, 6 katlı bina (kat ~5,5 m), cephe yüksekliği 32-35 m. KESİN OLMAYANLAR (varsayım): ekran alt kenarı yerden 3 m, logo merkezi 16 m, kenar payı 1 m.
+   Ölçüler Yusuf'un son bildirdiği değerlerdir (2026-11-15 22:33): iki ekran 10 x 30 m (ön sağ ve ön sol kenarda), orta bölüm 8 m (baklava deseni ve krem çıtalar), logo Ø6 m ortada,
+   cephe genişliği 31 m ('uzunluk 31 m' cephenin yatay ölçüsü diye yorumlandı), yükseklik 35 m ('genişlik 35 m' yükseklik diye yorumlandı), 6 katlı bina (kat ~5,5 m). KESİN OLMAYANLAR (varsayım): ekran alt kenarı yerden 3 m, logo merkezi 16 m, kenar payı 1 m.
    Bina derinliği YOKTUR: bina 2B kabul edilir, yalnız E-5'e bakan ön yüz çizilir. Üstten görünüm yalnız ön yüz çizgisini (30 m), ekranları ve logo konumunu gösterir; yan/arka yüz ve derinlik çizilmez.
    Hepsi metre cinsinden ayarlanabilir (saklanır). */
 const bina = $('#bina'); let gorunum = 'duz';
-const BINA_VARSAYILAN = {gen: 30, yuk: 33, ew: 8, eh: 25, ealt: 3, logo: 4, logoy: 18, kat: 5.5, yuz: 'alt'};
+const BINA_VARSAYILAN = {gen: 31, yuk: 35, ew: 10, eh: 30, ealt: 3, logo: 6, logoy: 18, orta: 8, kat: 5.5, yuz: 'alt'};
 const BINA = Object.assign({}, BINA_VARSAYILAN);
-try { Object.assign(BINA, JSON.parse(localStorage.getItem('taa-bina3') || '{}')); } catch (e) { /* varsayılan */ }
-const BINA_ALAN = [['gen', 'Cephe genişliği (m)', 10, 80, .5], ['yuk', 'Cephe yüksekliği (m)', 10, 80, .5], ['ew', 'Ekran genişliği (m)', 1, 20, .5], ['eh', 'Ekran yüksekliği (m)', 2, 40, .5], ['ealt', 'Ekran alt kenarı yerden (m)', 0, 20, .5], ['logo', 'Logo çapı (m)', 1, 12, .5], ['logoy', 'Logo merkezi yerden (m, 16-20 arası)', 1, 40, .5], ['kat', 'Kat yüksekliği (m)', 2, 8, .1]];
+try { Object.assign(BINA, JSON.parse(localStorage.getItem('taa-bina4') || '{}')); } catch (e) { /* varsayılan */ }
+const BINA_ALAN = [['gen', 'Cephe genişliği (m)', 10, 80, .5], ['yuk', 'Cephe yüksekliği (m)', 10, 80, .5], ['ew', 'Ekran genişliği (m)', 1, 20, .5], ['orta', 'Orta bölüm genişliği (m)', 2, 30, .5], ['eh', 'Ekran yüksekliği (m)', 2, 40, .5], ['ealt', 'Ekran alt kenarı yerden (m)', 0, 20, .5], ['logo', 'Logo çapı (m)', 1, 12, .5], ['logoy', 'Logo merkezi yerden (m, 16-20 arası)', 1, 40, .5]];
 const renkOku = (ad, yedek) => getComputedStyle(document.documentElement).getPropertyValue(ad).trim() || yedek;
 function ortRenk() {
   const k = document.createElement('canvas'); k.width = 1; k.height = 1; const x = k.getContext('2d', {willReadFrequently: true});
@@ -538,15 +538,25 @@ function binaCiz() {
   const [r, g, b] = ortRenk(); const rgb = 'rgb(' + r + ',' + g + ',' + b + ')';
   c.clearRect(0, 0, cw, ch); c.fillStyle = zemin; c.fillRect(0, 0, cw, ch);
   c.font = '14px system-ui,sans-serif'; c.textBaseline = 'middle';
-  const FW = BINA.gen, FH = BINA.yuk, ew = Math.min(BINA.ew, FW / 3), eh = Math.min(BINA.eh, FH - BINA.ealt), pay = (FW / 3 - ew) / 2;
+  const FW = BINA.gen, FH = BINA.yuk, orta = Math.min(BINA.orta, FW - 2), ew = Math.min(BINA.ew, (FW - orta) / 2), eh = Math.min(BINA.eh, FH - BINA.ealt), pay = (FW - 2 * ew - orta) / 2;
   const ekranX = [pay, FW - pay - ew];   // sol üçte birde ve sağ üçte birde, kenarlara pay bırakarak
   if (gorunum === 'karsi') {
     const yer = ch - 70, S = Math.min((cw - 150) / FW, (yer - 60) / FH), x0 = (cw - FW * S) / 2, y0 = yer - FH * S;
     c.fillStyle = panel; c.fillRect(0, yer, cw, ch - yer); c.strokeStyle = cizgi; c.lineWidth = 2; c.beginPath(); c.moveTo(0, yer); c.lineTo(cw, yer); c.stroke();
     c.fillStyle = panel2; c.fillRect(x0, y0, FW * S, FH * S); c.strokeStyle = sus; c.lineWidth = 2; c.strokeRect(x0, y0, FW * S, FH * S);
     c.strokeStyle = cizgi; c.lineWidth = 1;                                              // kat çizgileri
-    for (let k = BINA.kat; k < FH - 1; k += BINA.kat) { c.beginPath(); c.moveTo(x0, yer - k * S); c.lineTo(x0 + FW * S, yer - k * S); c.stroke(); }
-    c.setLineDash([6, 6]); for (const t of [1 / 3, 2 / 3]) { c.beginPath(); c.moveTo(x0 + FW * S * t, y0); c.lineTo(x0 + FW * S * t, yer); c.stroke(); } c.setLineDash([]);   // üçte bölme
+    for (let k = FH / 6; k < FH - 1; k += FH / 6) { c.beginPath(); c.moveTo(x0, yer - k * S); c.lineTo(x0 + FW * S, yer - k * S); c.stroke(); }
+    { // orta bölüm: baklava deseni ve krem çıtalar (gerçek malzeme rengi, tema dışı)
+      const mx0 = x0 + (pay + ew) * S, mx1 = x0 + (FW - pay - ew) * S, ay = 1.0 * S;   // desen adımı 2 m (baklava yarım adım 1 m)
+      c.save(); c.beginPath(); c.rect(mx0, y0, mx1 - mx0, FH * S); c.clip();
+      c.fillStyle = 'rgba(0,0,0,.28)'; c.fillRect(mx0, y0, mx1 - mx0, FH * S);
+      c.strokeStyle = '#ead9b8'; c.lineWidth = Math.max(1.5, .14 * S); c.lineCap = 'butt';
+      const adim = 2 * S, yuks = FH * S, gen = mx1 - mx0;
+      for (let d = -yuks; d < gen + yuks; d += adim) { c.beginPath(); c.moveTo(mx0 + d, y0); c.lineTo(mx0 + d + yuks, y0 + yuks); c.stroke(); c.beginPath(); c.moveTo(mx0 + d + yuks, y0); c.lineTo(mx0 + d, y0 + yuks); c.stroke(); }
+      c.lineWidth = Math.max(2, .28 * S); c.beginPath(); c.moveTo(mx0 + 1, y0); c.lineTo(mx0 + 1, yer); c.moveTo(mx1 - 1, y0); c.lineTo(mx1 - 1, yer); c.moveTo((mx0 + mx1) / 2, y0); c.lineTo((mx0 + mx1) / 2, yer); c.stroke();   // dikey krem çıtalar: kenarlarda ve ortada
+      c.restore(); void ay;
+      c.fillStyle = 'rgba(0,0,0,.75)'; c.fillRect((mx0 + mx1) / 2 - 26, y0 + 6, 52, 24); c.fillStyle = '#ead9b8'; c.textAlign = 'center'; c.fillText(orta + ' m', (mx0 + mx1) / 2, y0 + 18);
+    }
     for (const px of ekranX) {
       const sx = x0 + px * S, sy = yer - (BINA.ealt + eh) * S;
       c.save(); c.shadowColor = 'rgba(' + r + ',' + g + ',' + b + ',.85)'; c.shadowBlur = 30; c.fillStyle = '#000'; c.fillRect(sx, sy, ew * S, eh * S); c.restore();
@@ -562,9 +572,11 @@ function binaCiz() {
     c.beginPath(); c.moveTo(x0 - 18, y0); c.lineTo(x0 - 18, yer); c.stroke(); c.save(); c.translate(x0 - 34, y0 + FH * S / 2); c.rotate(-Math.PI / 2); c.fillText(FH + ' m', 0, 0); c.restore();
     c.fillStyle = ac; c.fillText(ew + ' × ' + eh + ' m', x0 + (ekranX[0] + ew / 2) * S, yer - (BINA.ealt + eh) * S - 14);
     c.fillText(ew + ' × ' + eh + ' m', x0 + (ekranX[1] + ew / 2) * S, yer - (BINA.ealt + eh) * S - 14);
-    c.fillText('Ø ' + BINA.logo + ' m', x0 + FW * S / 2, yer - (BINA.logoy + BINA.logo / 2) * S - 12);
-    c.textAlign = 'left'; c.fillStyle = yazi; c.fillText('E-5\'e bakan ön cephe, ölçekli. Yusuf\'un ölçüleri: ekran alt kenarı ' + BINA.ealt + ' m, logo merkezi 16-20 m aralığında (' + BINA.logoy + ' m alındı); kenar payı ölçülerden hesaplanır.', 14, ch - 44);
-    c.fillStyle = sus; c.fillText('Kat çizgileri ' + BINA.kat + ' m aralıkla (6 kat). Çubuk insan 1,75 m.', 14, ch - 20);
+    c.fillStyle = 'rgba(0,0,0,.75)'; c.fillRect(x0 + FW * S / 2 - 30, yer - (BINA.logoy + BINA.logo / 2) * S - 26, 60, 24); c.fillStyle = ac; c.fillText('Ø ' + BINA.logo + ' m', x0 + FW * S / 2, yer - (BINA.logoy + BINA.logo / 2) * S - 14);
+    c.textAlign = 'left'; c.fillStyle = yazi; c.fillText('E-5\'e bakan ön cephe, ölçekli. Yusuf\'un ölçüleri; ekran alt kenarı ' + BINA.ealt + ' m, logo merkezi ' + BINA.logoy + ' m (16-20 aralığı), kenar payı ' + pay.toFixed(1) + ' m (hesaplanır).', 14, ch - 44);
+    c.fillStyle = sus; c.fillText('Kat çizgileri ' + (FH / 6).toFixed(1) + ' m aralıkla (6 kat). Çubuk insan 1,75 m.', 14, ch - 20);
+    if (BINA.ealt + BINA.eh > FH + .01) { c.fillStyle = '#ff6b6b'; c.textAlign = 'left'; c.fillText('UYARI: ekran üstü (' + (BINA.ealt + BINA.eh) + ' m) bina yüksekliğini (' + FH + ' m) aşıyor.', 14, ch - 66); }
+    if (2 * ew + orta > FW + .01) { c.fillStyle = '#ff6b6b'; c.textAlign = 'left'; c.fillText('UYARI: iki ekran ve orta bölüm cephe genişliğini aşıyor.', 14, ch - 88); }
   } else {
     // Üstten: yalnız E-5'e bakan ön yüz çizgisi (FW m), ekranlar, logo ve ışık yayılımı. Derinlik ve yan yüzler çizilmez.
     const S = (cw - 220) / FW, x0 = 110, yy = 250;
@@ -581,7 +593,7 @@ function binaCiz() {
     { const lx = x0 + FW * S / 2; c.fillStyle = '#0b0b0f'; c.beginPath(); c.arc(lx, yy, BINA.logo / 2 * S, 0, 7); c.fill(); c.strokeStyle = ac; c.lineWidth = 2; c.stroke(); c.fillStyle = ac; c.fillText('TAA', lx, yy); c.fillText('Ø ' + BINA.logo + ' m', lx, yy + 34); }
     c.strokeStyle = sus; c.lineWidth = 1; c.beginPath(); c.moveTo(x0, yy - 88); c.lineTo(x0 + FW * S, yy - 88); c.stroke(); c.fillStyle = yazi; c.fillText(FW + ' m (E-5\'e bakan ön yüz)', x0 + FW * S / 2, yy - 102);
     c.textAlign = 'left'; c.fillStyle = yazi; c.fillText('Üstten görünüm yalnız ön yüzü gösterir (bina 2B kabul edilir); derinlik, yan ve arka yüzler yoktur.', 14, ch - 40);
-    c.fillStyle = ac; c.fillText('Ekranlar sol ve sağ üçte birde, logo ortada; ölçüler ön yüzden hesaplanır.', 14, ch - 18);
+    c.fillStyle = ac; c.fillText('Ekranlar ön sağ ve ön sol kenarda, ortada 8 m orta bölüm ve logo; ölçüler ön yüzden hesaplanır.', 14, ch - 18);
   }
 }
 function binaAlanKur() {
@@ -603,7 +615,7 @@ function gorunumUygula() {
   document.querySelectorAll('#gorunum button').forEach(x => x.classList.toggle('sec', x.dataset.g === gorunum));
 }
 $('#gorunum').onclick = e => { const g = e.target.dataset.g; if (!g) return; gorunum = g; gorunumUygula(); };
-const binaKaydet = () => { try { localStorage.setItem('taa-bina3', JSON.stringify(BINA)); } catch (e) { /* kalıcılık yok */ } };
+const binaKaydet = () => { try { localStorage.setItem('taa-bina4', JSON.stringify(BINA)); } catch (e) { /* kalıcılık yok */ } };
 binaAlanKur();
 
 const dot = {c: null};
