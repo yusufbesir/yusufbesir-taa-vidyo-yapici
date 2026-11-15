@@ -5,8 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TAA Vidyo Yapıcı</title>
 <link rel="icon" href="/logo.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("taa-tema");if(t==="b"||t==="c")document.documentElement.dataset.tema=t}catch(e){}</script>
 <style>
-:root{color-scheme:dark;--bg:#0c0e13;--panel:#131620;--panel2:#1a1e2a;--line:#252a39;--tx:#eceef4;--mut:#8d95a9;--ac:#ffb81c;--ac2:#ffce30;--ok:#4ade80;--uy:#fbbf24;--r:14px}
+:root{color-scheme:dark;--onac:#1a1200;--fh:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--fm:ui-monospace,Consolas,monospace;--bg:#0c0e13;--panel:#131620;--panel2:#1a1e2a;--line:#252a39;--tx:#eceef4;--mut:#8d95a9;--ac:#ffb81c;--ac2:#ffce30;--ok:#4ade80;--uy:#fbbf24;--r:14px}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 button,select,input,textarea{font:inherit;color:inherit}
@@ -22,7 +23,7 @@ main{display:grid;grid-template-columns:minmax(340px,430px) minmax(0,1fr);gap:24
 .sag{position:sticky;top:16px;min-width:0}
 .kart{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px}
 .baslik{display:flex;align-items:center;gap:10px;margin:0 0 14px;font-size:17px;font-weight:650}
-.no{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:7px;background:var(--ac);color:#1a1200;font-size:13px;font-weight:800}
+.no{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:7px;background:var(--ac);color:var(--onac);font-size:13px;font-weight:800}
 .baslik small{margin-left:auto;font-weight:400;color:var(--mut);font-size:12px}
 textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;resize:vertical}
 textarea:focus,input:focus,select:focus,button:focus-visible,summary:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
@@ -30,7 +31,7 @@ textarea:focus,input:focus,select:focus,button:focus-visible,summary:focus-visib
 .sira{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
 .btn{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 14px;cursor:pointer}
 .btn:hover{border-color:#3a4258}
-.btn.ana{background:var(--ac);color:#1a1200;border-color:var(--ac);font-weight:700}
+.btn.ana{background:var(--ac);color:var(--onac);border-color:var(--ac);font-weight:700}
 .btn.ana:hover{filter:brightness(1.07)}
 .btn.buyuk{padding:12px 22px;font-size:16px}
 .btn:disabled{opacity:.5;cursor:default}
@@ -57,7 +58,7 @@ select,input[type=text],input[type=search]{width:100%;background:var(--bg);borde
 .sablonlar.acik{display:block}
 .sablonlar h4{margin:12px 0 6px;font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--mut);font-weight:600}
 .sablonlar h4:first-child{margin-top:0}
-.etiketSablon{display:inline-flex;gap:8px;align-items:center;margin-top:10px;padding:4px 10px;border-radius:999px;background:rgba(255,184,28,.12);color:var(--ac2);font-size:12.5px}
+.etiketSablon{display:inline-flex;gap:8px;align-items:center;margin-top:10px;padding:4px 10px;border-radius:999px;background:color-mix(in srgb,var(--ac) 14%,transparent);color:var(--ac2);font-size:12.5px}
 .etiketSablon button{background:none;border:0;color:inherit;cursor:pointer;padding:0 2px}
 /* ayrıntılar */
 details.ayr{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
@@ -88,7 +89,7 @@ input[type=range]{width:100%;accent-color:var(--ac)}
 .ust{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0 10px}
 .seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
 .seg button{background:var(--panel2);border:0;padding:5px 11px;cursor:pointer;font-size:13px}
-.seg button.sec{background:var(--ac);color:#1a1200;font-weight:700}
+.seg button.sec{background:var(--ac);color:var(--onac);font-weight:700}
 .ust .bosluk{flex:1}
 .onizle:fullscreen{background:#05060a;padding:20px;overflow:auto}
 .sahneler{display:grid;grid-template-columns:1fr 1fr;gap:16px;justify-items:center;align-items:start}
@@ -110,14 +111,61 @@ dialog video{width:100%;max-height:60vh;background:#000;border-radius:8px;margin
 .rehber span{color:var(--mut);font-size:12.5px}
 @media (max-width:1000px){main{grid-template-columns:1fr;padding:14px}.sag{position:static}canvas{height:52vh}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* açılış ekranı: LED şerit; temaya göre renklenir, gerçek yükleme bitince kapanır */
+#yukleEkrani{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:var(--bg);color:var(--tx);transition:opacity .22s}
+body:has(#yukleEkrani){overflow:hidden}
+#yukleEkrani.kapan{opacity:0;pointer-events:none}
+#yukleEkrani .ledler{display:grid;grid-template-columns:repeat(24,10px);gap:5px}
+#yukleEkrani .ledler i{width:10px;height:10px;border-radius:50%;background:var(--line);animation:acilisLed 1.2s ease-in-out infinite;animation-delay:calc(var(--k)*50ms)}
+#yukleEkrani b{font:700 28px/1 var(--fh);letter-spacing:.14em;text-transform:uppercase}
+#yukleEkrani small{font:12px var(--fm);color:var(--mut);letter-spacing:.08em}
+@keyframes acilisLed{0%,100%{background:var(--line);box-shadow:none}50%{background:var(--ac);box-shadow:0 0 10px var(--ac)}}
+@media (prefers-reduced-motion:reduce){#yukleEkrani .ledler i{animation:none;background:var(--ac)}}
+/* bina görünümleri (karşıdan / üstten) */
+.cerceve[hidden],.binaAyar[hidden],.binaAyar span[hidden]{display:none}
+.sahneler.bina{grid-template-columns:1fr}
+#binaFig canvas{width:100%;height:auto;max-height:70vh;background:var(--panel2);border:1px solid var(--line);border-radius:6px}
+.binaAyar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:12.5px;color:var(--mut);margin-top:6px}
+.binaAyar input[type=number]{width:70px;padding:4px 6px}
+.binaAyar select{width:auto;padding:4px 6px}
+/* ---- temalar (Stitch konseptleri) ---- */
+@font-face{font-family:"TAA Dar";src:url(/yz/dar.ttf);font-display:swap}
+@font-face{font-family:"TAA Raf";src:url(/yz/raf.ttf);font-display:swap}
+.baslik,header h1,details.ayr>summary{font-family:var(--fh)}
+.etiket,.mut,.sablonlar h4,header .s{font-family:var(--fm)}
+header select{width:auto;padding:4px 8px;font-size:13px}
+/* B: Montaj Masası — krem kâğıt, mürekkep çizgi, sinyal kırmızısı, sert köşe */
+[data-tema=b]{color-scheme:light;--onac:#fff;--fh:"TAA Dar",system-ui,sans-serif;--fm:ui-monospace,Consolas,monospace;--bg:#f3ede0;--panel:#fff9ec;--panel2:#eee8db;--line:#121212;--tx:#1d1c14;--mut:#5c403d;--ac:#d62828;--ac2:#b20112;--ok:#1b7a3a;--uy:#8a5a00;--r:0}
+[data-tema=b] *:not(.nokta):not(.pal i):not(.durum b){border-radius:0!important}
+[data-tema=b] .baslik,[data-tema=b] header h1,[data-tema=b] details.ayr>summary{text-transform:uppercase;letter-spacing:.04em;font-weight:700}
+[data-tema=b] .baslik{font-size:20px}
+[data-tema=b] .btn:hover,[data-tema=b] .link:hover{background:#121212;color:#f3ede0;border-color:#121212}
+[data-tema=b] .btn.ana:hover{background:#121212;filter:none}
+[data-tema=b] .stil.sec,[data-tema=b] .chip.sec,[data-tema=b] .pal.sec{color:#fff;background:var(--ac);box-shadow:none}
+[data-tema=b] .no{background:#121212;color:#f3ede0}
+[data-tema=b] canvas{border-color:#121212}
+[data-tema=b] dialog::backdrop{background:rgba(18,18,18,.6)}
+/* C: Donanım Rafı — grafit-mor panel, magenta + limon LED */
+[data-tema=c]{--onac:#1a0011;--fh:"TAA Raf",system-ui,sans-serif;--fm:ui-monospace,Consolas,monospace;--bg:#14121b;--panel:#201e28;--panel2:#2b2932;--line:#3d3a47;--tx:#e6e0ed;--mut:#a79fb5;--ac:#ff2e93;--ac2:#ff74b4;--ok:#b6ff3b;--uy:#ffd23b;--r:6px}
+[data-tema=c] .kart,[data-tema=c] details.ayr{background:linear-gradient(#25222d,#1c1a24);box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 2px 0 #0b0911;position:relative}
+[data-tema=c] .kart::before,[data-tema=c] .kart::after{content:"";position:absolute;top:7px;width:6px;height:6px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#8d8a98,#34313d);box-shadow:0 0 0 1px #0b0911}
+[data-tema=c] .kart::before{left:7px}[data-tema=c] .kart::after{right:7px}
+[data-tema=c] .baslik,[data-tema=c] header h1{text-transform:uppercase;letter-spacing:.08em;font-weight:400;font-size:15px}
+[data-tema=c] .durum b{box-shadow:0 0 8px currentColor}
+[data-tema=c] .btn.ana{box-shadow:0 0 14px rgba(255,46,147,.45)}
+[data-tema=c] .ilerleme div{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+[data-tema=c] canvas{border:2px solid #3d3a47;box-shadow:0 0 0 4px #14121b,0 0 0 5px #4a4656}
 </style>
 </head>
 <body>
+<div id="yukleEkrani" role="status" aria-label="Yükleniyor"><div class="ledler"><i style="--k:0"></i><i style="--k:1"></i><i style="--k:2"></i><i style="--k:3"></i><i style="--k:4"></i><i style="--k:5"></i><i style="--k:6"></i><i style="--k:7"></i><i style="--k:8"></i><i style="--k:9"></i><i style="--k:10"></i><i style="--k:11"></i><i style="--k:12"></i><i style="--k:13"></i><i style="--k:14"></i><i style="--k:15"></i><i style="--k:16"></i><i style="--k:17"></i><i style="--k:18"></i><i style="--k:19"></i><i style="--k:20"></i><i style="--k:21"></i><i style="--k:22"></i><i style="--k:23"></i></div><b>TAA Vidyo Yapıcı</b><small>LED ekran video stüdyosu</small></div>
 <header>
   <img src="/logo.svg" alt="">
   <h1>TAA Vidyo Yapıcı</h1>
   <span class="s" id="surum"></span>
   <span class="bosluk"></span>
+  <label class="mut" title="Vurgu rengi">Vurgu <input type="color" id="renkVurgu" aria-label="Vurgu rengi" style="width:30px;height:24px;padding:0;border:1px solid var(--line);background:none"></label><label class="mut" title="Zemin rengi">Zemin <input type="color" id="renkZemin" aria-label="Zemin rengi" style="width:30px;height:24px;padding:0;border:1px solid var(--line);background:none"></label><button class="link" id="renkSifirla" title="Bu temanın renklerini varsayılana döndür">Varsayılana dön</button>
+  <select id="tema" title="Tema" aria-label="Tema"><option value="a">Tema: Amber Stüdyo</option><option value="b">Tema: Montaj Masası</option><option value="c">Tema: Donanım Rafı</option></select>
   <button class="link" id="rehberAc">Rehber</button>
   <button class="link" id="klasor">Klasörü aç</button>
 </header>
@@ -201,14 +249,16 @@ TAKSİT</textarea>
     <div class="durum" id="durum" title="Ayrıntı için tıkla"><b></b><span id="durumMetin">Çözümleniyor…</span></div>
     <div id="oneriler" hidden></div>
     <div class="ust">
+      <div class="seg" id="gorunum"><button data-g="duz" class="sec">Düz</button><button data-g="karsi">Bina karşıdan</button><button data-g="ust">Bina üstten</button></div>
       <div class="seg" id="uzaklik"><button data-d="3" class="sec">3 m</button><button data-d="15">15 m</button></div>
       <label class="mut"><input type="checkbox" id="guvenli"> Güvenli alan</label>
       <span class="bosluk"></span>
       <button class="btn" id="tamEkran" title="Tam ekran">⛶</button>
     </div>
     <div class="sahneler">
-      <figure class="cerceve"><canvas id="tasarim"></canvas><figcaption>Tasarım</figcaption></figure>
-      <figure class="cerceve"><canvas id="sim"></canvas><figcaption id="simBaslik">Ekranda nasıl görünür · 3 m</figcaption></figure>
+      <figure class="cerceve" id="tasarimFig"><canvas id="tasarim"></canvas><figcaption>Tasarım</figcaption></figure>
+      <figure class="cerceve" id="simFig"><canvas id="sim"></canvas><figcaption id="simBaslik">Ekranda nasıl görünür · 3 m</figcaption></figure>
+      <figure class="cerceve" id="binaFig" hidden><canvas id="bina"></canvas><figcaption id="binaBaslik"></figcaption><div class="binaAyar" id="binaAyar" hidden></div></figure>
     </div>
     <div class="kontrol" style="margin-top:12px">
       <button class="btn" id="oynat">⏸</button>
@@ -235,6 +285,36 @@ TAKSİT</textarea>
 
 <script>
 'use strict';
+window.acilisKapat = () => { const a = document.getElementById('yukleEkrani'); if (!a) return; a.classList.add('kapan'); setTimeout(() => a.remove(), 300); };
+setTimeout(() => window.acilisKapat(), 6000);
+(() => { const s = document.getElementById('tema'); let t = 'a'; try { t = localStorage.getItem('taa-tema') || 'a'; } catch (e) {} if (!['a','b','c'].includes(t)) t = 'a'; s.value = t; s.addEventListener('change', () => { const v = s.value; if (v === 'a') delete document.documentElement.dataset.tema; else document.documentElement.dataset.tema = v; try { localStorage.setItem('taa-tema', v); } catch (e) {} }); })();
+// Tema renkleri: vurgu ve zemin, tema başına kalıcı; "Varsayılana dön" ile sıfırlanır.
+(() => {
+  const k = () => 'taa-renk-' + (document.documentElement.dataset.tema || 'a');
+  const oku = () => { try { return JSON.parse(localStorage.getItem(k()) || '{}') || {}; } catch (e) { return {}; } };
+  const yaz = (o) => { try { if (Object.keys(o).length) localStorage.setItem(k(), JSON.stringify(o)); else localStorage.removeItem(k()); } catch (e) { /* kalıcılık yok */ } };
+  const hex = (v) => /^#[0-9a-f]{6}$/i.test(v) ? v.toLowerCase() : null;
+  const parlak = (h) => { const n = parseInt(h.slice(1), 16); return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255; };
+  const kok = document.documentElement.style;
+  const uygula = () => {
+    ['--ac', '--ac2', '--onac', '--bg'].forEach((p) => kok.removeProperty(p));
+    const o = oku(); const a = hex(o.ac || ''), z = hex(o.bg || '');
+    if (a) { kok.setProperty('--ac', a); kok.setProperty('--ac2', a); kok.setProperty('--onac', parlak(a) > 0.6 ? '#111111' : '#ffffff'); }
+    if (z) kok.setProperty('--bg', z);
+    const cs = getComputedStyle(document.documentElement);
+    const ra = document.getElementById('renkVurgu'), rz = document.getElementById('renkZemin');
+    if (ra) ra.value = hex(o.ac || '') || hex(rgb(cs.getPropertyValue('--ac').trim())) || '#ffb81c';
+    if (rz) rz.value = hex(o.bg || '') || hex(rgb(cs.getPropertyValue('--bg').trim())) || '#0c0e13';
+  };
+  const rgb = (s) => { if (/^#[0-9a-f]{6}$/i.test(s)) return s; const m = /^#([0-9a-f])([0-9a-f])([0-9a-f])$/i.exec(s); return m ? '#' + m[1] + m[1] + m[2] + m[2] + m[3] + m[3] : s; };
+  const ra = document.getElementById('renkVurgu'), rz = document.getElementById('renkZemin'), sf = document.getElementById('renkSifirla'), ts = document.getElementById('tema');
+  if (!ra || !rz || !sf || !ts) return;
+  ra.addEventListener('input', () => { const o = oku(); o.ac = ra.value; yaz(o); uygula(); });
+  rz.addEventListener('input', () => { const o = oku(); o.bg = rz.value; yaz(o); uygula(); });
+  sf.addEventListener('click', () => { yaz({}); uygula(); });
+  ts.addEventListener('change', () => setTimeout(uygula, 0));
+  uygula();
+})();
 const $ = s => document.querySelector(s);
 const api = (yol, govde, ek) => fetch(yol, {method: govde === undefined ? 'GET' : 'POST', headers: {'X-LED': '1'}, body: govde, ...(ek || {})});
 let bilgi = null, stil = 'yumusak', tohum = 1, ozel = {}, elleDuzenlendi = false, sablon = null;
@@ -339,6 +419,7 @@ $('#sablonKaydet').onclick = sablonKaydet;
 
 async function baslat() {
   bilgi = await (await api('/bilgi')).json();
+  window.acilisKapat && window.acilisKapat();
   $('#surum').textContent = 'v' + bilgi.surum + (bilgi.ffmpeg ? '' : ' · ffmpeg bulunamadı');
   $('#stiller').innerHTML = bilgi.stiller.map(s => `<div class="stil" data-ad="${s.ad}" title="${s.acik}">${s.ad[0].toUpperCase() + s.ad.slice(1)}</div>`).join('');
   const renk = ad => bilgi.paletler.find(p => p.ad === ad);
@@ -435,6 +516,108 @@ const klipGetir = debounce(async () => {
   } catch (e) { $('#hazir').textContent = 'önizleme alınamadı'; }
 }, 700);
 
+/* ---- bina görünümleri: karşıdan (cephe) ve üstten ----
+   Ölçüler Yusuf'un son bildirdiği değerlerdir (2026-11-15 22:33): iki ekran 10 x 30 m (ön sağ ve ön sol kenarda), orta bölüm 8 m (baklava deseni ve krem çıtalar), logo Ø6 m ortada,
+   cephe genişliği 31 m ('uzunluk 31 m' cephenin yatay ölçüsü diye yorumlandı), yükseklik 35 m ('genişlik 35 m' yükseklik diye yorumlandı), 6 katlı bina (kat ~5,5 m). KESİN OLMAYANLAR (varsayım): ekran alt kenarı yerden 3 m, logo merkezi 16 m, kenar payı 1 m.
+   Bina derinliği YOKTUR: bina 2B kabul edilir, yalnız E-5'e bakan ön yüz çizilir. Üstten görünüm yalnız ön yüz çizgisini (30 m), ekranları ve logo konumunu gösterir; yan/arka yüz ve derinlik çizilmez.
+   Hepsi metre cinsinden ayarlanabilir (saklanır). */
+const bina = $('#bina'); let gorunum = 'duz';
+const BINA_VARSAYILAN = {gen: 31, yuk: 35, ew: 10, eh: 30, ealt: 3, logo: 6, logoy: 18, orta: 8, kat: 5.5, yuz: 'alt'};
+const BINA = Object.assign({}, BINA_VARSAYILAN);
+try { Object.assign(BINA, JSON.parse(localStorage.getItem('taa-bina4') || '{}')); } catch (e) { /* varsayılan */ }
+const BINA_ALAN = [['gen', 'Cephe genişliği (m)', 10, 80, .5], ['yuk', 'Cephe yüksekliği (m)', 10, 80, .5], ['ew', 'Ekran genişliği (m)', 1, 20, .5], ['orta', 'Orta bölüm genişliği (m)', 2, 30, .5], ['eh', 'Ekran yüksekliği (m)', 2, 40, .5], ['ealt', 'Ekran alt kenarı yerden (m)', 0, 20, .5], ['logo', 'Logo çapı (m)', 1, 12, .5], ['logoy', 'Logo merkezi yerden (m, 16-20 arası)', 1, 40, .5]];
+const renkOku = (ad, yedek) => getComputedStyle(document.documentElement).getPropertyValue(ad).trim() || yedek;
+function ortRenk() {
+  const k = document.createElement('canvas'); k.width = 1; k.height = 1; const x = k.getContext('2d', {willReadFrequently: true});
+  try { x.drawImage(sim, 0, 0, 1, 1); const d = x.getImageData(0, 0, 1, 1).data; return [d[0], d[1], d[2]]; } catch (e) { return [255, 184, 28]; }
+}
+function binaCiz() {
+  const cw = 960, ch = gorunum === 'ust' ? 720 : 760;
+  if (bina.width !== cw || bina.height !== ch) { bina.width = cw; bina.height = ch; }
+  const c = bina.getContext('2d'), ac = renkOku('--ac', '#ffb81c'), panel = renkOku('--panel', '#131620'), panel2 = renkOku('--panel2', '#1a1e2a'), cizgi = renkOku('--line', '#252a39'), yazi = renkOku('--tx', '#eceef4'), sus = renkOku('--mut', '#8d95a9'), zemin = renkOku('--bg', '#0c0e13');
+  const [r, g, b] = ortRenk(); const rgb = 'rgb(' + r + ',' + g + ',' + b + ')';
+  c.clearRect(0, 0, cw, ch); c.fillStyle = zemin; c.fillRect(0, 0, cw, ch);
+  c.font = '14px system-ui,sans-serif'; c.textBaseline = 'middle';
+  const FW = BINA.gen, FH = BINA.yuk, orta = Math.min(BINA.orta, FW - 2), ew = Math.min(BINA.ew, (FW - orta) / 2), eh = Math.min(BINA.eh, FH - BINA.ealt), pay = (FW - 2 * ew - orta) / 2;
+  const ekranX = [pay, FW - pay - ew];   // sol üçte birde ve sağ üçte birde, kenarlara pay bırakarak
+  if (gorunum === 'karsi') {
+    const yer = ch - 70, S = Math.min((cw - 150) / FW, (yer - 60) / FH), x0 = (cw - FW * S) / 2, y0 = yer - FH * S;
+    c.fillStyle = panel; c.fillRect(0, yer, cw, ch - yer); c.strokeStyle = cizgi; c.lineWidth = 2; c.beginPath(); c.moveTo(0, yer); c.lineTo(cw, yer); c.stroke();
+    c.fillStyle = panel2; c.fillRect(x0, y0, FW * S, FH * S); c.strokeStyle = sus; c.lineWidth = 2; c.strokeRect(x0, y0, FW * S, FH * S);
+    c.strokeStyle = cizgi; c.lineWidth = 1;                                              // kat çizgileri
+    for (let k = FH / 6; k < FH - 1; k += FH / 6) { c.beginPath(); c.moveTo(x0, yer - k * S); c.lineTo(x0 + FW * S, yer - k * S); c.stroke(); }
+    { // orta bölüm: baklava deseni ve krem çıtalar (gerçek malzeme rengi, tema dışı)
+      const mx0 = x0 + (pay + ew) * S, mx1 = x0 + (FW - pay - ew) * S, ay = 1.0 * S;   // desen adımı 2 m (baklava yarım adım 1 m)
+      c.save(); c.beginPath(); c.rect(mx0, y0, mx1 - mx0, FH * S); c.clip();
+      c.fillStyle = 'rgba(0,0,0,.28)'; c.fillRect(mx0, y0, mx1 - mx0, FH * S);
+      c.strokeStyle = '#ead9b8'; c.lineWidth = Math.max(1.5, .14 * S); c.lineCap = 'butt';
+      const adim = 2 * S, yuks = FH * S, gen = mx1 - mx0;
+      for (let d = -yuks; d < gen + yuks; d += adim) { c.beginPath(); c.moveTo(mx0 + d, y0); c.lineTo(mx0 + d + yuks, y0 + yuks); c.stroke(); c.beginPath(); c.moveTo(mx0 + d + yuks, y0); c.lineTo(mx0 + d, y0 + yuks); c.stroke(); }
+      c.lineWidth = Math.max(2, .28 * S); c.beginPath(); c.moveTo(mx0 + 1, y0); c.lineTo(mx0 + 1, yer); c.moveTo(mx1 - 1, y0); c.lineTo(mx1 - 1, yer); c.moveTo((mx0 + mx1) / 2, y0); c.lineTo((mx0 + mx1) / 2, yer); c.stroke();   // dikey krem çıtalar: kenarlarda ve ortada
+      c.restore(); void ay;
+      c.fillStyle = 'rgba(0,0,0,.75)'; c.fillRect((mx0 + mx1) / 2 - 26, y0 + 6, 52, 24); c.fillStyle = '#ead9b8'; c.textAlign = 'center'; c.fillText(orta + ' m', (mx0 + mx1) / 2, y0 + 18);
+    }
+    for (const px of ekranX) {
+      const sx = x0 + px * S, sy = yer - (BINA.ealt + eh) * S;
+      c.save(); c.shadowColor = 'rgba(' + r + ',' + g + ',' + b + ',.85)'; c.shadowBlur = 30; c.fillStyle = '#000'; c.fillRect(sx, sy, ew * S, eh * S); c.restore();
+      c.drawImage(sim, sx, sy, ew * S, eh * S); c.strokeStyle = '#000'; c.lineWidth = 2; c.strokeRect(sx, sy, ew * S, eh * S);
+    }
+    { const lx = x0 + FW * S / 2, ly = yer - BINA.logoy * S, lr = BINA.logo / 2 * S;      // yuvarlak TAA logosu
+      c.save(); c.shadowColor = ac; c.shadowBlur = 14; c.fillStyle = '#0b0b0f'; c.beginPath(); c.arc(lx, ly, lr, 0, 7); c.fill(); c.restore();
+      c.strokeStyle = ac; c.lineWidth = Math.max(2, lr * .12); c.beginPath(); c.arc(lx, ly, lr, 0, 7); c.stroke();
+      c.fillStyle = ac; c.textAlign = 'center'; c.font = '700 ' + Math.round(lr * .8) + 'px system-ui,sans-serif'; c.fillText('TAA', lx, ly + lr * .05); c.font = '14px system-ui,sans-serif'; }
+    c.fillStyle = sus; const ix = x0 + FW * S + 14 * 1, iy = yer - 1.75 * S; c.fillRect(ix - 2, iy + 6, 5, 1.75 * S - 6); c.beginPath(); c.arc(ix, iy + 2, 4, 0, 7); c.fill();   // insan boyu 1,75 m (ölçek)
+    c.strokeStyle = sus; c.fillStyle = yazi; c.lineWidth = 1; c.textAlign = 'center';
+    c.beginPath(); c.moveTo(x0, y0 - 16); c.lineTo(x0 + FW * S, y0 - 16); c.stroke(); c.fillText(FW + ' m', x0 + FW * S / 2, y0 - 30);
+    c.beginPath(); c.moveTo(x0 - 18, y0); c.lineTo(x0 - 18, yer); c.stroke(); c.save(); c.translate(x0 - 34, y0 + FH * S / 2); c.rotate(-Math.PI / 2); c.fillText(FH + ' m', 0, 0); c.restore();
+    c.fillStyle = ac; c.fillText(ew + ' × ' + eh + ' m', x0 + (ekranX[0] + ew / 2) * S, yer - (BINA.ealt + eh) * S - 14);
+    c.fillText(ew + ' × ' + eh + ' m', x0 + (ekranX[1] + ew / 2) * S, yer - (BINA.ealt + eh) * S - 14);
+    c.fillStyle = 'rgba(0,0,0,.75)'; c.fillRect(x0 + FW * S / 2 - 30, yer - (BINA.logoy + BINA.logo / 2) * S - 26, 60, 24); c.fillStyle = ac; c.fillText('Ø ' + BINA.logo + ' m', x0 + FW * S / 2, yer - (BINA.logoy + BINA.logo / 2) * S - 14);
+    c.textAlign = 'left'; c.fillStyle = yazi; c.fillText('E-5\'e bakan ön cephe, ölçekli. Yusuf\'un ölçüleri; ekran alt kenarı ' + BINA.ealt + ' m, logo merkezi ' + BINA.logoy + ' m (16-20 aralığı), kenar payı ' + pay.toFixed(1) + ' m (hesaplanır).', 14, ch - 44);
+    c.fillStyle = sus; c.fillText('Kat çizgileri ' + (FH / 6).toFixed(1) + ' m aralıkla (6 kat). Çubuk insan 1,75 m.', 14, ch - 20);
+    if (BINA.ealt + BINA.eh > FH + .01) { c.fillStyle = '#ff6b6b'; c.textAlign = 'left'; c.fillText('UYARI: ekran üstü (' + (BINA.ealt + BINA.eh) + ' m) bina yüksekliğini (' + FH + ' m) aşıyor.', 14, ch - 66); }
+    if (2 * ew + orta > FW + .01) { c.fillStyle = '#ff6b6b'; c.textAlign = 'left'; c.fillText('UYARI: iki ekran ve orta bölüm cephe genişliğini aşıyor.', 14, ch - 88); }
+  } else {
+    // Üstten: yalnız E-5'e bakan ön yüz çizgisi (FW m), ekranlar, logo ve ışık yayılımı. Derinlik ve yan yüzler çizilmez.
+    const S = (cw - 220) / FW, x0 = 110, yy = 250;
+    c.fillStyle = panel; c.fillRect(0, yy + 70, cw, 110); c.fillStyle = ac; c.textAlign = 'center'; c.fillText('E-5 KARAYOLU (yan yol)', cw / 2, yy + 125);
+    c.strokeStyle = cizgi; c.lineWidth = 2; c.setLineDash([10, 12]); c.beginPath(); c.moveTo(0, yy + 125 + 28); c.lineTo(cw, yy + 125 + 28); c.stroke(); c.setLineDash([]);
+    c.fillStyle = panel2; c.fillRect(x0, yy - 70, FW * S, 70); c.strokeStyle = sus; c.lineWidth = 2; c.strokeRect(x0, yy - 70, FW * S, 70);   // bina gövdesi: yalnız işaret, derinlik ölçüsü yok
+    c.fillStyle = sus; c.textAlign = 'left'; c.fillText('bina (derinlik gösterilmez)', x0 + 12, yy - 52); c.textAlign = 'center';
+    for (const px of ekranX) {
+      const ax = x0 + px * S, zx = x0 + (px + ew) * S, gr = c.createLinearGradient(0, yy, 0, yy + 70); gr.addColorStop(0, 'rgba(' + r + ',' + g + ',' + b + ',.6)'); gr.addColorStop(1, 'rgba(' + r + ',' + g + ',' + b + ',0)');
+      c.fillStyle = gr; c.fillRect(ax, yy, zx - ax, 70);
+      c.strokeStyle = rgb; c.lineWidth = 9; c.lineCap = 'round'; c.beginPath(); c.moveTo(ax, yy); c.lineTo(zx, yy); c.stroke(); c.lineCap = 'butt';
+      c.fillStyle = ac; c.fillText(ew + ' m', (ax + zx) / 2, yy - 82 + 40);
+    }
+    { const lx = x0 + FW * S / 2; c.fillStyle = '#0b0b0f'; c.beginPath(); c.arc(lx, yy, BINA.logo / 2 * S, 0, 7); c.fill(); c.strokeStyle = ac; c.lineWidth = 2; c.stroke(); c.fillStyle = ac; c.fillText('TAA', lx, yy); c.fillText('Ø ' + BINA.logo + ' m', lx, yy + 34); }
+    c.strokeStyle = sus; c.lineWidth = 1; c.beginPath(); c.moveTo(x0, yy - 88); c.lineTo(x0 + FW * S, yy - 88); c.stroke(); c.fillStyle = yazi; c.fillText(FW + ' m (E-5\'e bakan ön yüz)', x0 + FW * S / 2, yy - 102);
+    c.textAlign = 'left'; c.fillStyle = yazi; c.fillText('Üstten görünüm yalnız ön yüzü gösterir (bina 2B kabul edilir); derinlik, yan ve arka yüzler yoktur.', 14, ch - 40);
+    c.fillStyle = ac; c.fillText('Ekranlar ön sağ ve ön sol kenarda, ortada 8 m orta bölüm ve logo; ölçüler ön yüzden hesaplanır.', 14, ch - 18);
+  }
+}
+function binaAlanKur() {
+  const kap = $('#binaAyar'); kap.textContent = '';
+  for (const [ad, baslik, mn, mx, adim] of BINA_ALAN) {
+    const l = document.createElement('label'); l.textContent = baslik + ' '; const i = document.createElement('input');
+    i.type = 'number'; i.id = 'bina-' + ad; i.min = mn; i.max = mx; i.step = adim; i.value = BINA[ad];
+    i.oninput = () => { const v = +i.value; if (isFinite(v)) { BINA[ad] = Math.max(mn, Math.min(mx, v)); binaKaydet(); } };
+    l.appendChild(i); kap.appendChild(l);
+  }
+  const s = document.createElement('button'); s.type = 'button'; s.className = 'btn'; s.textContent = 'Ölçüleri varsayılana dön';
+  s.onclick = () => { Object.assign(BINA, BINA_VARSAYILAN); binaKaydet(); binaAlanKur(); };
+  kap.appendChild(s);
+}
+function gorunumUygula() {
+  const b = gorunum !== 'duz'; $('#binaFig').hidden = !b; $('#tasarimFig').hidden = b; $('#simFig').hidden = b; document.querySelector('.sahneler').classList.toggle('bina', b);
+  $('#binaAyar').hidden = !b;
+  $('#binaBaslik').textContent = gorunum === 'karsi' ? 'Bina karşıdan (E-5 ön cephe, ölçekli)' : gorunum === 'ust' ? 'Bina üstten' : '';
+  document.querySelectorAll('#gorunum button').forEach(x => x.classList.toggle('sec', x.dataset.g === gorunum));
+}
+$('#gorunum').onclick = e => { const g = e.target.dataset.g; if (!g) return; gorunum = g; gorunumUygula(); };
+const binaKaydet = () => { try { localStorage.setItem('taa-bina4', JSON.stringify(BINA)); } catch (e) { /* kalıcılık yok */ } };
+binaAlanKur();
+
 const dot = {c: null};
 function simCiz() {
   const W = kaynak.videoWidth, H = kaynak.videoHeight; if (!W) return;
@@ -465,7 +648,7 @@ function tasarimCiz() {
 let sonCizim = 0, surukle = false;
 function dongu(t) {
   if (kaynak.readyState >= 2 && t - sonCizim > 70) {
-    sonCizim = t; tasarimCiz(); simCiz();
+    sonCizim = t; tasarimCiz(); simCiz(); if (gorunum !== 'duz') binaCiz();
     const d = kaynak.duration || 0;
     if (!surukle) $('#zaman').value = d ? kaynak.currentTime / d * 1000 : 0;
     $('#sure').textContent = `${kaynak.currentTime.toFixed(1)} / ${d.toFixed(1)} sn`;

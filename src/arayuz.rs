@@ -10,6 +10,8 @@ use std::time::{Duration, Instant};
 
 const SAYFA: &str = include_str!("../web/index.html");
 const LOGO: &str = include_str!("../logo/logo.svg");
+const YZ_DAR: &[u8] = include_bytes!("../fonts/BarlowCondensed-Black.ttf");
+const YZ_RAF: &[u8] = include_bytes!("../fonts/Audiowide-Regular.ttf");
 pub const SURUM: &str = env!("CARGO_PKG_VERSION");
 
 pub const ORNEKLER: [(&str, &str); 11] = [
@@ -149,6 +151,8 @@ fn isle(mut s: TcpStream, o: Arc<Ortak>) {
     match (yontem.as_str(), yolu.as_str()) {
         ("GET", "/") => yanit(&mut s, 200, "text/html; charset=utf-8", SAYFA.as_bytes()),
         ("GET", "/logo.svg") => yanit(&mut s, 200, "image/svg+xml", LOGO.as_bytes()),
+        ("GET", "/yz/dar.ttf") => yanit(&mut s, 200, "font/ttf", YZ_DAR),
+        ("GET", "/yz/raf.ttf") => yanit(&mut s, 200, "font/ttf", YZ_RAF),
         ("GET", "/bilgi") => {
             crate::animasyon::yukle();
             let ff = crate::ffmpeg::bul().map(|p| p.display().to_string()).unwrap_or_default();
