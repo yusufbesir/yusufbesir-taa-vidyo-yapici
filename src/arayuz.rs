@@ -364,6 +364,14 @@ mod t {
         assert!(!cerez_jeton_var("", &a)); assert!(!cerez_jeton_var("taa-oturum=", &a));
     }
     #[test]
+    fn bina_onizleme_varsayilanlari_kilitli() {
+        // Yusuf'un bildirdiği bina ölçüleri (11-15/16): değişiklik bilinçli olmalı, bu test onu yakalar.
+        assert!(SAYFA.contains("const BINA_VARSAYILAN = {gen: 31, yuk: 35, ew: 10, eh: 30, ealt: 3, logo: 6, logoy: 18, orta: 8, kat: 5.5, yuz: 'alt'};"));
+        assert!(SAYFA.contains("taa-bina4") && SAYFA.contains("taa-gorunum"));
+        assert!(SAYFA.contains("data-g=\"karsi\"") && SAYFA.contains("data-g=\"ust\"") && SAYFA.contains("id=\"binaFig\""));
+        assert!(SAYFA.contains("UYARI: ekran üstü"));
+    }
+    #[test]
     fn dosya_adi_guvenli() {
         assert_eq!(dosya_adi("..\\..\\kötü/ad", "mp4"), "kötü_ad.mp4");
         assert_eq!(dosya_adi("", "hap"), "video.mov");
