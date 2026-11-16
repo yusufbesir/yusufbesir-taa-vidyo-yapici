@@ -160,6 +160,7 @@ pub fn metin_temizle(s: &str) -> (String, bool) {
     }
     let temiz: String = parcalar.join(" ").chars().filter(|c| !matches!(c, '`' | '"' | '#' | '{' | '}' | '<' | '>' | '\\' | ';' | '&' | '|' | '^' | '~' | '$' | '=' | '*') && !c.is_control()).collect();
     let temiz = temiz.split_whitespace().collect::<Vec<_>>().join(" ");
+    let temiz = temiz.trim_start_matches('@').trim().to_string();
     let degisti = temiz != ilk;
     (temiz, degisti)
 }
@@ -226,6 +227,8 @@ pub struct Dogrulama { pub tarif: Tarif, pub notlar: Vec<String> }
 
 fn eslestir(alan: &str, ad: &str, liste: &[String], varsayilan: &str, bos_olur: bool, ek: &str, notlar: &mut Vec<String>) -> String {
     let ad = ad.trim();
+    let ad: String = ad.chars().take(64).collect();
+    let ad = ad.as_str();
     if ad.is_empty() { return varsayilan.to_string(); }
     if let Some(x) = liste.iter().find(|x| x.as_str() == ad) { return x.clone(); }
     match en_yakin(ad, liste) {
@@ -278,7 +281,7 @@ pub fn dogrula(ham: &str, kat: &Katalog) -> Result<Dogrulama, Vec<String>> {
         let mut satirlar = vec![];
         for s in metin_satirlari(hs.al("metin")) {
             let (t, d) = metin_temizle(&s);
-            if d { notlar.push(format!("{ek}metin temizlendi (HTML, bağlantı, yol veya komut benzeri parça çıkarıldı).")); }
+            if d { let n = format!("{ek}metin temizlendi (HTML, bağlantı, yol veya komut benzeri parça çıkarıldı)."); if !notlar.contains(&n) { notlar.push(n); } }
             let t = buyuk(&t);
             if t.is_empty() { continue; }
             let (k, kirpildi) = satir_kisalt(&t, MAX_KARAKTER);
@@ -323,11 +326,13 @@ pub fn senaryo_metni(t: &Tarif) -> String {
     if t.acilis != "yok" { o.push_str(&format!("acilis {}\n", t.acilis)); }
     if t.kapanis != "yok" { o.push_str(&format!("kapanis {}\n", t.kapanis)); }
     for s in &t.sahneler {
-        let en_uzun = s.metin.iter().map(|m| m.chars().count()).max().unwrap_or(1).max(1) as f32;
-        let harf = (950.0 * 0.92 / (0.62 * en_uzun)).clamp(60.0, 330.0).round();
+        // dikey LED ekran: uzun satırlar kısa satırlara bölünür (programın kendi kuralı), harf hem genişliğe hem yüksekliğe göre seçilir
+        let satirlar: Vec<String> = s.metin.iter().flat_map(|m| crate::senaryo::dikey_satirlar(m)).collect();
+        let en_uzun = satirlar.iter().map(|m| m.chars().count()).max().unwrap_or(1).max(1) as f32;
+        let harf = (950.0 * 0.92 / (0.62 * en_uzun)).min(1800.0 * 0.9 / (1.15 * satirlar.len().max(1) as f32)).clamp(60.0, 330.0).round();
         let efekt = if s.efekt.is_empty() { "yok".to_string() } else { s.efekt.join(",") };
         let font = if s.font.is_empty() { String::new() } else { format!(" font={}", s.font) };
-        o.push_str(&format!("sahne \"{}\" palet={} giris={} cikis={} sure={:.1} harf={harf} efekt={efekt}{font}\n", s.metin.join("|"), s.palet, s.giris, s.cikis, s.sure));
+        o.push_str(&format!("sahne \"{}\" palet={} giris={} cikis={} sure={:.1} harf={harf} efekt={efekt}{font}\n", satirlar.join("|"), s.palet, s.giris, s.cikis, s.sure));
     }
     o
 }
@@ -554,7 +559,7 @@ pub fn kural_coz(metin: &str, kat: &Katalog, kullanici: &[Kural]) -> Cozum {
                 } else { i += 1; }
             }
         }
-        let sure = sure_bul(&tok, &mut ayrik);
+        let sure = sure_bul(&tok, &mut ayrik).map(|x| if x.is_finite() { x.clamp(0.1, 60.0) } else { 4.5 });
         // geçiş kuralları yalnız "açılış/kapanış/geçiş" bağlamında geçerli
         let (ac, kap, gec) = (tok.iter().any(|b| b.s.starts_with("acilis") || b.s.starts_with("basla")), tok.iter().any(|b| b.s.starts_with("kapanis") || b.s.starts_with("bitis") || b.s.starts_with("bitir")), tok.iter().any(|b| b.s.starts_with("gecis") || b.s.starts_with("geciş")));
         let mut kategoriler = vec!["giris", "cikis", "efekt", "palet", "font", "gorunum"];
@@ -654,7 +659,7 @@ pub fn kural_coz(metin: &str, kat: &Katalog, kullanici: &[Kural]) -> Cozum {
 /// Kullanıcı kural dosyasına yeni eşleme ekler ("Bunu kural olarak öğret"). Hedef katalogda yoksa reddedilir. Dosya biçimi gömülü kurallarla aynıdır.
 pub fn kural_ekle(mevcut_json: Option<&str>, kategori: &str, ifade: &str, hedef: &str, kat: &Katalog) -> Result<String, String> {
     let mut v = match mevcut_json { Some(j) if !j.trim().is_empty() => kurallari_oku(j).map_err(|e| format!("kural dosyası okunamadı: {e}"))?, _ => vec![] };
-    let ifade = ifade.split_whitespace().collect::<Vec<_>>().join(" ").to_lowercase();
+    let ifade = sadelestir(&ifade.split_whitespace().collect::<Vec<_>>().join(" "));
     let yeni = Kural { kategori: kategori.to_string(), hedef: hedef.to_string(), ifadeler: vec![ifade.clone()] };
     kural_gecerli(&yeni, kat)?;
     match v.iter_mut().find(|k| k.kategori == kategori && k.hedef == hedef) { Some(k) => { if !k.ifadeler.iter().any(|x| sadelestir(x) == sadelestir(&ifade)) { k.ifadeler.push(ifade); } } None => v.push(yeni) }

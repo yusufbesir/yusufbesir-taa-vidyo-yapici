@@ -158,6 +158,19 @@ header select{width:auto;padding:4px 8px;font-size:13px}
 [data-tema=c] .btn.ana{box-shadow:0 0 14px rgba(255,46,147,.45)}
 [data-tema=c] .ilerleme div{background:var(--ok);box-shadow:0 0 8px var(--ok)}
 [data-tema=c] canvas{border:2px solid #3d3a47;box-shadow:0 0 0 4px #14121b,0 0 0 5px #4a4656}
+/* Tarif et kartı: düğmeler 48 px, ana eylem 56 px (jeton sözleşmesi) */
+details.tarif>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-height:56px}
+details.tarif>summary::-webkit-details-marker{display:none}
+.tarifBtn{display:inline-flex;align-items:center;min-height:56px;padding:0 24px;font-size:16px;font-weight:700;border-radius:10px;background:var(--ac);color:var(--onac)}
+.tarifIc{margin-top:14px;display:grid;gap:10px}
+.tarifIc .btn,.tarifIc select{min-height:48px}
+.tarifIc .btn.ana{min-height:56px}
+.tarifSahne{border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--panel2);margin:6px 0}
+.tarifUyari{color:var(--uy,#e0a030);margin:4px 0}
+.tarifHata{color:var(--hata,#ff6b6b);margin:4px 0}
+#tarifSonuc ul{margin:4px 0 8px;padding-left:18px}
+#tarifSonuc mark{background:transparent;color:var(--ac);border-bottom:1px dashed var(--ac)}
+#kuralListe div{padding:3px 0;border-bottom:1px solid var(--line)}
 </style>
 </head>
 <body>
@@ -174,6 +187,27 @@ header select{width:auto;padding:4px 8px;font-size:13px}
 </header>
 <main>
 <section class="sol">
+  <details class="kart tarif" id="tarifKart">
+    <summary><span class="tarifBtn">Tarif et</span><small class="mut">Videoyu yazıyla anlatın; yapay zekâ ya da kurallar sahne listesini çıkarsın</small></summary>
+    <div class="tarifIc">
+      <textarea id="tarifMetin" rows="4" spellcheck="false" placeholder="Örn: Önce &quot;HOŞ GELDİNİZ&quot; altın renkte zıplayarak gelsin, sonra &quot;%30 İNDİRİM&quot; kırmızı ve konfetili olsun. Kapanışta perde."></textarea>
+      <div class="sira">
+        <button class="btn ana" id="tarifCoz" title="İnternetsiz: yerleşik Türkçe kurallarla çözer">Kuraldan çöz</button>
+        <button class="btn" id="tarifIstem" title="Yapay zekâya yapıştırılacak istemi panoya kopyalar">İstemi kopyala</button>
+        <span id="tarifSiteler" class="sira" style="margin:0"></span>
+      </div>
+      <p class="mut" style="margin:0">Yapay zekâya yalnız yukarıdaki tarif ve program katalog adları gider. Müşteri adı, telefon, adres gibi kişisel bilgi yazmayın.</p>
+      <label class="mut" for="tarifYanit">Yapay zekâdan gelen yanıtı buraya yapıştırın</label>
+      <textarea id="tarifYanit" rows="3" spellcheck="false" placeholder="Yanıt { ile başlayan sahne listesi (JSON) olur; kod çiti ve açıklama yazısı olsa da bulunur."></textarea>
+      <div class="sira" style="margin:0"><button class="btn ana" id="tarifUygula">Yanıtı uygula</button></div>
+      <div id="tarifSonuc" aria-live="polite"></div>
+      <details class="bolum" id="kuralBolum"><summary>Kural listesi <small class="mut" id="kuralSay"></small></summary><div>
+        <input id="kuralAra" type="search" placeholder="Kural ara (örn. zıpla, kırmızı, perde)" style="width:100%;min-height:48px">
+        <div id="kuralListe" class="mut" style="max-height:220px;overflow:auto;margin-top:8px"></div>
+      </div></details>
+    </div>
+  </details>
+
   <div class="kart">
     <h2 class="baslik"><span class="no">1</span>Ne yazsın?<small>boş satır = yeni mesaj</small></h2>
     <textarea id="yazi" spellcheck="false" placeholder="PEŞİN FİYATINA&#10;3&#10;TAKSİT">PEŞİN FİYATINA
@@ -708,6 +742,109 @@ async function rehberOynat(ad, dugme) {
     $('#rehberMesaj').textContent = '';
   } catch (e) { $('#rehberMesaj').textContent = 'rehber videosu alınamadı'; }
 }
+// ───────── Tarif et ─────────
+// İki yol, tek şema: (A) istemi yapay zekâya götür, yanıtı yapıştır; (B) çevrimdışı kural motoru. Önizleme güncellenir; video yalnız "Videoyu yap" ile üretilir.
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+let tarifOnceki = null, tarifKatalog = null;
+async function panoyaYaz(m) {
+  try { await navigator.clipboard.writeText(m); return true; } catch (e) {
+    const t = document.createElement('textarea'); t.value = m; document.body.appendChild(t); t.select();
+    let ok = false; try { ok = document.execCommand('copy'); } catch (e2) { /* kopyalanamadı */ }
+    t.remove(); return ok;
+  }
+}
+function tarifMesaj(m, sinif) { $('#tarifSonuc').innerHTML = `<p class="${sinif || 'mut'}">${esc(m)}</p>`; }
+async function tarifSiteleri() {
+  try {
+    const l = await (await api('/tarif/siteler')).json();
+    $('#tarifSiteler').innerHTML = l.map(a => `<button class="btn" data-site="${esc(a)}" title="İstemi panoya kopyalar ve ${esc(a)} sitesini tarayıcıda açar">${esc(a)}'de aç</button>`).join('') + '<button class="btn" id="siteEkle" title="Yeni yapay zekâ sitesi ekle">+ Site</button>';
+  } catch (e) { /* liste alınamadı */ }
+}
+async function tarifIstemKopyala() {
+  const m = $('#tarifMetin').value.trim();
+  if (!m) { tarifMesaj('Önce videoyu yukarıya yazıyla anlatın.', 'tarifUyari'); return false; }
+  const ist = await (await api('/tarif/istem', m)).text();
+  const ok = await panoyaYaz(ist);
+  tarifMesaj(ok ? `İstem panoya kopyalandı (${ist.length} karakter). Yapay zekâya yapıştırın, yanıtı kopyalayıp aşağıya yapıştırın.` : 'İstem panoya kopyalanamadı.', ok ? 'mut' : 'tarifHata');
+  return ok;
+}
+function tarifOnizle(j) {
+  tarifOnceki = sen.value; sablondanCik(); sen.value = j.senaryo; elleDuzenlendi = true; ozel = {}; degisti();
+  if (j.gorunum === 'bina') { const g = document.querySelector('#gorunum button[data-g="karsi"]'); if (g) g.click(); }
+}
+async function tarifKatalogAl() { if (!tarifKatalog) tarifKatalog = await (await api('/tarif/katalog')).json(); return tarifKatalog; }
+async function tarifGoster(j, kaynak) {
+  const k = $('#tarifSonuc');
+  if (!j.ok) {
+    k.innerHTML = `<p class="tarifHata"><b>Kullanılamadı:</b></p><ul>${(j.hatalar || []).map(h => `<li>${esc(h)}</li>`).join('')}</ul>` +
+      (kaynak === 'yanit' ? '<div class="sira"><button class="btn" id="duzeltKopyala">Düzelt istemini kopyala</button></div><p class="mut">Bu metni yapay zekâya geri yapıştırın; yalnız düzeltilmiş sahne listesini versin.</p>' : '<p class="mut">Yazılacak metni tırnak içinde (&quot;...&quot;) ya da BÜYÜK HARFLE yazın.</p>');
+    const d = $('#duzeltKopyala'); if (d) d.onclick = async () => { await panoyaYaz(j.duzelt); d.textContent = 'Kopyalandı'; };
+    return;
+  }
+  tarifOnizle(j);
+  const sah = j.sahneler.map((s, i) => `<div class="tarifSahne"><b>Sahne ${i + 1}</b> “${esc(s.metin)}” <span class="mut">giriş: ${esc(s.giris)} · çıkış: ${esc(s.cikis)}${s.efekt ? ' · efekt: ' + esc(s.efekt) : ''} · renk: ${esc(s.palet)}${s.font ? ' · yazı: ' + esc(s.font) : ''} · ${s.sure} sn</span></div>`).join('');
+  const liste = (b, l, sinif) => l && l.length ? `<p class="${sinif || 'mut'}"><b>${b}</b></p><ul>${l.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '';
+  let ogret = '';
+  if (j.anlasilmayan && j.anlasilmayan.length) {
+    ogret = `<p class="mut"><b>Anlaşılmayan kelimeler:</b> ${j.anlasilmayan.map(x => `<mark>${esc(x)}</mark>`).join(' ')}</p>
+      <div class="sira"><select id="ogrKelime" aria-label="Kelime">${j.anlasilmayan.map(x => `<option>${esc(x)}</option>`).join('')}</select>
+      <select id="ogrKat" aria-label="Ne anlama gelsin"><option value="giris">giriş animasyonu</option><option value="cikis">çıkış animasyonu</option><option value="efekt">efekt</option><option value="palet">renk</option><option value="font">yazı tipi</option><option value="gecis">geçiş</option><option value="gorunum">görünüm</option></select>
+      <select id="ogrHedef" aria-label="Karşılığı"></select>
+      <button class="btn" id="ogret">Bunu kural olarak öğret</button></div>`;
+  }
+  k.innerHTML = `<p><b>Önizleme güncellendi</b> — ${j.sahneler.length} sahne, toplam ${j.sure} sn${j.acilis !== 'yok' ? ', açılış: ' + esc(j.acilis) : ''}${j.kapanis !== 'yok' ? ', kapanış: ' + esc(j.kapanis) : ''}${j.gorunum === 'bina' ? ', görünüm: bina' : ''}</p>${sah}` +
+    liste('Şunu anladım:', j.anladim) + liste('Değiştirilenler:', j.notlar, 'tarifUyari') + ogret +
+    '<div class="sira"><button class="btn" id="tarifGeri">Önceki senaryoya dön</button></div><p class="mut">Beğendiyseniz sağdaki “Videoyu yap”a basın; onayınız olmadan video üretilmez.</p>';
+  $('#tarifGeri').onclick = () => { if (tarifOnceki !== null) { sen.value = tarifOnceki; elleDuzenlendi = true; degisti(); tarifMesaj('Önceki senaryoya dönüldü.'); } };
+  if ($('#ogret')) {
+    const kat = await tarifKatalogAl();
+    const doldur = () => { const c = $('#ogrKat').value; const l = c === 'gorunum' ? ['bina', 'duz'] : kat[c]; $('#ogrHedef').innerHTML = l.map(x => `<option>${esc(x)}</option>`).join(''); };
+    $('#ogrKat').onchange = doldur; doldur();
+    $('#ogret').onclick = async () => {
+      const r = await api('/tarif/kural-ekle', JSON.stringify({k: $('#ogrKat').value, i: $('#ogrKelime').value, h: $('#ogrHedef').value}));
+      if (!r.ok) { tarifMesaj(await r.text(), 'tarifHata'); return; }
+      kuralListeYukle(true); $('#tarifCoz').click();
+    };
+  }
+}
+$('#tarifCoz').onclick = async () => {
+  const m = $('#tarifMetin').value.trim();
+  if (!m) { tarifMesaj('Önce videoyu yukarıya yazıyla anlatın.', 'tarifUyari'); return; }
+  tarifGoster(await (await api('/tarif/kural-coz', m)).json(), 'kural');
+};
+$('#tarifIstem').onclick = tarifIstemKopyala;
+$('#tarifUygula').onclick = async () => {
+  const m = $('#tarifYanit').value.trim();
+  if (!m) { tarifMesaj('Önce yapay zekâdan gelen yanıtı yapıştırın.', 'tarifUyari'); return; }
+  tarifGoster(await (await api('/tarif/uygula', m)).json(), 'yanit');
+};
+$('#tarifSiteler').onclick = async e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.id === 'siteEkle') {
+    const ad = (prompt('Sitenin adı (en çok 20 harf):') || '').trim(); if (!ad) return;
+    const adres = (prompt('Sitenin adresi (https:// ile başlamalı):') || '').trim(); if (!adres) return;
+    const r = await api('/tarif/site-ekle', JSON.stringify({ad, adres}));
+    if (!r.ok) { tarifMesaj(await r.text(), 'tarifHata'); return; }
+    tarifSiteleri(); return;
+  }
+  if (b.dataset.site) {
+    if (!(await tarifIstemKopyala())) return;
+    const r = await api('/tarif/ac', b.dataset.site);
+    tarifMesaj(r.ok ? `İstem panoya kopyalandı ve ${b.dataset.site} tarayıcıda açıldı. Orada yapıştırın (Ctrl+V), yanıtı kopyalayıp buraya dönün.` : 'Site açılamadı.', r.ok ? 'mut' : 'tarifHata');
+  }
+};
+let kuralVeri = null;
+async function kuralListeYukle(zorla) {
+  if (!kuralVeri || zorla) kuralVeri = await (await api('/tarif/kurallar')).json();
+  const a = $('#kuralAra').value.trim().toLowerCase();
+  const adlar = {giris: 'giriş', cikis: 'çıkış', efekt: 'efekt', palet: 'renk', font: 'yazı tipi', gecis: 'geçiş', gorunum: 'görünüm'};
+  const l = kuralVeri.filter(r => !a || r.h.includes(a) || r.i.some(x => x.toLowerCase().includes(a)));
+  $('#kuralSay').textContent = `${kuralVeri.reduce((t, r) => t + r.i.length, 0)} ifade`;
+  $('#kuralListe').innerHTML = l.slice(0, 200).map(r => `<div><b>${esc(r.i.join(', '))}</b> → ${adlar[r.k] || esc(r.k)}: ${esc(r.h)}${r.kaynak === 'benim' ? ' <span class="chip">benim</span>' : ''}</div>`).join('') || '<span class="bos">Eşleşen kural yok</span>';
+}
+$('#kuralBolum').addEventListener('toggle', () => { if ($('#kuralBolum').open) kuralListeYukle(); });
+$('#kuralAra').oninput = debounce(() => kuralListeYukle(), 200);
+tarifSiteleri();
 setInterval(() => api('/nabiz', ''), 20000); api('/nabiz', '');
 baslat();
 </script>

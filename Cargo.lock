@@ -1902,7 +1902,7 @@ dependencies = [
 
 [[package]]
 name = "taa-vidyo-yapici"
-version = "0.8.2"
+version = "0.9.0"
 dependencies = [
  "ab_glyph",
  "getrandom",

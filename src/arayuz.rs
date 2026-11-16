@@ -308,6 +308,8 @@ fn isle(mut s: TcpStream, o: Arc<Ortak>) {
         }
         ("POST", "/klasor") => { klasor_ac(&cikti_klasoru()); yanit(&mut s, 200, metin, b"ok") }
         ("POST", "/kapat") => { yanit(&mut s, 200, metin, b"ok"); std::process::exit(0) }
+        // "Tarif et": istem üretme, kural motoru, yanıt doğrulama (hepsi yalnız metin işler; dış adres yalnız listedeki adla açılır)
+        (m, y) if y.starts_with("/tarif/") => { let (kod, tur, g) = crate::tarif_http::isle(m, &y[7..], &yazi, &cikti_klasoru()); yanit(&mut s, kod, tur, g.as_bytes()) }
         _ => yanit(&mut s, 404, metin, b"yok"),
     }
 }
