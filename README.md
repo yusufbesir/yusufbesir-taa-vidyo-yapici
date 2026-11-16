@@ -90,3 +90,7 @@ ARASTIRMA-DIS-LED-EKRAN.md: beyaz kısık, flaş yok, tarama çizgisi yok, kalı
 - "Şablon kaydet": tasarımı adla saklar (Videolar\TAA Vidyo Yapıcı\Şablonlarım), şablon listesinde "Benim" başlığında görünür.
 - Panel profili (Çıktı bölümü): sık ekran ölçüleri tek seçimle.
 - Dikişsiz döngü (`dongu acik`): başı ve sonu yumuşak karartır.
+
+## Bina önizleme (0.8.0)
+Önizleme penceresinde **Düz | Bina karşıdan | Bina üstten** seçilir (seçim kalıcıdır). Varsayılan ölçüler (metre): cephe 31 yatay x 35 yükseklik, iki ekran 10 x 30 (ön sol ve ön sağ), orta bölüm 8 (baklava deseni ve krem çıtalar), logo Ø6 (merkez 18, 16-20 aralığı), ekran alt kenarı 3. Hepsi ayarlanır, "Ölçüleri varsayılana dön" bu değerlere döner. Ekran bina yüksekliğini ya da cephe genişliğini aşarsa kırmızı uyarı çıkar. Bina 2B kabul edilir, derinlik yoktur.
+**Bina ölçüleri kaynağı: Yusuf, 2026-11-15/16** (31 m'nin yatay, 35 m'nin yükseklik sayılması bir yorumdur; ayardan değişir). Ekran alt kenarı gerçek değeri doğrulanmadı.

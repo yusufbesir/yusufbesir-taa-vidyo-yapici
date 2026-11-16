@@ -521,7 +521,8 @@ const klipGetir = debounce(async () => {
    cephe genişliği 31 m ('uzunluk 31 m' cephenin yatay ölçüsü diye yorumlandı), yükseklik 35 m ('genişlik 35 m' yükseklik diye yorumlandı), 6 katlı bina (kat ~5,5 m). KESİN OLMAYANLAR (varsayım): ekran alt kenarı yerden 3 m, logo merkezi 16 m, kenar payı 1 m.
    Bina derinliği YOKTUR: bina 2B kabul edilir, yalnız E-5'e bakan ön yüz çizilir. Üstten görünüm yalnız ön yüz çizgisini (30 m), ekranları ve logo konumunu gösterir; yan/arka yüz ve derinlik çizilmez.
    Hepsi metre cinsinden ayarlanabilir (saklanır). */
-const bina = $('#bina'); let gorunum = 'duz';
+const bina = $('#bina');
+let gorunum = (() => { try { const g = localStorage.getItem('taa-gorunum'); return ['duz', 'karsi', 'ust'].includes(g) ? g : 'duz'; } catch (e) { return 'duz'; } })();
 const BINA_VARSAYILAN = {gen: 31, yuk: 35, ew: 10, eh: 30, ealt: 3, logo: 6, logoy: 18, orta: 8, kat: 5.5, yuz: 'alt'};
 const BINA = Object.assign({}, BINA_VARSAYILAN);
 try { Object.assign(BINA, JSON.parse(localStorage.getItem('taa-bina4') || '{}')); } catch (e) { /* varsayılan */ }
@@ -614,9 +615,10 @@ function gorunumUygula() {
   $('#binaBaslik').textContent = gorunum === 'karsi' ? 'Bina karşıdan (E-5 ön cephe, ölçekli)' : gorunum === 'ust' ? 'Bina üstten' : '';
   document.querySelectorAll('#gorunum button').forEach(x => x.classList.toggle('sec', x.dataset.g === gorunum));
 }
-$('#gorunum').onclick = e => { const g = e.target.dataset.g; if (!g) return; gorunum = g; gorunumUygula(); };
+$('#gorunum').onclick = e => { const g = e.target.dataset.g; if (!g) return; gorunum = g; try { localStorage.setItem('taa-gorunum', g); } catch (err) { /* kalıcılık yok */ } gorunumUygula(); };
 const binaKaydet = () => { try { localStorage.setItem('taa-bina4', JSON.stringify(BINA)); } catch (e) { /* kalıcılık yok */ } };
 binaAlanKur();
+gorunumUygula();
 
 const dot = {c: null};
 function simCiz() {
