@@ -472,7 +472,10 @@ $('#koruma').onchange = e => ozelYaz('koruma', e.target.checked ? 'acik' : 'kapa
 $('#hexUygula').onclick = () => ozelYaz('palet', 'hex-' + $('#hex').value.slice(1));
 $('#derinlik').oninput = e => { $('#derinlikV').textContent = (+e.target.value).toFixed(1); ozel.derinlik = e.target.value; sen.value = uygulaOzel(sen.value); degisti(); };
 $('#ara').oninput = animCiz;
-$('#sablonAc').onclick = () => $('#sablonlar').classList.toggle('acik');
+// Şablon şeridi ilk açılışta AÇIK gelir (Şablondan başla 1 tık); kullanıcı kapatırsa kalıcı hatırlanır.
+let seritKapali = false; try { seritKapali = localStorage.getItem('taa-sablon-serit') === 'kapali'; } catch (e) { /* varsayılan açık */ }
+if (!seritKapali) $('#sablonlar').classList.add('acik');
+$('#sablonAc').onclick = () => { const ac = $('#sablonlar').classList.toggle('acik'); try { localStorage.setItem('taa-sablon-serit', ac ? 'acik' : 'kapali'); } catch (e) { /* kalıcılık yok */ } };
 $('#sasirt').onclick = () => { sablondanCik(); tohum = Math.floor(Math.random() * 1e6); ozel = {}; const s = bilgi.stiller; if (Math.random() < .6) stil = s[Math.floor(Math.random() * s.length)].ad; kur(); };
 $('#sifirla').onclick = () => { ozel = {}; kur(); };
 yazi.oninput = () => { elleDuzenlendi = false; kurGec(); };
