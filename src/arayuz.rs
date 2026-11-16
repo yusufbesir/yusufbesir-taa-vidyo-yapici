@@ -342,7 +342,10 @@ fn pencere(adres: &str) {
         Ok(p) => p,
         Err(e) => { hata_goster(&format!("Pencere açılamadı: {e}")); std::process::exit(2) }
     };
-    let _gorunum = match WebViewBuilder::new().with_url(adres).build(&pencere) {
+    // WebView2 profil/çerez/önbellek verisi kurulum klasörüne yazılmasın: kullanıcının yerel uygulama verisi klasörüne gider
+    let veri = std::env::var("LOCALAPPDATA").map(|p| std::path::PathBuf::from(p).join("TAA Vidyo Yapici").join("WebView2")).unwrap_or_else(|_| std::env::temp_dir().join("TAA-Vidyo-Yapici-WebView2"));
+    let mut baglam = wry::WebContext::new(Some(veri));
+    let _gorunum = match WebViewBuilder::new_with_web_context(&mut baglam).with_url(adres).build(&pencere) {
         Ok(g) => g,
         Err(e) => { hata_goster(&format!("WebView2 çalışma zamanı bulunamadı veya başlatılamadı. Microsoft Edge WebView2 Runtime kurun (aka.ms/webview2). Ayrıntı: {e}")); std::process::exit(3) }
     };
