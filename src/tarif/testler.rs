@@ -172,3 +172,14 @@ fn mesafe_ve_en_yakin() {
     assert_eq!(en_yakin("konfetti", &l).as_deref(), Some("konfeti"));
     assert_eq!(en_yakin("tamamen-alakasiz", &l), None);
 }
+#[test]
+fn otomatik_kurallar_katalogu_kapsar() {
+    let k = kat();
+    let oto = otomatik_kurallar(&k, gomulu_kurallar());
+    for r in &oto { kural_gecerli(r, &k).unwrap_or_else(|e| panic!("{e}")); }
+    assert!(kural_ifade_sayisi(&oto) > 400, "otomatik ifade sayisi: {}", kural_ifade_sayisi(&oto));
+    let z = kural_coz("\"A\" tek tek sol gelsin", &k, &[]);
+    assert_eq!(z.tarif.unwrap().sahneler[0].giris, "tek-tek-sol");
+    let z = kural_coz("\"B\" nabiz cikis", &k, &[]);
+    assert_eq!(z.tarif.unwrap().sahneler[0].cikis, "nabiz");
+}

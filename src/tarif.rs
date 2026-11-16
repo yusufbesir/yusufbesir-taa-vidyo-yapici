@@ -410,6 +410,22 @@ pub fn kural_gecerli(k: &Kural, kat: &Katalog) -> Result<(), String> {
     }
     Ok(())
 }
+/// Katalogdaki HER ad için ad-ifade kuralı üretir (kebab-case → boşluklu: "tek-tek-sol" → "tek tek sol"); elle yazılmış kurallarla aynı hedefi tekrar etmez. Katalog büyüdükçe kurallar kendiliğinden büyür.
+pub fn otomatik_kurallar(kat: &Katalog, mevcut: &[Kural]) -> Vec<Kural> {
+    let var = |k: &str, h: &str| mevcut.iter().any(|r| r.kategori == k && r.hedef == h);
+    let mut v = vec![];
+    let mut ekle = |k: &str, h: &str, ifadeler: Vec<String>| {
+        let temiz: Vec<String> = ifadeler.into_iter().filter(|i| { let n = i.split_whitespace().count(); n >= 1 && n <= 4 && i.chars().all(|c| c.is_ascii_alphanumeric() || c == ' ') && i.chars().count() >= 3 }).collect();
+        if !temiz.is_empty() { v.push(Kural { kategori: k.into(), hedef: h.into(), ifadeler: temiz }); }
+    };
+    for a in &kat.giris { if a != "yok" && !var("giris", a) { ekle("giris", a, vec![a.replace('-', " ")]); } }
+    for a in &kat.cikis { if a != "yok" && !var("cikis", a) { let ad = a.replace('-', " "); ekle("cikis", a, vec![format!("{ad} cikis"), format!("{ad} cik"), format!("cikista {ad}")]); } }
+    for a in &kat.efekt { if !var("efekt", a) { ekle("efekt", a, vec![a.replace('-', " ")]); } }
+    for a in &kat.font { if !var("font", a) { ekle("font", a, vec![a.replace('-', " ")]); } }
+    for a in &kat.gecis { if a != "yok" && !var("gecis", a) { ekle("gecis", a, vec![a.replace('-', " ")]); } }
+    for a in &kat.palet { if !var("palet", a) && !a.starts_with("hex-") { ekle("palet", a, vec![a.replace('-', " ")]); } }
+    v
+}
 pub fn kural_ifade_sayisi(k: &[Kural]) -> usize { k.iter().map(|x| x.ifadeler.len()).sum() }
 
 #[derive(Clone, Debug)]
@@ -528,6 +544,8 @@ pub fn kural_coz(metin: &str, kat: &Katalog, kullanici: &[Kural]) -> Cozum {
     let metin: String = metin.chars().filter(|c| !c.is_control() || *c == '\n').take(MAX_TARIF).collect();
     let mut kurallar: Vec<Kural> = gomulu_kurallar().clone();
     for k in kullanici { if kural_gecerli(k, kat).is_ok() { kurallar.push(k.clone()); } }
+    let oto = otomatik_kurallar(kat, &kurallar);
+    kurallar.extend(oto);
     let ifadeler = ifade_listesi(&kurallar);
     let mut alintilar = vec![];
     let klozlar = klozlara_bol(&metin, &mut alintilar);

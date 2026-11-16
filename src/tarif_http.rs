@@ -101,7 +101,8 @@ pub fn isle(yontem: &str, ad: &str, yazi: &str, klasor: &Path) -> Yanit {
         }
         ("GET", "kurallar") => {
             let mut v: Vec<String> = vec![];
-            for (kay, l) in [("gömülü", gomulu_kurallar().clone()), ("benim", kullanici_kurallari(klasor))] {
+            let onceki: Vec<Kural> = gomulu_kurallar().iter().cloned().chain(kullanici_kurallari(klasor)).collect();
+            for (kay, l) in [("gömülü", gomulu_kurallar().clone()), ("benim", kullanici_kurallari(klasor)), ("otomatik", otomatik_kurallar(&kat, &onceki))] {
                 for r in l { v.push(format!("{{\"kaynak\":\"{kay}\",\"k\":\"{}\",\"h\":\"{}\",\"i\":{}}}", kac(&r.kategori), kac(&r.hedef), dizi(&r.ifadeler))); }
             }
             (200, JSON, format!("[{}]", v.join(",")))
