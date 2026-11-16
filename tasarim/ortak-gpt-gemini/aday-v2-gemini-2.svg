@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="14" fill="#18181B"/>
+  <!-- Film ┼Şeridi G├Âvdesi -->
+  <rect x="14" y="14" width="36" height="36" rx="4" fill="#FAFAFA"/>
+  <!-- Perforasyon Delikleri (Sol & Sa─ş) -->
+  <rect x="16.5" y="17" width="3.5" height="4.5" rx="1" fill="#18181B"/>
+  <rect x="16.5" y="24" width="3.5" height="4.5" rx="1" fill="#18181B"/>
+  <rect x="16.5" y="31" width="3.5" height="4.5" rx="1" fill="#18181B"/>
+  <rect x="16.5" y="38" width="3.5" height="4.5" rx="1" fill="#18181B"/>
+  <rect x="16.5" y="45" width="3.5" height="2.5" rx="1" fill="#18181B"/>
+  
+  <rect x="44" y="17" width="3.5" height="4.5" rx="1" fill="#18181B"/>
+  <rect x="44" y="24" width="3.5" height="4.5" rx="1" fill="#18181B"/>
+  <rect x="44" y="31" width="3.5" height="4.5" rx="1" fill="#18181B"/>
+  <rect x="44" y="38" width="3.5" height="4.5" rx="1" fill="#18181B"/>
+  <rect x="44" y="45" width="3.5" height="2.5" rx="1" fill="#18181B"/>
+  <!-- ─░├ğ Video Kadraj─▒ & Oynat -->
+  <rect x="23" y="18" width="18" height="28" rx="2.5" fill="#18181B"/>
+  <path d="M29 27v10l8-5-8-5z" fill="#93C5FD"/>
+</svg>

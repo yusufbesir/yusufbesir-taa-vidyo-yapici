@@ -1,0 +1,908 @@
+{
+ "aciklama": "TAA Vidyo Yapıcı hazır senaryo galerisi: her giriş geçerli bir sahne listesi (Tarif et şeması). Satırlar en çok 7 harf (3 m okunurluk). Sahip: Yusuf; yazan [Claude#ebd691, 2026-11-16]. cargo test her girişi doğrular.",
+ "surum": 1,
+ "senaryolar": [
+  {
+   "id": "3-taksit",
+   "ad": "3 Taksit kampanyası",
+   "kategori": "Kampanya",
+   "aciklama": "Peşin fiyatına 3 taksit, faizsiz; takım elbise için.",
+   "tarif": {
+    "surum": 1,
+    "ekran": "dikey",
+    "gorunum": "duz",
+    "sahneler": [
+     {
+      "metin": [
+       "PEŞİN",
+       "FİYATA"
+      ],
+      "giris": "zipla",
+      "cikis": "sondur",
+      "efekt": [
+       "parlama"
+      ],
+      "palet": "altin-gece",
+      "font": "anton",
+      "sure": 3.5
+     },
+     {
+      "metin": [
+       "3",
+       "TAKSİT"
+      ],
+      "giris": "zoom",
+      "cikis": "kucul",
+      "efekt": [
+       "konfeti"
+      ],
+      "palet": "kirmizi-altin",
+      "font": "anton",
+      "sure": 4
+     },
+     {
+      "metin": [
+       "FAİZSİZ"
+      ],
+      "giris": "belir",
+      "cikis": "sondur",
+      "efekt": [
+       "pirilti"
+      ],
+      "palet": "sicak-beyaz",
+      "font": "bebas",
+      "sure": 3.5
+     },
+     {
+      "metin": [
+       "TAKIM",
+       "ELBİSE"
+      ],
+      "giris": "alttan",
+      "cikis": "yukari",
+      "efekt": [
+       "cerceve-altin"
+      ],
+      "palet": "altin",
+      "font": "anton",
+      "sure": 4
+     },
+     {
+      "metin": [
+       "TERZİ",
+       "ADEM",
+       "ALTUN"
+      ],
+      "giris": "belir",
+      "cikis": "sondur",
+      "efekt": [
+       "parlama"
+      ],
+      "palet": "altin-gece",
+      "font": "yeseva",
+      "sure": 4
+     }
+    ],
+    "acilis": "perde",
+    "kapanis": "perde"
+   }
+  },
+  {
+   "id": "indirim-30",
+   "ad": "%30 indirim",
+   "kategori": "Kampanya",
+   "aciklama": "Büyük indirim, %30; son günler uyarısıyla.",
+   "tarif": {
+    "surum": 1,
+    "ekran": "dikey",
+    "gorunum": "duz",
+    "sahneler": [
+     {
+      "metin": [
+       "BÜYÜK",
+       "İNDİRİM"
+      ],
+      "giris": "zipla",
+      "cikis": "sondur",
+      "efekt": [
+       "konfeti"
+      ],
+      "palet": "kirmizi-altin",
+      "font": "anton",
+      "sure": 3.5
+     },
+     {
+      "metin": [
+       "%30"
+      ],
+      "giris": "zoom",
+      "cikis": "kucul",
+      "efekt": [
+       "havai-fisek"
+      ],
+      "palet": "altin",
+      "font": "anton",
+      "sure": 4
+     },
+     {
+      "metin": [
+       "SON",
+       "GÜNLER"
+      ],
+      "giris": "alttan",
+      "cikis": "asagi",
+      "efekt": [
+       "parlama"
+      ],
+      "palet": "turuncu-gece",
+      "font": "bebas",
+      "sure": 3.5
+     },
+     {
+      "metin": [
+       "KAÇIRMA"
+      ],
+      "giris": "belir",
+      "cikis": "sondur",
+      "efekt": [
+       "pirilti"
+      ],
+      "palet": "sicak-beyaz",
+      "font": "anton",
+      "sure": 3.5
+     }
+    ],
+    "acilis": "fade",
+    "kapanis": "fade"
+   }
+  },
+  {
+   "id": "yeni-sezon",
+   "ad": "Yeni sezon",
+   "kategori": "Yeni ürün",
+   "aciklama": "Yeni sezon koleksiyonu geldi.",
+   "tarif": {
+    "surum": 1,
+    "ekran": "dikey",
+    "gorunum": "duz",
+    "sahneler": [
+     {
+      "metin": [
+       "YENİ",
+       "SEZON"
+      ],
+      "giris": "yaylan-alt",
+      "cikis": "sondur",
+      "efekt": [
+       "pirilti"
+      ],
+      "palet": "sicak-beyaz",
+      "font": "yeseva",
+      "sure": 3.5
+     },
+     {
+      "metin": [
+       "GELDİ"
+      ],
+      "giris": "zoom",
+      "cikis": "kucul",
+      "efekt": [
+       "kayan-yildiz"
+      ],
+      "palet": "altin",
+      "font": "anton",
+      "sure": 3
+     },
+     {
+      "metin": [
+       "ZARİF",
+       "ŞIK"
+      ],
+      "giris": "belir",
+      "cikis": "sondur",
+      "efekt": [
+       "cerceve-altin"
+      ],
+      "palet": "altin-gece",
+      "font": "yeseva",
+      "sure": 3.5
+     },
+     {
+      "metin": [
+       "HEMEN",
+       "İNCELE"
+      ],
+      "giris": "alttan",
+      "cikis": "yukari",
+      "efekt": [
+       "parlama"
+      ],
+      "palet": "altin",
+      "font": "bebas",
+      "sure": 3.5
+     }
+    ],
+    "acilis": "iris",
+    "kapanis": "iris"
+   }
+  },
+  {
+   "id": "acilis",
+   "ad": "Açılış / Hoş geldiniz",
+   "kategori": "Açılış",
+   "aciklama": "Yeni şube açılışı ve karşılama.",
+   "tarif": {
+    "surum": 1,
+    "ekran": "dikey",
+    "gorunum": "duz",
+    "sahneler": [
+     {
+      "metin": [
+       "HOŞ",
+       "GELDİN"
+      ],
+      "giris": "belir",
+      "cikis": "sondur",
+      "efekt": [
+       "pirilti"
+      ],
+      "palet": "altin-gece",
+      "font": "yeseva",
+      "sure": 4
+     },
+     {
+      "metin": [
+       "YENİ",
+       "ŞUBE"
+      ],
+      "giris": "zipla",
+      "cikis": "kucul",
+      "efekt": [
+       "konfeti"
+      ],
+      "palet": "altin",
+      "font": "anton",
+      "sure": 3.5
+     },
+     {
+      "metin": [
+       "AÇILDI"
+      ],
+      "giris": "zoom",
+      "cikis": "sondur",
+      "efekt": [
+       "havai-fisek"
+      ],
+      "palet": "kirmizi-altin",
+      "font": "anton",
+      "sure": 3.5
+     },
+     {
+      "metin": [
+       "SİZİ",
+       "BEKLER"
+      ],
+      "giris": "belir",
+      "cikis": "sondur",
+      "efekt": [
+       "cerceve-altin"
+      ],
+      "palet": "sicak-beyaz",
+      "font": "yeseva",
+      "sure": 4
+     }
+    ],
+    "acilis": "perde",
+    "kapanis": "perde"
+   }
+  },
+  {
+   "id": "bayram",
+   "ad": "Bayram / özel gün",
+   "kategori": "Kutlama",
+   "aciklama": "Bayram kutlaması, sevgi ve sağlık dilekleri.",
+   "tarif": {
+    "surum": 1,
+    "ekran": "dikey",
+    "gorunum": "duz",
+    "sahneler": [
+     {
+      "metin": [
+       "BAYRAM",
+       "KUTLU",
+       "OLSUN"
+      ],
+      "giris": "belir",
+      "cikis": "sondur",
+      "efekt": [
+       "pirilti"
+      ],
+      "palet": "altin-gece",
+      "font": "yeseva",
+      "sure": 4.5
+     },
+     {
+      "metin": [
+       "SEVGİ",
+       "SAĞLIK"
+      ],
+      "giris": "yaylan-alt",
+      "cikis": "sondur",
+      "efekt": [
+       "kalp"
+      ],
+      "palet": "pembe-altin",
+      "font": "yeseva",
+      "sure": 4
+     },
+     {
+      "metin": [
+       "HUZUR"
+      ],
+      "giris": "belir",
+      "cikis": "sondur",
+      "efekt": [
+       "parlama"
+      ],
+      "palet": "sicak-beyaz",
+      "font": "yeseva",
+      "sure": 3.5
+     },
+     {
+      "metin": [
+       "TERZİ",
+       "ADEM",
+       "ALTUN"
+      ],
+      "giris": "belir",
+      "cikis": "sondur",
+      "efekt": [
+       "cerceve-altin"
+      ],
+      "palet": "altin",
+      "font": "yeseva",
+      "sure": 4
+     }
+    ],
+    "acilis": "fade",
+    "kapanis": "fade"
+   }
+  },
+  {
+   "id": "urun-tanitim",
+   "ad": "Ürün tanıtımı",
+   "kategori": "Yeni ürün",
+   "aciklama": "Özel dikim ürün tanıtımı, randevuya yönlendirir.",
+   "tarif": {
+    "surum": 1,
+    "ekran": "dikey",
+    "gorunum": "duz",
+    "sahneler": [
+     {
+      "metin": [
+       "YENİ"
+      ],
+      "giris": "zoom",
+      "cikis": "sondur",
+      "efekt": [
+       "pirilti"
+      ],
+      "palet": "altin",
+      "font": "anton",
+      "sure": 3
+     },
+     {
+      "metin": [
+       "ÖZEL",
+       "DİKİM"
+      ],
+      "giris": "zipla",
+      "cikis": "kucul",
+      "efekt": [
+       "parlama"
+      ],
+      "palet": "sicak-beyaz",
+      "font": "anton",
+      "sure": 3.5
+     },
+     {
+      "metin": [
+       "TAM",
+       "ÖLÇÜ"
+      ],
+      "giris": "alttan",
+      "cikis": "yukari",
+      "efekt": [
+       "cerceve-altin"
+      ],
+      "palet": "altin-gece",
+      "font": "bebas",
+      "sure": 3.5
+     },
+     {
+      "metin": [
+       "HEMEN",
+       "SOR"
+      ],
+      "giris": "belir",
+      "cikis": "sondur",
+      "efekt": [
+       "parlama"
+      ],
+      "palet": "altin",
+      "font": "anton",
+      "sure": 3.5
+     }
+    ],
+    "acilis": "slayt",
+    "kapanis": "slayt"
+   }
+  },
+  {
+   "id": "damatlik",
+   "ad": "Damatlık",
+   "kategori": "Düğün",
+   "aciklama": "Damatlık ve takım elbise; randevu çağrısı.",
+   "tarif": {
+    "surum": 1,
+    "ekran": "dikey",
+    "gorunum": "duz",
+    "sahneler": [
+     {
+      "metin": [
+       "BÜYÜK",
+       "GÜN"
+      ],
+      "giris": "belir",
+      "cikis": "sondur",
+      "efekt": [
+       "pirilti"
+      ],
+      "palet": "altin-gece",
+      "font": "yeseva",
+      "sure": 3.5
+     },
+     {
+      "metin": [
+       "ŞIK",
+       "DURUN"
+      ],
+      "giris": "yaylan-alt",
+      "cikis": "sondur",
+      "efekt": [
+       "kayan-yildiz"
+      ],
+      "palet": "sicak-beyaz",
+      "font": "yeseva",
+      "sure": 3.5
+     },
+     {
+      "metin": [
+       "TAKIM",
+       "ELBİSE"
+      ],
+      "giris": "alttan",
+      "cikis": "yukari",
+      "efekt": [
+       "cerceve-altin"
+      ],
+      "palet": "altin",
+      "font": "anton",
+      "sure": 4
+     },
+     {
+      "metin": [
+       "RANDEVU",
+       "ALIN"
+      ],
+      "giris": "belir",
+      "cikis": "sondur",
+      "efekt": [
+       "parlama"
+      ],
+      "palet": "altin-gece",
+      "font": "bebas",
+      "sure": 4
+     }
+    ],
+    "acilis": "perde",
+    "kapanis": "perde"
+   }
+  },
+  {
+   "id": "son-gunler",
+   "ad": "Son günler",
+   "kategori": "Kampanya",
+   "aciklama": "Kampanyanın son günleri; acele ettirir.",
+   "tarif": {
+    "surum": 1,
+    "ekran": "dikey",
+    "gorunum": "duz",
+    "sahneler": [
+     {
+      "metin": [
+       "SON",
+       "3",
+       "GÜN"
+      ],
+      "giris": "zoom",
+      "cikis": "kucul",
+      "efekt": [
+       "parlama"
+      ],
+      "palet": "turuncu-gece",
+      "font": "anton",
+      "sure": 3.5
+     },
+     {
+      "metin": [
+       "KAÇIRMA"
+      ],
+      "giris": "zipla",
+      "cikis": "sondur",
+      "efekt": [
+       "kivilcim"
+      ],
+      "palet": "kirmizi-altin",
+      "font": "anton",
+      "sure": 3.5
+     },
+     {
+      "metin": [
+       "%20",
+       "İNDİRİM"
+      ],
+      "giris": "alttan",
+      "cikis": "yukari",
+      "efekt": [
+       "konfeti"
+      ],
+      "palet": "altin",
+      "font": "anton",
+      "sure": 4
+     }
+    ],
+    "acilis": "fade",
+    "kapanis": "fade"
+   }
+  },
+  {
+   "id": "ucretsiz-tadilat",
+   "ad": "Ücretsiz tadilat",
+   "kategori": "Kampanya",
+   "aciklama": "Bedava tadilat ve hızlı teslim.",
+   "tarif": {
+    "surum": 1,
+    "ekran": "dikey",
+    "gorunum": "duz",
+    "sahneler": [
+     {
+      "metin": [
+       "BEDAVA",
+       "TADİLAT"
+      ],
+      "giris": "zipla",
+      "cikis": "sondur",
+      "efekt": [
+       "parlama"
+      ],
+      "palet": "altin",
+      "font": "anton",
+      "sure": 4
+     },
+     {
+      "metin": [
+       "HER",
+       "ALIŞ",
+       "VERİŞTE"
+      ],
+      "giris": "belir",
+      "cikis": "sondur",
+      "efekt": [
+       "pirilti"
+      ],
+      "palet": "sicak-beyaz",
+      "font": "bebas",
+      "sure": 4
+     },
+     {
+      "metin": [
+       "HIZLI",
+       "TESLİM"
+      ],
+      "giris": "alttan",
+      "cikis": "yukari",
+      "efekt": [
+       "cerceve-altin"
+      ],
+      "palet": "altin-gece",
+      "font": "anton",
+      "sure": 3.5
+     },
+     {
+      "metin": [
+       "BİZİ",
+       "ARAYIN"
+      ],
+      "giris": "belir",
+      "cikis": "sondur",
+      "efekt": [
+       "parlama"
+      ],
+      "palet": "altin",
+      "font": "bebas",
+      "sure": 3.5
+     }
+    ],
+    "acilis": "perde",
+    "kapanis": "perde"
+   }
+  },
+  {
+   "id": "hafta-sonu",
+   "ad": "Hafta sonu fırsatı",
+   "kategori": "Kampanya",
+   "aciklama": "Hafta sonuna özel indirim, pazar günü açık.",
+   "tarif": {
+    "surum": 1,
+    "ekran": "dikey",
+    "gorunum": "duz",
+    "sahneler": [
+     {
+      "metin": [
+       "HAFTA",
+       "SONU"
+      ],
+      "giris": "yaylan-alt",
+      "cikis": "sondur",
+      "efekt": [
+       "pirilti"
+      ],
+      "palet": "altin-gece",
+      "font": "anton",
+      "sure": 3.5
+     },
+     {
+      "metin": [
+       "FIRSATI"
+      ],
+      "giris": "zoom",
+      "cikis": "kucul",
+      "efekt": [
+       "konfeti"
+      ],
+      "palet": "altin",
+      "font": "anton",
+      "sure": 3.5
+     },
+     {
+      "metin": [
+       "%25",
+       "İNDİRİM"
+      ],
+      "giris": "zipla",
+      "cikis": "sondur",
+      "efekt": [
+       "havai-fisek"
+      ],
+      "palet": "kirmizi-altin",
+      "font": "anton",
+      "sure": 4
+     },
+     {
+      "metin": [
+       "PAZAR",
+       "AÇIĞIZ"
+      ],
+      "giris": "belir",
+      "cikis": "sondur",
+      "efekt": [
+       "cerceve-altin"
+      ],
+      "palet": "sicak-beyaz",
+      "font": "bebas",
+      "sure": 3.5
+     }
+    ],
+    "acilis": "iris",
+    "kapanis": "iris"
+   }
+  },
+  {
+   "id": "yilbasi",
+   "ad": "Yılbaşı",
+   "kategori": "Kutlama",
+   "aciklama": "Yeni yıl kutlaması ve şık giyim daveti.",
+   "tarif": {
+    "surum": 1,
+    "ekran": "dikey",
+    "gorunum": "duz",
+    "sahneler": [
+     {
+      "metin": [
+       "MUTLU",
+       "YILLAR"
+      ],
+      "giris": "belir",
+      "cikis": "sondur",
+      "efekt": [
+       "kar"
+      ],
+      "palet": "buz-cyan",
+      "font": "yeseva",
+      "sure": 4
+     },
+     {
+      "metin": [
+       "2027"
+      ],
+      "giris": "zoom",
+      "cikis": "kucul",
+      "efekt": [
+       "havai-fisek"
+      ],
+      "palet": "altin",
+      "font": "anton",
+      "sure": 4
+     },
+     {
+      "metin": [
+       "ŞIK",
+       "GİRİN"
+      ],
+      "giris": "yaylan-alt",
+      "cikis": "sondur",
+      "efekt": [
+       "pirilti"
+      ],
+      "palet": "sicak-beyaz",
+      "font": "yeseva",
+      "sure": 3.5
+     }
+    ],
+    "acilis": "fade",
+    "kapanis": "fade"
+   }
+  },
+  {
+   "id": "cuma",
+   "ad": "Büyük cuma",
+   "kategori": "Kampanya",
+   "aciklama": "Büyük cuma kampanyası, her üründe indirim.",
+   "tarif": {
+    "surum": 1,
+    "ekran": "dikey",
+    "gorunum": "duz",
+    "sahneler": [
+     {
+      "metin": [
+       "BÜYÜK",
+       "CUMA"
+      ],
+      "giris": "zipla",
+      "cikis": "sondur",
+      "efekt": [
+       "kivilcim"
+      ],
+      "palet": "magenta-gece",
+      "font": "anton",
+      "sure": 3.5
+     },
+     {
+      "metin": [
+       "HER",
+       "ÜRÜNDE"
+      ],
+      "giris": "belir",
+      "cikis": "sondur",
+      "efekt": [
+       "parlama"
+      ],
+      "palet": "sicak-beyaz",
+      "font": "bebas",
+      "sure": 3.5
+     },
+     {
+      "metin": [
+       "%40",
+       "İNDİRİM"
+      ],
+      "giris": "zoom",
+      "cikis": "kucul",
+      "efekt": [
+       "konfeti"
+      ],
+      "palet": "altin",
+      "font": "anton",
+      "sure": 4
+     },
+     {
+      "metin": [
+       "BUGÜN",
+       "SON"
+      ],
+      "giris": "alttan",
+      "cikis": "yukari",
+      "efekt": [
+       "parlama"
+      ],
+      "palet": "turuncu-gece",
+      "font": "anton",
+      "sure": 3.5
+     }
+    ],
+    "acilis": "tv",
+    "kapanis": "tv"
+   }
+  },
+  {
+   "id": "calisma-saatleri",
+   "ad": "Çalışma saatleri",
+   "kategori": "Duyuru",
+   "aciklama": "Bugünkü çalışma saatleri duyurusu.",
+   "tarif": {
+    "surum": 1,
+    "ekran": "dikey",
+    "gorunum": "duz",
+    "sahneler": [
+     {
+      "metin": [
+       "BUGÜN"
+      ],
+      "giris": "belir",
+      "cikis": "sondur",
+      "efekt": [
+       "parlama"
+      ],
+      "palet": "sicak-beyaz",
+      "font": "bebas",
+      "sure": 3
+     },
+     {
+      "metin": [
+       "09:00",
+       "19:00"
+      ],
+      "giris": "zoom",
+      "cikis": "kucul",
+      "efekt": [
+       "cerceve-altin"
+      ],
+      "palet": "altin",
+      "font": "anton",
+      "sure": 4
+     },
+     {
+      "metin": [
+       "AÇIĞIZ"
+      ],
+      "giris": "zipla",
+      "cikis": "sondur",
+      "efekt": [
+       "pirilti"
+      ],
+      "palet": "altin-gece",
+      "font": "anton",
+      "sure": 3
+     },
+     {
+      "metin": [
+       "SİZİ",
+       "BEKLER"
+      ],
+      "giris": "belir",
+      "cikis": "sondur",
+      "efekt": [
+       "parlama"
+      ],
+      "palet": "sicak-beyaz",
+      "font": "yeseva",
+      "sure": 3.5
+     }
+    ],
+    "acilis": "fade",
+    "kapanis": "fade"
+   }
+  }
+ ]
+}

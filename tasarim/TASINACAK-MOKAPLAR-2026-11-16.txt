@@ -1,0 +1,11 @@
+TAA Vidyo Yapıcı: Geri Dönüşüm Kutusu'na TAŞINMASI ÖNERİLEN tasarım mokapları (henüz taşınmadı). Sahip Yusuf; yazan [Claude#ebd691, 2026-11-16].
+Neden taşınmadı: otomatik izin denetimi taşımayı reddetti (silme onayı koordinatör aktarımıyla geldi). Yusuf doğrudan "taşı" derse yalnız Geri Dönüşüm Kutusu'na taşınır; kalıcı silme yok. D: Geri Dönüşüm Kutusu şu an 2,9 MB dolu; taşınacaklar toplam 10 MB (kota sorun değil).
+
+TAŞINMASI ÖNERİLEN (41 dosya, 10 MB):
+tasarim\stitch\ : konsept-A-amber.png, konsept-B-montaj-masasi.png, konsept-C-donanim-rafi.png, uygulama-tema-B.png, uygulama-tema-C.png
+tasarim\gosterim\ : acilis-vidyo-a.png, -b.png, -c.png; bina-karsi-a.png, bina-karsi-b.png, bina-karsi-e5.png, bina-karsi-olcekli.png; bina-ust-a.png, bina-ust-c.png, bina-ust-c-alt.png, bina-ust-e5.png, bina-ust-olcekli.png; bina-uyari-ornegi.png; bina-perspektif-aksam.png, bina-perspektif-gunduz.png; foto-aksam.png, foto-gunduz.png; program-ana-amber.png, program-ana-montaj.png, program-ana-raf.png, program-animasyonlar.png, program-bina-karsidan.png, program-bina-ustten.png, program-sablonlar.png, program-tek-tik.png, program-yukleme.png
+tasarim\gosterim\ss-kucuk\ : 10 jpg (eski tema küçük ekran görüntüleri)
+
+KALIR: sade-*.png, birlesik-pencere-*.png, tarif-*.png, bina-karsidan-*.png (yeni tam karşıdan), hazir-senaryolar-094.png, yapay-zeka-yazdir-094.png, logo-adaylari-094.png, tanıtım videoları, araştırma raporları, ortak-gpt-gemini\, logo\ (yeni ve eski).
+BELİRSİZ (sorulacak): gosterim\kareler (12 eski tanıtım karesi), gosterim\kayit-calisma, gosterim\cikti, gosterim\durum-082.txt; tasarim\gercek-bina\ (Yusuf'un gerçek bina fotoğrafı; yerel kopya, programa GİRMEZ, silinmesi önerilmez).
+Elenen logo adayları (ortak-gpt-gemini\aday-*.svg): Yusuf seçince taşınır.

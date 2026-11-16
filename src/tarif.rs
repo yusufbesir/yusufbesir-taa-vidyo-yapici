@@ -355,6 +355,8 @@ KURALLAR:\n\
 - Sahne süresi {MIN_SURE} ile {MAX_SURE} saniye arası; toplam en çok {MAX_TOPLAM_SN:.0} saniye. Okunması için sahne başına kısa metin yaz.\n\
 - Metinde HTML, bağlantı, dosya yolu veya komut yazma.\n\
 - \"gorunum\" alanı \"duz\" ya da \"bina\" (bina cephesi önizlemesi) olabilir. \"acilis\" ve \"kapanis\" geçiş adlarıdır.\n\
+- EKRAN VE BİNA: iki dikey LED ekran (her biri 10 m x 30 m, video 950x1800 px), bina cephesinin ön sağ ve ön sol kenarında; ortada 8 m krem panel ve Ø6 m bakır TAA logosu (merkezi 18 m yükseklikte). İzleyici 3 m ile 15 m uzaktan okur: satır başına en çok 7 harf, kısa ve kalın sözcükler, sahne başına en çok 3 satır, yüksek kontrast.\n\
+- TARİF yalnız bir konu ya da kampanya adıysa (örn. yaz indirimi, yüzde 30, 3 taksit) reklam metinlerini sen yaz: 4-6 sahne, sahne başına tek fikir, rakamlar vurgulu, sonda tek çağrı; işletme Terzi Adem Altun.\n\
 ŞEMA (alan adlarını aynen kullan):\n\
 {{\"surum\":1,\"ekran\":\"dikey\",\"gorunum\":\"duz|bina\",\"sahneler\":[{{\"metin\":[\"SATIR1\",\"SATIR2\"],\"giris\":\"<ad>\",\"cikis\":\"<ad>\",\"efekt\":[\"<ad>\"],\"palet\":\"<ad>\",\"font\":\"<ad ya da boş>\",\"sure\":4.5}}],\"acilis\":\"<geçiş>\",\"kapanis\":\"<geçiş>\"}}\n\
 ÖRNEK YANIT:\n{ORNEK_YANIT}\n\
@@ -376,6 +378,8 @@ pub fn duzelt_istemi(hatalar: &[String], kat: &Katalog) -> String {
 #[derive(Clone, Debug)]
 pub struct Kural { pub kategori: String, pub hedef: String, pub ifadeler: Vec<String> }
 const GOMULU_KURALLAR: &str = include_str!("../kurallar/tarif-kurallari.json");
+/// Hazır senaryo galerisi (her giriş geçerli sahne listesi; testler doğrular).
+pub const HAZIR_SENARYOLAR: &str = include_str!("../kurallar/hazir-senaryolar.json");
 pub const KATEGORILER: [&str; 7] = ["giris", "cikis", "efekt", "palet", "font", "gecis", "gorunum"];
 
 pub fn kurallari_oku(js: &str) -> Result<Vec<Kural>, String> {

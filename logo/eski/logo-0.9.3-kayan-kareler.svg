@@ -1,0 +1,9 @@
+<!-- TAA Vidyo Yapıcı logosu (0.9.3): iki kayan video karesi + üç satır yazı. Sahip Yusuf; adaylar: tasarim/ortak-gpt-gemini (Gemini adayı 4 + GPT önerisi, Claude rafine). Eski logo: logo/eski/ -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="256" height="256">
+  <rect width="64" height="64" rx="12" fill="#18181B"/>
+  <rect x="12" y="13" width="28" height="38" rx="4" fill="none" stroke="#B4B4BD" stroke-width="3"/>
+  <rect x="24" y="13" width="28" height="38" rx="4" fill="#18181B" stroke="#93C5FD" stroke-width="3"/>
+  <rect x="30" y="21" width="16" height="4" rx="2" fill="#FAFAFA"/>
+  <rect x="30" y="30" width="10" height="4" rx="2" fill="#93C5FD"/>
+  <rect x="30" y="39" width="16" height="4" rx="2" fill="#FAFAFA"/>
+</svg>

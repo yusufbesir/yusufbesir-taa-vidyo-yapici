@@ -116,6 +116,7 @@ pub fn isle(yontem: &str, ad: &str, yazi: &str, klasor: &Path) -> Yanit {
                 Err(e) => (400, METIN, e),
             }
         }
+        ("GET", "hazir") => (200, JSON, HAZIR_SENARYOLAR.to_string()),
         ("GET", "llm-durum") => {
             let a = crate::llm::ayar_oku(klasor);
             let sg: Vec<String> = crate::llm::SAGLAYICILAR.iter().map(|(i, ad, m)| format!("{{\"id\":\"{i}\",\"ad\":\"{}\",\"model\":\"{m}\"}}", kac(ad))).collect();

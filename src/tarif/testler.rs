@@ -183,3 +183,40 @@ fn otomatik_kurallar_katalogu_kapsar() {
     let z = kural_coz("\"B\" nabiz cikis", &k, &[]);
     assert_eq!(z.tarif.unwrap().sahneler[0].cikis, "nabiz");
 }
+
+fn json_yaz(j: &Json) -> String {
+    match j {
+        Json::Bos => "null".into(), Json::Mantik(b) => b.to_string(), Json::Sayi(n) => n.to_string(),
+        Json::Yazi(s) => format!("\"{}\"", s.replace('\\', "\\\\").replace('"', "\\\"")),
+        Json::Dizi(v) => format!("[{}]", v.iter().map(json_yaz).collect::<Vec<_>>().join(",")),
+        Json::Nesne(v) => format!("{{{}}}", v.iter().map(|(k, x)| format!("\"{k}\":{}", json_yaz(x))).collect::<Vec<_>>().join(",")),
+    }
+}
+#[test]
+fn hazir_senaryolar_gecerli_ve_okunur() {
+    let k = kat();
+    let j = json_coz(HAZIR_SENARYOLAR).expect("hazir-senaryolar.json okunamadi");
+    let Some(Json::Dizi(l)) = j.al("senaryolar") else { panic!("senaryolar yok") };
+    assert!(l.len() >= 12, "en az 12 hazir senaryo olmali: {}", l.len());
+    let mut idler: Vec<&str> = vec![];
+    for e in l {
+        let id = e.al("id").and_then(|x| x.yazi()).expect("id");
+        assert!(!idler.contains(&id), "tekrar eden id: {id}");
+        idler.push(id);
+        let ham = json_yaz(e.al("tarif").expect("tarif"));
+        let d = dogrula(&ham, &k).unwrap_or_else(|h| panic!("{id}: {h:?}"));
+        assert!(d.notlar.is_empty(), "{id}: dogrulayici degisiklik yapti: {:?}", d.notlar);
+        assert!((3..=6).contains(&d.tarif.sahneler.len()), "{id}: sahne sayisi");
+        for s in &d.tarif.sahneler {
+            assert!(s.metin.len() <= 3, "{id}: sahne basina en cok 3 satir");
+            for m in &s.metin { assert!(m.chars().count() <= 7, "{id}: satir 7 harften uzun: {m}"); }
+        }
+        let sn = senaryo_metni(&d.tarif);
+        crate::senaryo::ayristir(&sn).unwrap_or_else(|e| panic!("{id}: senaryo hatasi {e}"));
+        for satir in sn.lines().filter(|x| x.starts_with("sahne")) {
+            let harf: f32 = satir.split("harf=").nth(1).and_then(|x| x.split_whitespace().next()).and_then(|x| x.parse().ok()).expect("harf");
+            assert!(harf >= 148.0, "{id}: 3 m okunurluk (harf >= 148 px) saglanmadi: {harf}");
+        }
+        assert!(toplam_sure(&d.tarif) <= 40.0, "{id}: kisa kalmali");
+    }
+}

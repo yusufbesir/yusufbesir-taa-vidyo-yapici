@@ -1,0 +1,164 @@
+﻿A┼şa─ş─▒da, program─▒n video odakl─▒ kimli─şini netle┼ştiren **6 farkl─▒ logo aday─▒** ve ma─şaza ├Ân cephesindeki dikey LED panellere videoyu perspektifli oturtacak **ger├ğek bina ├Ânizleme sistemi** i├ğin teknik/g├Ârsel mimari yer almaktad─▒r.
+
+---
+
+### LOGO 1: Modern Klaket ve Oynat (Minimalist Clapperboard)
+**Fikir:** Video prod├╝ksiyonunun en evrensel ve ilk bak─▒┼şta tan─▒nan simgesi olan film klaketi. ├£stteki ritmik e─şik kesimler ├ğekim/kurgu aksiyonunu, merkezdeki oynat ├╝├ğgeni ise video oynatmay─▒ simgeler.
+
+```xml
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="14" fill="#18181B"/>
+  <!-- Klaket ├£st ├çubu─şu -->
+  <path d="M14 17h36v7H14z" fill="#FAFAFA"/>
+  <path d="M22 17l-4 7h5l4-7h-5zm12 0l-4 7h5l4-7h-5zm12 0l-4 7h4l3-5.25V17h-3z" fill="#18181B"/>
+  <!-- Klaket G├Âvdesi -->
+  <path d="M14 27h36v20a3 3 0 0 1-3 3H17a3 3 0 0 1-3-3V27z" fill="#FAFAFA"/>
+  <!-- Merkez Oynat Butonu -->
+  <path d="M28 32v10l9-5-9-5z" fill="#93C5FD"/>
+</svg>
+```
+
+---
+
+### LOGO 2: Perforasyonlu Dikey Film ┼Şeridi (Filmstrip Core)
+**Fikir:** Sol ve sa─ş kenarlarda perforasyon (delik) detaylar─▒ bulunan klasik film ┼şeridi. ┼Şeridin dikey formu do─şrudan dikey LED ekran mimarisine g├Âz k─▒rpar; merkezdeki koyu kadraj i├ğinde parlayan oynat ├╝├ğgeni video ├╝retimini vurgular.
+
+```xml
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="14" fill="#18181B"/>
+  <!-- Film ┼Şeridi G├Âvdesi -->
+  <rect x="14" y="14" width="36" height="36" rx="4" fill="#FAFAFA"/>
+  <!-- Perforasyon Delikleri (Sol & Sa─ş) -->
+  <rect x="16.5" y="17" width="3.5" height="4.5" rx="1" fill="#18181B"/>
+  <rect x="16.5" y="24" width="3.5" height="4.5" rx="1" fill="#18181B"/>
+  <rect x="16.5" y="31" width="3.5" height="4.5" rx="1" fill="#18181B"/>
+  <rect x="16.5" y="38" width="3.5" height="4.5" rx="1" fill="#18181B"/>
+  <rect x="16.5" y="45" width="3.5" height="2.5" rx="1" fill="#18181B"/>
+  
+  <rect x="44" y="17" width="3.5" height="4.5" rx="1" fill="#18181B"/>
+  <rect x="44" y="24" width="3.5" height="4.5" rx="1" fill="#18181B"/>
+  <rect x="44" y="31" width="3.5" height="4.5" rx="1" fill="#18181B"/>
+  <rect x="44" y="38" width="3.5" height="4.5" rx="1" fill="#18181B"/>
+  <rect x="44" y="45" width="3.5" height="2.5" rx="1" fill="#18181B"/>
+  <!-- ─░├ğ Video Kadraj─▒ & Oynat -->
+  <rect x="23" y="18" width="18" height="28" rx="2.5" fill="#18181B"/>
+  <path d="M29 27v10l8-5-8-5z" fill="#93C5FD"/>
+</svg>
+```
+
+---
+
+### LOGO 3: Zaman ├çizelgesi ve Klip Bloklar─▒ (Timeline & Playhead)
+**Fikir:** Video kurgu yaz─▒l─▒mlar─▒n─▒n ├Âz├╝ olan katmanl─▒ zaman ├ğizelgesi (timeline), klip bloklar─▒ ve ├╝stten inen oynatma imleci (playhead). Yaz─▒l─▒m─▒n video in┼şa etme ve senaryo montajlama yetene─şini anlat─▒r.
+
+```xml
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="14" fill="#18181B"/>
+  <!-- Katman 1 (├£st Par├ğalar) -->
+  <rect x="14" y="19" width="18" height="9" rx="2" fill="#93C5FD"/>
+  <rect x="35" y="19" width="15" height="9" rx="2" fill="#FAFAFA"/>
+  <!-- Katman 2 (Alt Par├ğalar) -->
+  <rect x="14" y="32" width="12" height="9" rx="2" fill="#FAFAFA"/>
+  <rect x="29" y="32" width="21" height="9" rx="2" fill="#93C5FD"/>
+  <!-- Timeline Playhead (─░mle├ğ) -->
+  <path d="M23 13l4 4v29h-2V17h-2z" fill="#FAFAFA"/>
+  <circle cx="24" cy="14" r="2.5" fill="#93C5FD"/>
+</svg>
+```
+
+---
+
+### LOGO 4: ─░kiz Dikey LED Ekran & Dinamik Oynat (Twin Canvas)
+**Fikir:** Ma─şaza cephesindeki sol ve sa─ş iki dikey LED paneli do─şrudan sembolize eden iki zarif dikey s├╝tun. Ortalar─▒ndaki negatif alan─▒ y─▒rtarak iki ekran─▒ birbirine ba─şlayan b├╝y├╝k video oynat ├╝├ğgeni.
+
+```xml
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="14" fill="#18181B"/>
+  <!-- Sol Dikey Panel -->
+  <rect x="14" y="15" width="13" height="34" rx="3" fill="#FAFAFA"/>
+  <!-- Sa─ş Dikey Panel -->
+  <rect x="37" y="15" width="13" height="34" rx="3" fill="#FAFAFA"/>
+  <!-- ─░ki Ekran─▒ Birle┼ştiren Oynat Sembol├╝ -->
+  <path d="M25 22.5L44 32L25 41.5V22.5Z" fill="#93C5FD"/>
+  <!-- Ekran B├Âl├╝c├╝ Negatif ─░nce Hat -->
+  <rect x="31" y="15" width="2" height="34" fill="#18181B"/>
+</svg>
+```
+
+---
+
+### LOGO 5: Kare Kare Hareket Ak─▒┼ş─▒ (Motion Frame Steps)
+**Fikir:** Video ak─▒┼ş─▒n─▒ olu┼şturan s─▒ral─▒ 3 kare (frames). Arkadan ├Âne do─şru b├╝y├╝yerek gelen perspektif, dura─şan bir g├Ârselin videoya d├Ân├╝┼şmesini ve sahne ak─▒┼ş─▒n─▒ ifade eder.
+
+```xml
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="14" fill="#18181B"/>
+  <!-- 1. Arka Kare (─░lk Sahne) -->
+  <rect x="14" y="15" width="14" height="20" rx="2" fill="#FAFAFA" opacity="0.4"/>
+  <!-- 2. Orta Kare (Ge├ği┼ş Sahnesi) -->
+  <rect x="22" y="20" width="18" height="24" rx="2.5" fill="#FAFAFA"/>
+  <!-- 3. ├ûn Aktif Kare & Play (Sonu├ğ Video) -->
+  <rect x="31" y="25" width="19" height="24" rx="3" fill="#93C5FD"/>
+  <path d="M38 32v10l8-5-8-5z" fill="#18181B"/>
+</svg>
+```
+
+---
+
+### LOGO 6: Viz├Âr Oda─ş─▒ ve Video ─░konu (Viewfinder Lens & Play)
+**Fikir:** Kamera ve video kay─▒t viz├Âr├╝n├╝n 4 k├Â┼şe k─▒lavuz ├ğizgisi (rec corners) ile merkezdeki saf oynat ├╝├ğgeni. Video ├ğekimi ve kurgu st├╝dyosu hissini en yal─▒n geometride bulu┼şturur; 16 px ve 32 px'te en y├╝ksek kontrast─▒ verir.
+
+```xml
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="14" fill="#18181B"/>
+  <!-- Viz├Âr K├Â┼şeleri (Frame Guides) -->
+  <path d="M15 23v-7a1 1 0 0 1 1-1h7M49 23v-7a1 1 0 0 0-1-1h-7M15 41v7a1 1 0 0 0 1 1h7M49 41v7a1 1 0 0 1-1 1h-7" 
+        stroke="#FAFAFA" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Merkez Video Play Butonu -->
+  <path d="M27 24.5v15l14-7.5-14-7.5z" fill="#93C5FD"/>
+  <!-- ├£st Sa─ş "REC" Kay─▒t Noktas─▒ -->
+  <circle cx="45" cy="19" r="2" fill="#93C5FD"/>
+</svg>
+```
+
+---
+
+### B─░NA: Ger├ğek Bina ├ûnizlemesi Teknik & G├Ârsel ├ûnerileri
+
+1. **Perspektif E┼şleme Algoritmas─▒ (Homografi & ├£├ğgen A─ş Warp):**
+   - 2D Canvas ├╝zerinde 4 k├Â┼şe noktas─▒na (`TL, TR, BR, BL`) perspektif oturtmak i├ğin kaynak video dikd├Ârtgeni k├Â┼şegenden iki ├╝├ğgene b├Âl├╝n├╝r (`TL-TR-BL` ve `TR-BR-BL`).
+   - Her ├╝├ğgen i├ğin kaynak UV koordinatlar─▒ ile hedef cephe noktalar─▒ aras─▒ndaki 2D Affine D├Ân├╝┼ş├╝m Matrisi (`ctx.transform(a, b, c, d, e, f)`) hesaplan─▒r ve `ctx.clip()` ile ├ğizilir.
+   - Alternatif ve s─▒f─▒r k─▒r─▒lmal─▒ kesin ├ğ├Âz├╝m: WebGL fragment shader veya CSS 3D `matrix3d()` kullanmakt─▒r. WebGL homografi matrisi ile ger├ğek ├ğift do─şrusal (bilinear) s├╝zme yap─▒larak doku bozulmalar─▒ tamamen ├Ânlenir.
+
+2. **Dikey ├ç─▒ta ve Fiziksel Engel Maskelemesi (Occlusion Layering):**
+   - LED paneller ├ğ─▒tal─▒ ve ├ğer├ğeveli bir cepheye g├Âm├╝l├╝d├╝r. ├ûnizlemenin yapay bir ├ğ─▒kartma gibi durmamas─▒ i├ğin ├Ân cephe foto─şraf─▒ndan panel ├ğer├ğeveleri ve varsa ├Ân├╝nden ge├ğen ince ├ğ─▒talar ┼şeffaf bir PNG maskesi (katman 3) olarak kesilmelidir.
+   - S─▒ralama: `Zemin Foto─şraf─▒ (Alt)` $\rightarrow$ `Perspektifli Video (Orta)` $\rightarrow$ `├ç─▒ta & G├Âlgelik Maskesi (├£st)`.
+
+3. **LED Kar─▒┼ş─▒m Modu (Blend Mode) ve Do─şal Yans─▒ma:**
+   - Videoyu `normal` modda %100 opak basmak dijital yapayl─▒k ├╝retir.
+   - Video katman─▒na `mix-blend-mode: screen` (%10-15) ve ├╝zerine as─▒l video `%85-90 normal` opakl─▒kla bindirilmeli; arka panelin hafif dokusunun karanl─▒k karelerde se├ğilmesi sa─şlanmal─▒d─▒r.
+   - Panel zeminine hafif bir i├ğ g├Âlge (`inner shadow / vignette`) uygulanarak LED mod├╝l ├ğer├ğeveleri hissettirilmelidir.
+
+4. **Ger├ğek├ği LED I┼ş─▒mas─▒ (Ambient Spill & Bloom):**
+   - LED ekranlar gece ve alacakaranl─▒kta ├ğevreye ─▒┼ş─▒k yayar.
+   - Perspektifli video k├╝├ğ├╝k bir gizli canvas'a (├Ârne─şin 64x64 px) ├ğizilip 20-30 px `filter: blur()` ile bulan─▒kla┼şt─▒r─▒l─▒r. Ard─▒ndan `mix-blend-mode: screen` ile panel d─▒┼ş─▒ndaki cephe duvarlar─▒na ve ma─şaza sa├ğaklar─▒na hafif renk ─▒┼ş─▒mas─▒ (bloom) olarak bindirilir. Video k─▒rm─▒z─▒ oldu─şunda cepheye vuran ─▒┼ş─▒k da k─▒rm─▒z─▒ya d├Âner.
+
+5. **G├╝nd├╝z ve Ak┼şam/Gece Ortam I┼ş─▒─ş─▒ Adaptasyonu:**
+   - **G├╝nd├╝z Modu:** ├ûn cephe do─şal ─▒┼ş─▒k al─▒r. LED kontrast─▒ bir miktar k─▒r─▒l─▒r, panel ├╝zerine hafif mat beyaz/gri g├Âky├╝z├╝ yans─▒mas─▒ eklenir (contrast %95, brightness %105).
+   - **Ak┼şam Modu:** ├ûn cephe foto─şraf─▒n─▒n ├╝zerine `#0A0F1D` renginde %60 opakl─▒kta so─şuk bir karartma katman─▒ at─▒l─▒r; LED video katman─▒ ise `brightness(1.15) contrast(1.1)` yap─▒larak ger├ğek bir gece vitrini canl─▒l─▒─ş─▒na kavu┼şturulur.
+
+6. **3 m ve 15 m Bak─▒┼ş Mesafesi Sim├╝lasyonu:**
+   - **3 Metre (Yak─▒n Bak─▒┼ş):** Kullan─▒c─▒ ma─şazan─▒n ├Ân├╝ndedir. Dikey panellerde P3/P4 LED piksel ─▒zgaras─▒ (pixel dot grid / 1-2 px aral─▒kl─▒ yar─▒ ┼şeffaf nokta dokusu) belirginle┼şir. Metin kenarlar─▒ LED piksellerine ayr─▒┼ş─▒r.
+   - **15 Metre (Kar┼ş─▒ Kald─▒r─▒m/Yol):** Pikseller insan g├Âz├╝nde birle┼şir. Doku ─▒zgaras─▒ kalkar; atmosferik mesafe nedeniyle hafif yumu┼şatma (`blur(0.5px)`) ve hafif kontrast dengelenmesi uygulan─▒r.
+
+7. **K├Â┼şe Ayarlama Aray├╝z├╝ (Corner Pinning UX) & B├╝y├╝te├ğ:**
+   - Panellerin 4 k├Â┼şesi s├╝r├╝klenirken parma─ş─▒n ya da farenin alt─▒nda kalan alan gizlenmemelidir.
+   - Se├ğili k├Â┼şe s├╝r├╝klenirken hemen ├╝st├╝nde dairesel bir **B├╝y├╝te├ğ (2x-3x Magnifier Loupe)** a├ğ─▒lmal─▒, mimari panelin k├Â┼şe derzi p├╝r├╝zs├╝zce hizalanabilmelidir.
+   - Mikron ayar i├ğin klavye ok tu┼şlar─▒ (`1 px`, `Shift` ile `5 px`) deste─şi bulunmal─▒d─▒r.
+
+8. **"Tek T─▒k" H─▒zl─▒ Kontroller:**
+   Aray├╝z├╝ karma┼şadan uzak tutmak i├ğin ┼şu kontroller tek t─▒k olmal─▒d─▒r:
+   - **"K├Â┼şeleri S─▒f─▒rla":** Yanl─▒┼ş s├╝r├╝klemede orijinal ma─şaza paneli koordinatlar─▒na an─▒nda geri d├Ân├╝┼ş.
+   - **"G├╝nd├╝z / Gece":** ├çevre ─▒┼ş─▒─ş─▒ ve LED parlakl─▒─ş─▒n─▒ tek t─▒kla senkronize de─şi┼ştiren mod anahtar─▒.
+   - **"3m / 15m":** Piksel ─▒zgaras─▒ ile uzaktan bak─▒┼ş aras─▒nda anl─▒k ge├ği┼ş.
+   - **"Senkron / B├Âl├╝nm├╝┼ş Ekran":** Ayn─▒ videonun iki panele ayr─▒ ayr─▒ m─▒ bas─▒laca─ş─▒ yoksa tek bir geni┼ş videonun sol ve sa─ş par├ğalar halinde iki panele mi payla┼şt─▒r─▒laca─ş─▒ tek t─▒kla se├ğilmelidir.
