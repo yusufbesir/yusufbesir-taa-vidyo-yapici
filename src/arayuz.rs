@@ -150,6 +150,24 @@ fn oku(s: &mut TcpStream) -> Option<(String, String, Vec<(String, String)>, Vec<
     Some((yontem, yol, basliklar, govde))
 }
 
+/// Kayıtlı dosya adı çıktı klasöründeyse ve biçimi videoysa tam yolunu döndürür (yoksa None).
+fn son_video_yolu(dosya: &str) -> Option<PathBuf> {
+    if dosya.is_empty() { return None; }
+    let p = PathBuf::from(dosya);
+    let ad = p.file_name()?.to_string_lossy().to_lowercase();
+    if !(ad.ends_with(".mp4") || ad.ends_with(".mov")) { return None; }
+    let tam = if p.is_absolute() { p } else { cikti_klasoru().join(p) };
+    let kok = cikti_klasoru();
+    if tam.parent().map(|x| x == kok.as_path()).unwrap_or(false) && tam.is_file() { Some(tam) } else { None }
+}
+#[cfg(windows)]
+fn son_video_ac(p: &std::path::Path) {
+    use std::os::windows::process::CommandExt;
+    let _ = std::process::Command::new("cmd").args(["/c", "start", "", &p.display().to_string()]).creation_flags(0x0800_0000).spawn();
+}
+#[cfg(not(windows))]
+fn son_video_ac(p: &std::path::Path) { let _ = std::process::Command::new("xdg-open").arg(p).spawn(); }
+
 fn klasor_ac(k: &std::path::Path) {
     #[cfg(windows)]
     { use std::os::windows::process::CommandExt; let _ = std::process::Command::new("explorer").arg(k).creation_flags(0x0800_0000).spawn(); }
@@ -280,6 +298,14 @@ fn isle(mut s: TcpStream, o: Arc<Ortak>) {
             }
         }
         ("POST", "/iptal") => { o.iptal.store(true, Ordering::Relaxed); yanit(&mut s, 200, metin, b"ok") }
+        // Son üretilen videoyu varsayılan video oynatıcıda açar (tarayıcıda değil). Yol yalnız sunucunun kendi kaydından ve çıktı klasöründen gelir.
+        ("POST", "/oynat-son") => {
+            let dosya = o.durum.lock().unwrap().dosya.clone();
+            match son_video_yolu(&dosya) {
+                Some(p) => { son_video_ac(&p); yanit(&mut s, 200, metin, b"ok") }
+                None => yanit(&mut s, 404, metin, b"video yok"),
+            }
+        }
         ("POST", "/klasor") => { klasor_ac(&cikti_klasoru()); yanit(&mut s, 200, metin, b"ok") }
         ("POST", "/kapat") => { yanit(&mut s, 200, metin, b"ok"); std::process::exit(0) }
         _ => yanit(&mut s, 404, metin, b"yok"),
@@ -373,6 +399,13 @@ mod t {
         assert!(SAYFA.contains("taa-bina4") && SAYFA.contains("taa-gorunum"));
         assert!(SAYFA.contains("data-g=\"karsi\"") && SAYFA.contains("data-g=\"ust\"") && SAYFA.contains("id=\"binaFig\""));
         assert!(SAYFA.contains("UYARI: ekran üstü"));
+    }
+    #[test]
+    fn son_video_yolu_yalniz_cikti_klasorunden() {
+        assert!(son_video_yolu("").is_none());
+        assert!(son_video_yolu("C:\\Windows\\system32\\cmd.exe").is_none());
+        assert!(son_video_yolu("olmayan.mp4").is_none());
+        assert!(son_video_yolu("..\\..\\kötü.mp4").is_none());
     }
     #[test]
     fn dosya_adi_guvenli() {

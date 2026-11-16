@@ -128,6 +128,9 @@ body:has(#yukleEkrani){overflow:hidden}
 .binaAyar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:12.5px;color:var(--mut);margin-top:6px}
 .binaAyar input[type=number]{width:70px;padding:4px 6px}
 .binaAyar select{width:auto;padding:4px 6px}
+/* tek tık eylemleri: ana düğme 56 px, diğerleri en az 48 px */
+.alt .btn{min-height:48px}
+.alt .btn.ana{min-height:56px}
 /* ---- temalar (Stitch konseptleri) ---- */
 @font-face{font-family:"TAA Dar";src:url(/yz/dar.ttf);font-display:swap}
 @font-face{font-family:"TAA Raf";src:url(/yz/raf.ttf);font-display:swap}
@@ -267,6 +270,9 @@ TAKSİT</textarea>
     </div>
     <div class="alt">
       <button class="btn ana buyuk" id="uret">Videoyu yap</button>
+      <button class="btn" id="oynatSon" hidden title="En son yapılan videoyu açar">Son videoyu oynat</button>
+      <button class="btn" id="klasor2" title="Videoların klasörünü açar">Klasörü aç</button>
+      <button class="btn" id="yeniVideo" title="Metni ve görünümü temizleyip baştan başlar">Yeni video</button>
       <button class="btn" id="iptal" hidden>İptal</button>
       <div class="ilerleme"><div id="bar"></div></div>
     </div>
@@ -673,10 +679,14 @@ $('#uret').onclick = async () => {
   izle = setInterval(async () => {
     const d = await (await api('/durum')).json();
     $('#bar').style.width = d.toplam ? (d.kare / d.toplam * 100) + '%' : '0';
-    if (!d.calisiyor) { clearInterval(izle); $('#uret').disabled = false; $('#iptal').hidden = true; $('#mesaj').textContent = d.hata ? 'Hata: ' + d.mesaj : `Tamam: ${d.mesaj} → ${d.dosya}`; }
+    if (!d.calisiyor) { clearInterval(izle); $('#uret').disabled = false; $('#iptal').hidden = true; $('#mesaj').textContent = d.hata ? 'Hata: ' + d.mesaj : `Tamam: ${d.mesaj} → ${d.dosya}`; if (!d.hata) $('#oynatSon').hidden = false; }
   }, 500);
 };
 $('#iptal').onclick = () => api('/iptal', '');
+$('#klasor2').onclick = () => api('/klasor', '');
+$('#oynatSon').onclick = async () => { const r = await api('/oynat-son', ''); if (!r.ok) $('#mesaj').textContent = 'Oynatılacak video bulunamadı.'; };
+$('#yeniVideo').onclick = () => { $('#sifirla').click(); yazi.value = ''; yazi.dispatchEvent(new Event('input', {bubbles: true})); yazi.focus(); };
+(async () => { try { const d = await (await api('/durum')).json(); if (d.dosya && !d.hata) $('#oynatSon').hidden = false; } catch (e) { /* durum yok */ } })();
 $('#klasor').onclick = () => api('/klasor', '');
 
 /* ---- rehber: senaryodan canlı klip ---- */
