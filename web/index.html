@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TAA Vidyo Yapıcı</title>
 <link rel="icon" href="/logo.svg" type="image/svg+xml">
-<script>try{var t=localStorage.getItem("taa-tema");if(t==="b"||t==="c")document.documentElement.dataset.tema=t}catch(e){}</script>
+<script>try{var t=localStorage.getItem("taa-tema");if(t==="b")document.documentElement.dataset.tema=t}catch(e){}</script>
 <style>
-:root{color-scheme:dark;--onac:#1a1200;--fh:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--fm:ui-monospace,Consolas,monospace;--bg:#0c0e13;--panel:#131620;--panel2:#1a1e2a;--line:#252a39;--tx:#eceef4;--mut:#8d95a9;--ac:#ffb81c;--ac2:#ffce30;--ok:#4ade80;--uy:#fbbf24;--r:14px}
+:root{color-scheme:dark;--fh:"Segoe UI Variable","Segoe UI",system-ui,-apple-system,Roboto,sans-serif;--fm:"Segoe UI Variable","Segoe UI",system-ui,-apple-system,Roboto,sans-serif;--bg:#18181B;--panel:#242427;--panel2:#2E2E33;--line:#3F3F46;--tx:#FAFAFA;--mut:#B4B4BD;--ac:#93C5FD;--ac2:#BFDBFE;--onac:#172554;--ok:#6EE7B7;--uy:#FCD34D;--r:6px}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 "Segoe UI Variable","Segoe UI",system-ui,-apple-system,Roboto,sans-serif}
 button,select,input,textarea{font:inherit;color:inherit}
 header{display:flex;align-items:center;gap:12px;padding:12px 24px;border-bottom:1px solid var(--line)}
 header img{width:28px;height:28px}
@@ -131,33 +131,6 @@ body:has(#yukleEkrani){overflow:hidden}
 /* tek tık eylemleri: ana düğme 56 px, diğerleri en az 48 px */
 .alt .btn{min-height:48px}
 .alt .btn.ana{min-height:56px}
-/* ---- temalar (Stitch konseptleri) ---- */
-@font-face{font-family:"TAA Dar";src:url(/yz/dar.ttf);font-display:swap}
-@font-face{font-family:"TAA Raf";src:url(/yz/raf.ttf);font-display:swap}
-.baslik,header h1,details.ayr>summary{font-family:var(--fh)}
-.etiket,.mut,.sablonlar h4,header .s{font-family:var(--fm)}
-header select{width:auto;padding:4px 8px;font-size:13px}
-/* B: Montaj Masası — krem kâğıt, mürekkep çizgi, sinyal kırmızısı, sert köşe */
-[data-tema=b]{color-scheme:light;--onac:#fff;--fh:"TAA Dar",system-ui,sans-serif;--fm:ui-monospace,Consolas,monospace;--bg:#f3ede0;--panel:#fff9ec;--panel2:#eee8db;--line:#121212;--tx:#1d1c14;--mut:#5c403d;--ac:#d62828;--ac2:#b20112;--ok:#1b7a3a;--uy:#8a5a00;--r:0}
-[data-tema=b] *:not(.nokta):not(.pal i):not(.durum b){border-radius:0!important}
-[data-tema=b] .baslik,[data-tema=b] header h1,[data-tema=b] details.ayr>summary{text-transform:uppercase;letter-spacing:.04em;font-weight:700}
-[data-tema=b] .baslik{font-size:20px}
-[data-tema=b] .btn:hover,[data-tema=b] .link:hover{background:#121212;color:#f3ede0;border-color:#121212}
-[data-tema=b] .btn.ana:hover{background:#121212;filter:none}
-[data-tema=b] .stil.sec,[data-tema=b] .chip.sec,[data-tema=b] .pal.sec{color:#fff;background:var(--ac);box-shadow:none}
-[data-tema=b] .no{background:#121212;color:#f3ede0}
-[data-tema=b] canvas{border-color:#121212}
-[data-tema=b] dialog::backdrop{background:rgba(18,18,18,.6)}
-/* C: Donanım Rafı — grafit-mor panel, magenta + limon LED */
-[data-tema=c]{--onac:#1a0011;--fh:"TAA Raf",system-ui,sans-serif;--fm:ui-monospace,Consolas,monospace;--bg:#14121b;--panel:#201e28;--panel2:#2b2932;--line:#3d3a47;--tx:#e6e0ed;--mut:#a79fb5;--ac:#ff2e93;--ac2:#ff74b4;--ok:#b6ff3b;--uy:#ffd23b;--r:6px}
-[data-tema=c] .kart,[data-tema=c] details.ayr{background:linear-gradient(#25222d,#1c1a24);box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 2px 0 #0b0911;position:relative}
-[data-tema=c] .kart::before,[data-tema=c] .kart::after{content:"";position:absolute;top:7px;width:6px;height:6px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#8d8a98,#34313d);box-shadow:0 0 0 1px #0b0911}
-[data-tema=c] .kart::before{left:7px}[data-tema=c] .kart::after{right:7px}
-[data-tema=c] .baslik,[data-tema=c] header h1{text-transform:uppercase;letter-spacing:.08em;font-weight:400;font-size:15px}
-[data-tema=c] .durum b{box-shadow:0 0 8px currentColor}
-[data-tema=c] .btn.ana{box-shadow:0 0 14px rgba(255,46,147,.45)}
-[data-tema=c] .ilerleme div{background:var(--ok);box-shadow:0 0 8px var(--ok)}
-[data-tema=c] canvas{border:2px solid #3d3a47;box-shadow:0 0 0 4px #14121b,0 0 0 5px #4a4656}
 /* Tarif et kartı: düğmeler 48 px, ana eylem 56 px (jeton sözleşmesi) */
 details.tarif>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-height:56px}
 details.tarif>summary::-webkit-details-marker{display:none}
@@ -171,6 +144,55 @@ details.tarif>summary::-webkit-details-marker{display:none}
 #tarifSonuc ul{margin:4px 0 8px;padding-left:18px}
 #tarifSonuc mark{background:transparent;color:var(--ac);border-bottom:1px dashed var(--ac)}
 #kuralListe div{padding:3px 0;border-bottom:1px solid var(--line)}
+/* ---- Sade tema (0.9.3): koyu-nötr (varsayılan) ve açık-nötr; tek vurgu, düz yüzey, ince çizgi, gölge/gradyan/neon yok; tek aile tipografi (Segoe UI) ---- */
+.baslik,header h1,details.ayr>summary,.etiket,.mut,.sablonlar h4,header .s{font-family:var(--fh)}
+header select{width:auto;padding:4px 8px;font-size:14px}
+[data-tema=b]{color-scheme:light;--onac:#fff;--bg:#F4F4F5;--panel:#fff;--panel2:#F4F4F5;--line:#D4D4D8;--tx:#18181B;--mut:#52525B;--ac:#1D4ED8;--ac2:#1E40AF;--ok:#15803D;--uy:#854D0E;--r:6px}
+[data-tema=b] canvas{border-color:#D4D4D8}
+[data-tema=b] .durum{background:#F0FDF4}
+[data-tema=b] .durum.uy{background:#FEFCE8}
+body{font-size:16px;line-height:1.5}
+main{gap:32px;padding:32px 24px}
+.sol{gap:24px}
+.kart{padding:24px}
+header{padding:12px 24px}
+header img{width:32px;height:32px}
+header h1{font-size:18px;font-weight:600;letter-spacing:0}
+.baslik{font-size:18px;font-weight:600;margin-bottom:16px}
+.no{background:var(--panel2);color:var(--mut);border:1px solid var(--line);font-weight:600;border-radius:6px}
+.kart,details.ayr,dialog{border-radius:6px}
+.btn,textarea,select,input[type=text],input[type=search],input[type=number],.stil,.rehber button,.oneri,.durum,.seg,.chip,.etiketSablon,.pal,.link{border-radius:6px}
+.btn,.link{min-height:48px}
+.btn{padding:10px 16px}
+.link{padding:0 12px}
+select,input[type=text],input[type=search]{min-height:48px;padding:10px 12px}
+.btn.ana{font-weight:600}
+.btn:hover{border-color:var(--mut)}
+.btn.ana:hover{filter:none;background:var(--ac2)}
+.btn.buyuk{padding:12px 24px}
+.chip{font-size:14px;padding:8px 12px;min-height:40px;display:inline-flex;align-items:center}
+.stil{font-size:14px;min-height:48px}
+.stil.sec,.chip.sec,.pal.sec{box-shadow:none;border-color:var(--ac);border-width:2px;color:var(--tx)}
+.etiket,.mut,header .s,.baslik small,#mesaj,.oneri,.durum,.binaAyar,.cerceve figcaption,.rehber span{font-size:14px}
+.sablonlar h4{text-transform:none;letter-spacing:0;font-size:14px;font-weight:600}
+.seg button{min-height:40px;font-size:14px}
+.seg button.sec{font-weight:600}
+.nokta.sec{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--ac)}
+.durum b{box-shadow:none}
+.ilerleme div{box-shadow:none}
+#yazi{font-size:20px;font-weight:600}
+.alt .btn{min-height:48px}
+.alt .btn.ana{min-height:56px}
+#yukleEkrani b{font:600 24px/1 var(--fh);letter-spacing:0;text-transform:none}
+#yukleEkrani small{font:14px var(--fh);letter-spacing:0}
+#yukleEkrani .ledler i{box-shadow:none}
+@keyframes acilisLed{0%,100%{background:var(--line)}50%{background:var(--ac)}}
+/* tek ana eylem: yalnız "Videoyu yap" dolu vurgu; Tarif et kartındaki düğmeler vurgu çerçeveli */
+.tarifBtn{background:var(--panel2);color:var(--tx);border:1px solid var(--line);font-weight:600}
+details.tarif[open]>summary .tarifBtn{border-color:var(--ac)}
+.tarifIc .btn.ana,.tarifIc .btn.ana:hover{background:var(--panel2);color:var(--tx);border:1px solid var(--ac);font-weight:600}
+.tarifIc .btn.ana:hover{background:var(--panel)}
+#sasirt.ana,#sasirt.ana:hover{background:var(--panel2);color:var(--tx);border:1px solid var(--ac)}
 </style>
 </head>
 <body>
@@ -181,7 +203,7 @@ details.tarif>summary::-webkit-details-marker{display:none}
   <span class="s" id="surum"></span>
   <span class="bosluk"></span>
   <label class="mut" title="Vurgu rengi">Vurgu <input type="color" id="renkVurgu" aria-label="Vurgu rengi" style="width:30px;height:24px;padding:0;border:1px solid var(--line);background:none"></label><label class="mut" title="Zemin rengi">Zemin <input type="color" id="renkZemin" aria-label="Zemin rengi" style="width:30px;height:24px;padding:0;border:1px solid var(--line);background:none"></label><button class="link" id="renkSifirla" title="Bu temanın renklerini varsayılana döndür">Varsayılana dön</button>
-  <select id="tema" title="Tema" aria-label="Tema"><option value="a">Tema: Amber Stüdyo</option><option value="b">Tema: Montaj Masası</option><option value="c">Tema: Donanım Rafı</option></select>
+  <select id="tema" title="Tema" aria-label="Tema"><option value="a">Koyu (nötr)</option><option value="b">Açık (nötr)</option></select>
   <button class="link" id="rehberAc">Rehber</button>
   <button class="link" id="klasor">Klasörü aç</button>
 </header>
@@ -339,7 +361,7 @@ TAKSİT</textarea>
 'use strict';
 window.acilisKapat = () => { const a = document.getElementById('yukleEkrani'); if (!a) return; a.classList.add('kapan'); setTimeout(() => a.remove(), 300); };
 setTimeout(() => window.acilisKapat(), 6000);
-(() => { const s = document.getElementById('tema'); let t = 'a'; try { t = localStorage.getItem('taa-tema') || 'a'; } catch (e) {} if (!['a','b','c'].includes(t)) t = 'a'; s.value = t; s.addEventListener('change', () => { const v = s.value; if (v === 'a') delete document.documentElement.dataset.tema; else document.documentElement.dataset.tema = v; try { localStorage.setItem('taa-tema', v); } catch (e) {} }); })();
+(() => { const s = document.getElementById('tema'); let t = 'a'; try { t = localStorage.getItem('taa-tema') || 'a'; } catch (e) {} if (!['a','b'].includes(t)) t = 'a'; s.value = t; s.addEventListener('change', () => { const v = s.value; if (v === 'a') delete document.documentElement.dataset.tema; else document.documentElement.dataset.tema = v; try { localStorage.setItem('taa-tema', v); } catch (e) {} }); })();
 // Tema renkleri: vurgu ve zemin, tema başına kalıcı; "Varsayılana dön" ile sıfırlanır.
 (() => {
   const k = () => 'taa-renk-' + (document.documentElement.dataset.tema || 'a');
@@ -355,7 +377,7 @@ setTimeout(() => window.acilisKapat(), 6000);
     if (z) kok.setProperty('--bg', z);
     const cs = getComputedStyle(document.documentElement);
     const ra = document.getElementById('renkVurgu'), rz = document.getElementById('renkZemin');
-    if (ra) ra.value = hex(o.ac || '') || hex(rgb(cs.getPropertyValue('--ac').trim())) || '#ffb81c';
+    if (ra) ra.value = hex(o.ac || '') || hex(rgb(cs.getPropertyValue('--ac').trim())) || '#93c5fd';
     if (rz) rz.value = hex(o.bg || '') || hex(rgb(cs.getPropertyValue('--bg').trim())) || '#0c0e13';
   };
   const rgb = (s) => { if (/^#[0-9a-f]{6}$/i.test(s)) return s; const m = /^#([0-9a-f])([0-9a-f])([0-9a-f])$/i.exec(s); return m ? '#' + m[1] + m[1] + m[2] + m[2] + m[3] + m[3] : s; };
@@ -590,7 +612,7 @@ function ortRenk() {
 function binaCiz() {
   const cw = 960, ch = gorunum === 'ust' ? 720 : 760;
   if (bina.width !== cw || bina.height !== ch) { bina.width = cw; bina.height = ch; }
-  const c = bina.getContext('2d'), ac = renkOku('--ac', '#ffb81c'), panel = renkOku('--panel', '#131620'), panel2 = renkOku('--panel2', '#1a1e2a'), cizgi = renkOku('--line', '#252a39'), yazi = renkOku('--tx', '#eceef4'), sus = renkOku('--mut', '#8d95a9'), zemin = renkOku('--bg', '#0c0e13');
+  const c = bina.getContext('2d'), ac = renkOku('--ac', '#93c5fd'), panel = renkOku('--panel', '#242427'), panel2 = renkOku('--panel2', '#2e2e33'), cizgi = renkOku('--line', '#252a39'), yazi = renkOku('--tx', '#eceef4'), sus = renkOku('--mut', '#8d95a9'), zemin = renkOku('--bg', '#0c0e13');
   const [r, g, b] = ortRenk(); const rgb = 'rgb(' + r + ',' + g + ',' + b + ')';
   c.clearRect(0, 0, cw, ch); c.fillStyle = zemin; c.fillRect(0, 0, cw, ch);
   c.font = '14px system-ui,sans-serif'; c.textBaseline = 'middle';
@@ -615,11 +637,11 @@ function binaCiz() {
     }
     for (const px of ekranX) {
       const sx = x0 + px * S, sy = yer - (BINA.ealt + eh) * S;
-      c.save(); c.shadowColor = 'rgba(' + r + ',' + g + ',' + b + ',.85)'; c.shadowBlur = 30; c.fillStyle = '#000'; c.fillRect(sx, sy, ew * S, eh * S); c.restore();
+      c.save(); c.shadowColor = 'rgba(' + r + ',' + g + ',' + b + ',.3)'; c.shadowBlur = 14; c.fillStyle = '#000'; c.fillRect(sx, sy, ew * S, eh * S); c.restore();
       c.drawImage(sim, sx, sy, ew * S, eh * S); c.strokeStyle = '#000'; c.lineWidth = 2; c.strokeRect(sx, sy, ew * S, eh * S);
     }
     { const lx = x0 + FW * S / 2, ly = yer - BINA.logoy * S, lr = BINA.logo / 2 * S;      // yuvarlak TAA logosu
-      c.save(); c.shadowColor = ac; c.shadowBlur = 14; c.fillStyle = '#0b0b0f'; c.beginPath(); c.arc(lx, ly, lr, 0, 7); c.fill(); c.restore();
+      c.save(); c.shadowColor = ac; c.shadowBlur = 0; c.fillStyle = '#0b0b0f'; c.beginPath(); c.arc(lx, ly, lr, 0, 7); c.fill(); c.restore();
       c.strokeStyle = ac; c.lineWidth = Math.max(2, lr * .12); c.beginPath(); c.arc(lx, ly, lr, 0, 7); c.stroke();
       c.fillStyle = ac; c.textAlign = 'center'; c.font = '700 ' + Math.round(lr * .8) + 'px system-ui,sans-serif'; c.fillText('TAA', lx, ly + lr * .05); c.font = '14px system-ui,sans-serif'; }
     c.fillStyle = sus; const ix = x0 + FW * S + 14 * 1, iy = yer - 1.75 * S; c.fillRect(ix - 2, iy + 6, 5, 1.75 * S - 6); c.beginPath(); c.arc(ix, iy + 2, 4, 0, 7); c.fill();   // insan boyu 1,75 m (ölçek)

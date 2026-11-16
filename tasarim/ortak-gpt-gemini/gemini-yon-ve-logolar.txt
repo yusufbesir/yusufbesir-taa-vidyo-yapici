@@ -1,0 +1,162 @@
+﻿# ARAYUZ
+
+**1. Tasar─▒m Felsefesi ve Yakla┼ş─▒m ('├çal─▒┼şma Masas─▒')**
+┼Şatafatl─▒ neon, gradyan ve yapay st├╝dyo temalar─▒ tamamen terk edilmi┼ştir. Esnaf─▒n ve teknik olmayan kullan─▒c─▒n─▒n (terzi, perakendeci) do─şrudan i┼şine odaklanmas─▒n─▒ sa─şlayan, dikkat da─ş─▒tmayan, ara├ğ kutusu sadeli─şinde n├Âtr bir "dijital tezg├óh" kurgulanm─▒┼şt─▒r. D├╝z y├╝zeyler, 1 px mikro ay─▒r─▒c─▒ ├ğizgiler ve i┼şlevsel hiyerar┼şi esast─▒r; dekoratif hi├ğbir g├Âlge veya par─▒lt─▒ kullan─▒lmaz.
+
+**2. Renk Jetonlar─▒ (Design Tokens)**
+T├╝m renkler WCAG AA standard─▒nda (en az 4,5:1 metin kontrast─▒) se├ğilmi┼ştir. Sistem tek bir sakin kurumsal vurgu (├ğelik mavisi) ve d├╝z n├Âtr zeminler ├╝zerine kuruludur.
+
+*   **Koyu-N├Âtr Tema (Varsay─▒lan 1):**
+    *   Zemin: `#141517` (Derin antrasit n├Âtr zemin)
+    *   Panel (Kart / B├Âl├╝m): `#1E2024` (Temiz y├╝zey ayr─▒m─▒)
+    *   ─░kinci Panel (Girdi alanlar─▒, i├ğ kutular): `#282A30`
+    *   ├çizgi (Border / Ay─▒r─▒c─▒): `#383C44` (1 px d├╝z ├ğizgi)
+    *   Ana Yaz─▒: `#F3F4F6` (Kontrast: 14:1)
+    *   ─░kincil Yaz─▒: `#9CA3AF` (Kontrast: 5.2:1)
+    *   Tek Vurgu (Accent): `#3B82F6` (Dengeli, g├Âz yormayan kobalt/mavi)
+    *   Ba┼şar─▒: `#10B981`
+    *   Uyar─▒: `#F59E0B`
+    *   Hata: `#EF4444`
+*   **A├ğ─▒k-N├Âtr Tema (Varsay─▒lan 2):**
+    *   Zemin: `#F4F5F7` (G├Âz almayan yumu┼şak ka─ş─▒t grisi)
+    *   Panel (Kart / B├Âl├╝m): `#FFFFFF` (Net beyaz y├╝zey)
+    *   ─░kinci Panel (Girdi alanlar─▒, i├ğ kutular): `#EDF0F4`
+    *   ├çizgi (Border / Ay─▒r─▒c─▒): `#D2D6DC` (1 px ince kenarl─▒k)
+    *   Ana Yaz─▒: `#111827` (Kontrast: 16:1)
+    *   ─░kincil Yaz─▒: `#4B5563` (Kontrast: 7:1)
+    *   Tek Vurgu (Accent): `#1D4ED8` (Okunabilirli─şi y├╝ksek kurumsal mavi)
+    *   Ba┼şar─▒: `#059669`
+    *   Uyar─▒: `#D97706`
+    *   Hata: `#DC2626`
+
+**3. Tipografi Hiyerar┼şisi**
+Windows i┼şletim sisteminde yerel olarak bulunan ve T├╝rk├ğe glifleri kusursuz destekleyen tek bir aile kullan─▒lacakt─▒r: **`Segoe UI Variable`** (eski s├╝r├╝mler i├ğin yedek: `Segoe UI, -apple-system, sans-serif`).
+*   B├Âl├╝m / Panel Ba┼şl─▒klar─▒: 18 px / 600 (Semibold), sat─▒r y├╝ksekli─şi 24 px.
+*   G├Âvde / Form Etiketleri / Girdi Metinleri: **En az 16 px** / 400 (Regular), sat─▒r y├╝ksekli─şi 22 px.
+*   D├╝─şme Metinleri: 16 px / 600 (Semibold).
+*   Yard─▒mc─▒ Bilgi / ─░pu├ğlar─▒ / ─░kincil A├ğ─▒klama: 14 px / 400 (Regular) ÔÇô *sadece meta veriler i├ğin*.
+
+**4. Bo┼şluk ├ûl├ğe─şi (Spacing Scale)**
+8 px tabanl─▒ ─▒zgara sistemi (UI nefes als─▒n, ├Â─şeler birbirine yap─▒┼şmas─▒n):
+*   `space-xs`: 4 px (─░kon-metin aras─▒)
+*   `space-sm`: 8 px (Kompakt elemanlar aras─▒)
+*   `space-md`: 16 px (Form alanlar─▒, girdi kutusu i├ğ dolgusu)
+*   `space-lg`: 24 px (Kart i├ğ dolgusu, b├Âl├╝mler aras─▒ bo┼şluk)
+*   `space-xl`: 32 px (Ana paneller aras─▒ ay─▒r─▒c─▒ bo┼şluk)
+
+**5. K├Â┼şe Yar─▒├ğap─▒ (Border Radius)**
+A┼ş─▒r─▒ yuvarlat─▒lm─▒┼ş oyuncak g├Âr├╝n├╝m├╝n├╝ engellemek, masa├╝st├╝ i┼ş arac─▒ hissini peki┼ştirmek i├ğin sert/kontroll├╝ yar─▒├ğaplar:
+*   K├╝├ğ├╝k kontroller (Check/Radio, etiketler): `4 px`
+*   Girdi kutular─▒ (Inputs, Textarea, Select): `6 px`
+*   D├╝─şmeler ve Kartlar / Paneller: `6 px`
+*   Modallar / B├╝y├╝k ├çekmeceler: `8 px`
+*   Pill / Tam yuvarlak bi├ğim kesinlikle kullan─▒lmaz.
+
+**6. Dokunma Hedefi ve D├╝─şme Hiyerar┼şisi**
+T├╝m etkile┼şim alanlar─▒ el-g├Âz koordinasyonunu yormayacak fiziksel boyutlardad─▒r:
+*   **Ana Eylem D├╝─şmesi ("Videoyu Yap"):** 56 px sabit y├╝kseklik. Vurgu rengi zemin ├╝zerine a├ğ─▒k renk kontrast metin. Ekran─▒n en belirgin, odak noktas─▒.
+*   **Birincil / ─░kincil Standart D├╝─şmeler:** En az **48 px** y├╝kseklik.
+    *   *─░kincil:* Panel rengi zemin, 1 px ├ğizgi kenarl─▒k (`border: 1px solid var(--cizgi)`).
+    *   *├£├ğ├╝nc├╝l / D├╝z:* ├çer├ğevesiz, t─▒klan─▒nca zemin rengi hafif├ğe de─şi┼şen (hover) n├Âtr eylem.
+*   **Klavye Oda─ş─▒ (Focus State):** `outline: 2px solid var(--vurgu); outline-offset: 2px;` ile net ve belirgin odak halkas─▒.
+
+**7. 'Tek T─▒k' ─░lkesi ve Ana Ekran D├╝zeni**
+Ana ekran, kullan─▒c─▒n─▒n en s─▒k yapaca─ş─▒ 4 eylemi ilk bak─▒┼şta ├ğ├Âzmesini sa─şlar:
+*   **Sol / Orta ├çal─▒┼şma Alan─▒ (Ak─▒┼ş):**
+    1.  *Tarif et:* Yapay zek├ó veya kural se├ğimi ile 1-2 c├╝mlelik niyet alan─▒.
+    2.  *Ne yazs─▒n?:* 16 px metin kutusu ve h─▒zl─▒ haz─▒r ┼şablon butonlar─▒ ("─░ndirim", "A├ğ─▒ld─▒k", "Yeni Sezon").
+    3.  *Nas─▒l g├Âr├╝ns├╝n?:* Renk ve temel h─▒z/stil se├ğiciler.
+*   **Sa─ş Sabit ├ûnizleme Alan─▒:**
+    *   Bina cephesi dikey LED ekran oran─▒ (9:16). D├╝z ├Ânizleme ve cephe sim├╝lasyonu aras─▒nda tek t─▒kla ge├ği┼ş.
+*   **Alt Eylem ├çubu─şu (Sabit Dock):**
+    *   En s─▒k 4 i┼şlem do─şrudan burada: `[ Videoyu Yap (56px) ]`, `[ Son Videoyu Oynat ]`, `[ Klas├Âr├╝ A├ğ ]`, `[ Yeni Video ]`.
+*   **Ayr─▒nt─▒lar B├Âl├╝m├╝:**
+    *   ─░leri d├╝zey ayarlar (ge├ği┼ş kareleri, ├Âzel piksel frekans─▒, senaryo metni json ├ğ─▒kt─▒s─▒) varsay─▒lan olarak kapal─▒, sade bir akordiyon/├ğekmece i├ğinde tutulur; temel ak─▒┼ş─▒ b├Âlmez.
+
+**8. ─░kon Dili**
+*   Yaln─▒zca 2 px ├ğizgi kal─▒nl─▒─ş─▒na (`stroke: 2px; fill: none; stroke-linecap: round; stroke-linejoin: round;`) sahip minimalist geometrik ├ğizgi ikonlar.
+*   ─░kon boyutu sabit 20x20 px veya 24x24 px optik karede ortal─▒d─▒r.
+*   Dolgu ikon (solid) ve s├╝sl├╝ renkli piktogramlar yasakt─▒r.
+
+---
+
+# LOGO 1
+
+**Fikir:** Dikey bina cephesi LED panosunu simgeleyen ├ğer├ğeve i├ğerisinde, dikey piksellerden olu┼şan ve yukar─▒ do─şru video kareleri gibi taranan minimalist "T" harfi.
+
+```xml
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect x="14" y="6" width="36" height="52" rx="4" fill="#1E2024" stroke="#383C44" stroke-width="2"/>
+  <rect x="20" y="14" width="24" height="6" rx="1" fill="#3B82F6"/>
+  <rect x="29" y="24" width="6" height="6" rx="1" fill="#3B82F6"/>
+  <rect x="29" y="34" width="6" height="6" rx="1" fill="#3B82F6"/>
+  <rect x="29" y="44" width="6" height="6" rx="1" fill="#F3F4F6"/>
+</svg>
+```
+
+---
+
+# LOGO 2
+
+**Fikir:** Dikey LED ekranda akan yaz─▒lar─▒ ve zaman ├ğizelgesini (video karelerini) temsil eden dikey s├╝tun ile merkezde beliren net ├╝├ğgen "oynat/├╝ret" video sembol├╝.
+
+```xml
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect x="8" y="8" width="48" height="48" rx="8" fill="#141517"/>
+  <rect x="18" y="12" width="28" height="40" rx="3" fill="#1E2024" stroke="#383C44" stroke-width="2"/>
+  <line x1="24" y1="20" x2="40" y2="20" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round"/>
+  <line x1="24" y1="26" x2="34" y2="26" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round"/>
+  <polygon points="28,34 28,46 39,40" fill="#3B82F6"/>
+</svg>
+```
+
+---
+
+# LOGO 3
+
+**Fikir:** Dikey bir video montaj ┼şeridinin delikleri (perforasyon) ve LED matris noktalar─▒n─▒n birle┼şimiyle terzi/zanaatk├ór titizli─şinde hizalanm─▒┼ş TAA tipografik monogram─▒.
+
+```xml
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect x="6" y="6" width="52" height="52" rx="6" fill="#1E2024" stroke="#3B82F6" stroke-width="2"/>
+  <rect x="12" y="12" width="4" height="6" rx="1" fill="#9CA3AF"/>
+  <rect x="12" y="22" width="4" height="6" rx="1" fill="#9CA3AF"/>
+  <rect x="12" y="32" width="4" height="6" rx="1" fill="#9CA3AF"/>
+  <rect x="12" y="42" width="4" height="6" rx="1" fill="#9CA3AF"/>
+  <path d="M24 22 H46 M35 22 V46" stroke="#F3F4F6" stroke-width="4" stroke-linecap="square"/>
+</svg>
+```
+
+---
+
+# LOGO 4
+
+**Fikir:** Kare kare dikey ak─▒┼ş─▒ g├Âsteren iki katmanl─▒ video karesi ve merkezdeki dikey LED mod├╝l ├ğizgileri; modern, mimari cephe tabela hissi.
+
+```xml
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect x="10" y="10" width="32" height="44" rx="4" fill="none" stroke="#9CA3AF" stroke-width="2"/>
+  <rect x="22" y="10" width="32" height="44" rx="4" fill="#1E2024" stroke="#3B82F6" stroke-width="2"/>
+  <line x1="30" y1="20" x2="46" y2="20" stroke="#F3F4F6" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="30" y1="28" x2="42" y2="28" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="30" y1="36" x2="46" y2="36" stroke="#F3F4F6" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="30" y1="44" x2="38" y2="44" stroke="#9CA3AF" stroke-width="2.5" stroke-linecap="round"/>
+</svg>
+```
+
+---
+
+# LOGO 5
+
+**Fikir:** A┼ş─▒r─▒ sadele┼ştirilmi┼ş, 16 px ve 32 px gibi k├╝├ğ├╝k ebatlarda bile an─▒nda se├ğilebilen dikey LED totem ekran ve i├ğerisinden ge├ğen video tarama/zaman ├ğizgisi.
+
+```xml
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect x="16" y="8" width="32" height="48" rx="4" fill="#141517" stroke="#383C44" stroke-width="2"/>
+  <rect x="22" y="14" width="20" height="4" rx="1" fill="#3B82F6"/>
+  <rect x="22" y="22" width="20" height="4" rx="1" fill="#F3F4F6"/>
+  <rect x="22" y="30" width="12" height="4" rx="1" fill="#F3F4F6"/>
+  <line x1="22" y1="42" x2="42" y2="42" stroke="#383C44" stroke-width="2"/>
+  <circle cx="32" cy="42" r="3" fill="#3B82F6"/>
+</svg>
+```

@@ -329,7 +329,7 @@ pub fn senaryo_metni(t: &Tarif) -> String {
         // dikey LED ekran: uzun satırlar kısa satırlara bölünür (programın kendi kuralı), harf hem genişliğe hem yüksekliğe göre seçilir
         let satirlar: Vec<String> = s.metin.iter().flat_map(|m| crate::senaryo::dikey_satirlar(m)).collect();
         let en_uzun = satirlar.iter().map(|m| m.chars().count()).max().unwrap_or(1).max(1) as f32;
-        let harf = (950.0 * 0.92 / (0.62 * en_uzun)).min(1800.0 * 0.9 / (1.15 * satirlar.len().max(1) as f32)).clamp(60.0, 330.0).round();
+        let harf = (950.0 * 0.92 / (0.78 * en_uzun)).min(2969.0 * 0.9 / (1.15 * satirlar.len().max(1) as f32)).clamp(60.0, 330.0).round();
         let efekt = if s.efekt.is_empty() { "yok".to_string() } else { s.efekt.join(",") };
         let font = if s.font.is_empty() { String::new() } else { format!(" font={}", s.font) };
         o.push_str(&format!("sahne \"{}\" palet={} giris={} cikis={} sure={:.1} harf={harf} efekt={efekt}{font}\n", satirlar.join("|"), s.palet, s.giris, s.cikis, s.sure));
