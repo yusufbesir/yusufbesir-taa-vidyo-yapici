@@ -24,6 +24,8 @@ pub fn adres_gecerli(a: &str) -> bool {
     if !a.chars().all(|c| c.is_ascii_alphanumeric() || "._~:/?#[]@!$&'()*+,;=%-".contains(c)) { return false; }
     let host = r.split(['/', '?', '#']).next().unwrap_or("");
     let ip = host.split(':').next().unwrap_or("").chars().all(|c| c.is_ascii_digit() || c == '.');
+    let son = host.split(':').next().unwrap_or("").rsplit('.').next().unwrap_or("");
+    let ip = ip || !son.chars().any(|c| c.is_ascii_alphabetic()) || host.to_lowercase().starts_with("0x");
     !ip && !host.contains('@') && !host.contains('[') && host.contains('.') && !host.starts_with('.') && !host.ends_with('.')
 }
 fn site_dosyasi(k: &Path) -> std::path::PathBuf { k.join("tarif-siteleri.json") }
@@ -111,6 +113,37 @@ pub fn isle(yontem: &str, ad: &str, yazi: &str, klasor: &Path) -> Yanit {
             match kural_ekle(mevcut.as_deref(), k, i, h, &kat) {
                 Ok(yeni) => match std::fs::create_dir_all(klasor).and_then(|_| std::fs::write(kural_dosyasi(klasor), yeni)) { Ok(()) => (200, METIN, "ok".into()), Err(e) => (500, METIN, format!("Kural yazılamadı: {e}")) },
                 Err(e) => (400, METIN, e),
+            }
+        }
+        ("GET", "llm-durum") => {
+            let a = crate::llm::ayar_oku(klasor);
+            let sg: Vec<String> = crate::llm::SAGLAYICILAR.iter().map(|(i, ad, m)| format!("{{\"id\":\"{i}\",\"ad\":\"{}\",\"model\":\"{m}\"}}", kac(ad))).collect();
+            (200, JSON, format!("{{\"acik\":{},\"saglayici\":\"{}\",\"model\":\"{}\",\"adres\":\"{}\",\"sorma\":{},\"anahtar_var\":{},\"saglayicilar\":[{}]}}", a.acik, kac(&a.saglayici), kac(&a.model), kac(&a.adres), a.sorma, crate::llm::anahtar_var(klasor, &a), sg.join(",")))
+        }
+        ("POST", "llm-ayar") => {
+            let (Ok(j), true) = (json_coz(yazi), yazi.len() < 4000) else { return (400, METIN, "Geçersiz istek.".into()) };
+            let mut a = crate::llm::ayar_oku(klasor);
+            if let Some(Json::Mantik(b)) = j.al("acik") { a.acik = *b; }
+            if let Some(Json::Mantik(b)) = j.al("sorma") { a.sorma = *b; }
+            if let Some(x) = j.al("saglayici").and_then(|x| x.yazi()) { a.saglayici = x.to_string(); }
+            if let Some(x) = j.al("model").and_then(|x| x.yazi()) { a.model = x.trim().to_string(); }
+            if let Some(x) = j.al("adres").and_then(|x| x.yazi()) { a.adres = x.trim().to_string(); }
+            if let Some(Json::Mantik(true)) = j.al("anahtar_kaldir") { if let Err(e) = crate::llm::anahtar_kaldir(klasor) { return (500, METIN, e); } a.acik = false; }
+            if let Some(k) = j.al("anahtar").and_then(|x| x.yazi()) { if !k.trim().is_empty() { if let Err(e) = crate::llm::anahtar_kaydet(klasor, k, &crate::llm::bag(&a)) { return (400, METIN, e); } } }
+            if a.acik && !crate::llm::anahtar_var(klasor, &a) { return (400, METIN, "Açmak için bu hizmet/adres için anahtarı girin (hizmet ya da adres değişince anahtar yeniden girilir).".into()); }
+            match crate::llm::ayar_yaz(klasor, &a) { Ok(()) => (200, METIN, "ok".into()), Err(e) => (400, METIN, e) }
+        }
+        ("POST", "llm-gonder") => {
+            let (Ok(j), true) = (json_coz(yazi), yazi.len() < MAX_TARIF * 4 + 200) else { return (400, METIN, "Geçersiz istek.".into()) };
+            if !matches!(j.al("onay"), Some(Json::Mantik(true))) { return (400, METIN, "Gönderilecek metin onaylanmadı.".into()); }
+            let metin = j.al("metin").and_then(|x| x.yazi()).unwrap_or("");
+            if metin.trim().is_empty() { return (400, METIN, "Tarif boş.".into()); }
+            match crate::llm::gonder(klasor, metin, &kat) {
+                Ok(m) => match dogrula(&m, &kat) {
+                    Ok(d) => (200, JSON, sonuc_json(Some(&d.tarif), &d.notlar, &[], &[], &[], &kat)),
+                    Err(h) => (200, JSON, sonuc_json(None, &[], &[], &[], &h, &kat)),
+                },
+                Err(e) => (200, JSON, format!("{{\"ok\":false,\"baglanti\":true,\"hatalar\":{},\"duzelt\":\"\",\"anladim\":[],\"anlasilmayan\":[]}}", dizi(&[e]))),
             }
         }
         ("GET", "katalog") => {

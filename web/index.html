@@ -193,14 +193,26 @@ details.tarif>summary::-webkit-details-marker{display:none}
       <textarea id="tarifMetin" rows="4" spellcheck="false" placeholder="Örn: Önce &quot;HOŞ GELDİNİZ&quot; altın renkte zıplayarak gelsin, sonra &quot;%30 İNDİRİM&quot; kırmızı ve konfetili olsun. Kapanışta perde."></textarea>
       <div class="sira">
         <button class="btn ana" id="tarifCoz" title="İnternetsiz: yerleşik Türkçe kurallarla çözer">Kuraldan çöz</button>
+        <button class="btn ana" id="tarifDogrudan" hidden title="Tarifi ayarlanan yapay zekâ hizmetine gönderir (önce ne gideceği gösterilir)">Doğrudan gönder</button>
         <button class="btn" id="tarifIstem" title="Yapay zekâya yapıştırılacak istemi panoya kopyalar">İstemi kopyala</button>
         <span id="tarifSiteler" class="sira" style="margin:0"></span>
       </div>
       <p class="mut" style="margin:0">Yapay zekâya yalnız yukarıdaki tarif ve program katalog adları gider. Müşteri adı, telefon, adres gibi kişisel bilgi yazmayın.</p>
+      <div id="panoOneri" class="sira" style="margin:0" hidden><button class="btn ana" id="panoUygula">Panodaki tarifi uygula</button><span class="mut">Panoda geçerli bir sahne listesi bulundu.</span></div>
       <label class="mut" for="tarifYanit">Yapay zekâdan gelen yanıtı buraya yapıştırın</label>
       <textarea id="tarifYanit" rows="3" spellcheck="false" placeholder="Yanıt { ile başlayan sahne listesi (JSON) olur; kod çiti ve açıklama yazısı olsa da bulunur."></textarea>
       <div class="sira" style="margin:0"><button class="btn ana" id="tarifUygula">Yanıtı uygula</button></div>
       <div id="tarifSonuc" aria-live="polite"></div>
+      <details class="bolum" id="llmBolum"><summary>Doğrudan bağlantı (isteğe bağlı) <small class="mut" id="llmDurum">kapalı</small></summary><div class="tarifIc">
+        <p class="mut" style="margin:0">Varsayılan KAPALI. Açarsanız tarif metni ve program katalog adları seçtiğiniz yapay zekâ hizmetine internetten gönderilir (her seferinde ne gideceği size gösterilir). Anahtarınız Windows kullanıcı şifrelemesiyle saklanır, ekranda bir daha gösterilmez, günlüğe yazılmaz. Bağlantı olmazsa kopyala-yapıştır yolu kullanılır.</p>
+        <label class="mut">Hizmet <select id="llmSag" style="width:100%"></select></label>
+        <label class="mut">Model (değiştirilebilir) <input id="llmModel" style="width:100%;min-height:48px" spellcheck="false"></label>
+        <label class="mut" id="llmAdresEt" hidden>Adres (https) <input id="llmAdres" style="width:100%;min-height:48px" spellcheck="false" placeholder="https://.../v1/chat/completions"></label>
+        <label class="mut">Anahtar <input id="llmAnahtar" type="password" autocomplete="off" style="width:100%;min-height:48px" placeholder="(kayıtlıysa boş bırakın)"></label>
+        <label class="mut"><input type="checkbox" id="llmAcik"> Doğrudan bağlantıyı aç</label>
+        <label class="mut"><input type="checkbox" id="llmSorma"> Bir daha sorma (gönderilecek metni göstermeden gönder)</label>
+        <div class="sira" style="margin:0"><button class="btn ana" id="llmKaydet">Kaydet</button><button class="btn" id="llmKaldir" title="Kayıtlı anahtarı kullanılamaz yapar ve bağlantıyı kapatır">Anahtarı kaldır</button></div>
+      </div></details>
       <details class="bolum" id="kuralBolum"><summary>Kural listesi <small class="mut" id="kuralSay"></small></summary><div>
         <input id="kuralAra" type="search" placeholder="Kural ara (örn. zıpla, kırmızı, perde)" style="width:100%;min-height:48px">
         <div id="kuralListe" class="mut" style="max-height:220px;overflow:auto;margin-top:8px"></div>
@@ -844,6 +856,61 @@ async function kuralListeYukle(zorla) {
 }
 $('#kuralBolum').addEventListener('toggle', () => { if ($('#kuralBolum').open) kuralListeYukle(); });
 $('#kuralAra').oninput = debounce(() => kuralListeYukle(), 200);
+// ───────── Doğrudan LLM bağlantısı (varsayılan kapalı) ─────────
+let llmVeri = null;
+async function llmYukle() {
+  try {
+    const d = await (await api('/tarif/llm-durum')).json(); llmVeri = d;
+    $('#llmSag').innerHTML = d.saglayicilar.map(s => `<option value="${esc(s.id)}" data-model="${esc(s.model)}">${esc(s.ad)}</option>`).join('');
+    $('#llmSag').value = d.saglayici; $('#llmModel').value = d.model; $('#llmAdres').value = d.adres;
+    $('#llmAcik').checked = d.acik; $('#llmSorma').checked = d.sorma;
+    $('#llmAdresEt').hidden = d.saglayici !== 'ozel';
+    $('#llmAnahtar').placeholder = d.anahtar_var ? '(anahtar kayıtlı; değiştirmek için yeni anahtarı yazın)' : 'Anahtarı yapıştırın';
+    const ad = (d.saglayicilar.find(s => s.id === d.saglayici) || {}).ad || '';
+    $('#llmDurum').textContent = d.acik && d.anahtar_var ? 'açık: ' + ad : 'kapalı';
+    $('#tarifDogrudan').hidden = !(d.acik && d.anahtar_var);
+  } catch (e) { /* durum alınamadı */ }
+}
+$('#llmSag').onchange = () => { const o = $('#llmSag').selectedOptions[0]; $('#llmModel').value = o.dataset.model || ''; $('#llmAdresEt').hidden = $('#llmSag').value !== 'ozel'; };
+$('#llmKaydet').onclick = async () => {
+  const g = {acik: $('#llmAcik').checked, sorma: $('#llmSorma').checked, saglayici: $('#llmSag').value, model: $('#llmModel').value, adres: $('#llmAdres').value, anahtar: $('#llmAnahtar').value};
+  const r = await api('/tarif/llm-ayar', JSON.stringify(g));
+  $('#llmAnahtar').value = '';
+  if (!r.ok) { tarifMesaj(await r.text(), 'tarifHata'); return; }
+  await llmYukle(); tarifMesaj('Doğrudan bağlantı ayarı kaydedildi.');
+};
+$('#llmKaldir').onclick = async () => {
+  if (!confirm('Kayıtlı anahtar kullanılamaz hale getirilecek ve doğrudan bağlantı kapanacak. Devam edilsin mi?')) return;
+  await api('/tarif/llm-ayar', JSON.stringify({anahtar_kaldir: true})); await llmYukle(); tarifMesaj('Anahtar kaldırıldı, doğrudan bağlantı kapalı.');
+};
+$('#tarifDogrudan').onclick = async () => {
+  const m = $('#tarifMetin').value.trim();
+  if (!m) { tarifMesaj('Önce videoyu yukarıya yazıyla anlatın.', 'tarifUyari'); return; }
+  const ad = (llmVeri.saglayicilar.find(s => s.id === llmVeri.saglayici) || {}).ad || llmVeri.saglayici;
+  if (!llmVeri.sorma && !confirm(`${ad} hizmetine internetten şu tarif gönderilecek:\n\n“${m.slice(0, 300)}${m.length > 300 ? '…' : ''}” (toplam ${m.length} karakter)\n${llmVeri.saglayici === 'ozel' ? 'Hedef adres: ' + llmVeri.adres + '\n' : ''}\nBununla birlikte program katalog adları (animasyon, efekt, renk, yazı tipi, geçiş adları) da gider. Başka bir şey gönderilmez. Gönderilsin mi?`)) return;
+  tarifMesaj(`${ad} hizmetine gönderiliyor…`);
+  const j = await (await api('/tarif/llm-gonder', JSON.stringify({metin: m, onay: true}))).json();
+  if (j.baglanti) { tarifMesaj(j.hatalar[0] + ' İstemi kopyalayıp elle de yapıştırabilirsiniz.', 'tarifHata'); return; }
+  tarifGoster(j, 'yanit');
+};
+// ───────── Pano algılama: yalnız pencere odaktayken ve Tarif et açıkken; yalnız geçerli sahne listesi varsa ÖNERİR, kendiliğinden uygulamaz; pano saklanmaz ─────────
+let panoIz = '', panoMetin = '';
+const kisaIz = t => t.length + ':' + [...t].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7);
+async function panoBak() {
+  if (!$('#tarifKart').open || !document.hasFocus()) return;
+  let t = ''; try { t = await navigator.clipboard.readText(); } catch (e) { return; }
+  if (!t || t.length > 64000 || !t.includes('{') || !t.includes('sahneler')) return;
+  const iz = kisaIz(t); if (iz === panoIz) return; panoIz = iz;
+  const j = await (await api('/tarif/uygula', t)).json();
+  if (!j.ok) return;
+  panoMetin = t; t = '';
+  $('#panoOneri').hidden = false; $('#panoUygula').textContent = `Panodaki tarifi uygula (${j.sahneler.length} sahne, ${j.sure} sn)`;
+}
+$('#panoUygula').onclick = () => { $('#tarifYanit').value = panoMetin; panoMetin = ''; $('#panoOneri').hidden = true; $('#tarifUygula').click(); };
+window.addEventListener('focus', panoBak);
+$('#tarifKart').addEventListener('toggle', panoBak);
+llmYukle();
+
 tarifSiteleri();
 setInterval(() => api('/nabiz', ''), 20000); api('/nabiz', '');
 baslat();
