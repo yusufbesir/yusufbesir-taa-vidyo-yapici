@@ -108,6 +108,7 @@ Ana ekranda **Tarif et** kartı: videoyu yazıyla anlatırsınız, program sahne
 - **Logo**: film karesi + oynat üçgeni; eski logolar logo/eski/.
 
 ## 0.9.5: rastgele açılış animasyonu, İkiz Kabartma logosu
-- **Açılış**: program her açılışta `web/acilis/` içindeki 11 animasyondan rastgele birini tam pencere oynatır (son oynayan bir sonrakinde tekrar gelmez; `localStorage taa-acilis-son`). En geç 4,5 sn sürer; Esc, tıklama ya da Geç anında geçer; `prefers-reduced-motion` açıksa animasyon oynamaz. Uygulama içinde "Tekrar oynat" görünmez (`?uygulama=1`); animasyon dosyaları tek başına tarayıcıda açılırsa görünür.
+- **Açılış**: program her açılışta `web/acilis/` içindeki 14 animasyondan rastgele birini tam pencere oynatır (son oynayan bir sonrakinde tekrar gelmez; `localStorage taa-acilis-son`). En geç 4,5 sn sürer; Esc, tıklama ya da Geç anında geçer; `prefers-reduced-motion` açıksa animasyon oynamaz. Uygulama içinde "Tekrar oynat" görünmez (`?uygulama=1`); animasyon dosyaları tek başına tarayıcıda açılırsa görünür.
 - **Logo: İkiz Kabartma** (iki kabartmalı kumaş pilesi): `web/index.html` içindeki `<symbol id="ikiz-kabartma">` (renkler vurgu renginden türer), `logo/logo.svg` (+ `logo.png`, `simge.ico`) ve `web/acilis/logo.js` (açılışlar). **Logoyu değiştirmek için yalnız bu üç yer güncellenir.** Eski logo: `logo/eski/`.
 - Animasyonlar: tur 2 (zaman, gece, kalibrasyon, dikis, katlama), Opus (led, perde, kurgu, iki-ekran, isik) ve odak. Kaynaklar `tasarim/acilis-tur2/`; web sürümlerini `tasarim/acilis-tur2/uret_web_acilis.py` üretir.
+- 0.9.6: Codex çıktısı üç açılış eklendi: zaman-sol (gpt-6.1-sol), gece-terra (gpt-6.1-terra), kalibrasyon-luna (gpt-6-luna); logoları İkiz Kabartma ile değiştirildi (`tasarim/acilis-tur2/uret_web_acilis2.py`).

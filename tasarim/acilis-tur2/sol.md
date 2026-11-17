@@ -1,0 +1,298 @@
+Model: gpt-6.1-sol (Codex)
+
+AD: Pile Zamanı
+FIKIR: Pencereyi kaplayan iki video şeridi zaman çizelgesinde aynı ritme girer, ardından büyük İkiz Pile işaretine dönüşerek uygulamanın adını açığa çıkarır.
+
+```html
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Yusuf için TAA Vidyo Yapıcı açılışı; yazan: Codex.
+     Düzenlemelerde Yusuf'un kuralları korunur; yalnız transform ve opacity canlandırılır. -->
+<title>TAA Vidyo Yapıcı — Pile Zamanı</title>
+<style>
+:root {
+  color-scheme: dark;
+  font-family: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  background: #191826;
+  color: #F1F0EC;
+  --wine: #9A1B3C;
+  --light: #D2486A;
+  --deep: #5A0C20;
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+button { font: inherit; }
+.screen {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+  min-height: 400px;
+  overflow: hidden;
+  isolation: isolate;
+}
+.intro {
+  position: absolute;
+  top: 11%;
+  left: 7%;
+  right: 7%;
+  opacity: 0;
+}
+.eyebrow {
+  margin: 0 0 14px;
+  color: var(--light);
+  font-size: clamp(12px, 1vw, 18px);
+  font-weight: 650;
+  letter-spacing: .2em;
+}
+.intro h2 {
+  margin: 0;
+  font-size: clamp(36px, 5.4vw, 104px);
+  line-height: 1.08;
+  font-weight: 650;
+  letter-spacing: -.055em;
+}
+.timeline {
+  position: absolute;
+  left: -18%;
+  top: 53%;
+  width: 136%;
+  opacity: 0;
+  transform: translateY(-50%);
+}
+.ruler {
+  height: 44px;
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  border-bottom: 1px solid #50414E;
+  color: #B5AAB6;
+  font-size: clamp(11px, 1vw, 17px);
+  font-variant-numeric: tabular-nums;
+}
+.track {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+.clip {
+  position: relative;
+  height: clamp(110px, 18vh, 195px);
+  overflow: hidden;
+  background: var(--wine);
+  border-left: 4px solid var(--light);
+  padding: 22px 30px;
+}
+.track.second { grid-template-columns: 1.25fr 1fr 1fr; }
+.second .clip { background: var(--deep); }
+.clip strong {
+  position: relative;
+  z-index: 1;
+  font-size: clamp(24px, 3vw, 58px);
+  font-weight: 600;
+  letter-spacing: -.04em;
+}
+.clip small {
+  display: block;
+  margin-top: 12px;
+  font-size: clamp(11px, 1vw, 17px);
+  letter-spacing: .12em;
+  opacity: .75;
+}
+.clip::after {
+  content: "";
+  position: absolute;
+  right: 7%;
+  top: 12%;
+  height: 76%;
+  aspect-ratio: 950 / 1800;
+  border: 2px solid #F1F0EC;
+  opacity: .18;
+}
+.playhead {
+  position: absolute;
+  left: 18%;
+  top: 28px;
+  bottom: -24px;
+  width: 2px;
+  background: #F1F0EC;
+}
+.playhead::before {
+  content: "";
+  position: absolute;
+  left: -5px;
+  top: -8px;
+  width: 12px;
+  height: 12px;
+  background: #F1F0EC;
+  transform: rotate(45deg);
+}
+.brand {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 80px 24px;
+  text-align: center;
+}
+.mark {
+  display: block;
+  flex: none;
+  width: clamp(180px, 24vmin, 260px);
+  height: auto;
+  overflow: visible;
+}
+.brand h1 {
+  margin: 30px 0 12px;
+  font-size: clamp(38px, 4.2vw, 80px);
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -.045em;
+}
+.tagline {
+  margin: 0;
+  color: #C6BFC9;
+  font-size: clamp(15px, 1.35vw, 24px);
+  line-height: 1.5;
+}
+.control {
+  position: absolute;
+  z-index: 5;
+  right: clamp(24px, 3vw, 58px);
+  border: 1px solid #625464;
+  border-radius: 6px;
+  padding: 10px 17px;
+  background: #191826;
+  color: #F1F0EC;
+  cursor: pointer;
+  font-size: 14px;
+}
+.control:hover { border-color: #D2486A; }
+.control:focus-visible { outline: 2px solid #D2486A; outline-offset: 5px; }
+.skip { top: 28px; }
+.replay { bottom: 28px; }
+@media (max-height: 600px) {
+  .mark { width: 150px; }
+  .brand h1 { margin-top: 18px; }
+}
+</style>
+</head>
+<body>
+<main class="screen" aria-label="TAA Vidyo Yapıcı tanıtımı">
+  <div class="intro" aria-hidden="true">
+    <p class="eyebrow">950 × 1800 · İKİ DİKEY EKRAN</p>
+    <h2>İki ekran. Tek ritim.</h2>
+  </div>
+  <div class="timeline" aria-hidden="true">
+    <div class="ruler">
+      <span>00:00</span><span>00:01</span><span>00:02</span>
+      <span>00:03</span><span>00:04</span><span>00:05</span>
+    </div>
+    <div class="track first">
+      <div class="clip"><strong>Yaz.</strong><small>SOL EKRAN</small></div>
+      <div class="clip"><strong>Önizle.</strong><small>HER KARE YERİNDE</small></div>
+      <div class="clip"><strong>Videoyu yap.</strong><small>TEK TIKLA</small></div>
+    </div>
+    <div class="track second">
+      <div class="clip"><strong>Yaz.</strong><small>SAĞ EKRAN</small></div>
+      <div class="clip"><strong>Önizle.</strong><small>AYNI ANDA</small></div>
+      <div class="clip"><strong>Videoyu yap.</strong><small>AYNI RİTİMDE</small></div>
+    </div>
+    <div class="playhead"></div>
+  </div>
+  <div class="brand">
+    <svg class="mark" viewBox="0 0 128 128" role="img" aria-label="İkiz Pile logosu">
+      <path class="left" fill="#9A1B3C" d="M16 16 H40 L56 64 L40 112 H16 L32 64 Z"/>
+      <path class="right" fill="#D2486A" d="M112 16 H88 L72 64 L88 112 H112 L96 64 Z"/>
+    </svg>
+    <h1>TAA Vidyo Yapıcı</h1>
+    <p class="tagline">Yaz, önizle, tek tıkla videoyu yap.</p>
+  </div>
+  <button class="control skip" type="button">Geç</button>
+  <button class="control replay" type="button">Tekrar oynat</button>
+</main>
+<script>
+const select = s => document.querySelector(s);
+const motion = matchMedia("(prefers-reduced-motion: reduce)");
+let animations = [];
+const duration = 3600;
+function animate(selector, frames) {
+  animations.push(select(selector).animate(frames, {
+    duration, easing: "linear", fill: "both"
+  }));
+}
+function finish() {
+  animations.forEach(animation => animation.cancel());
+  animations = [];
+}
+function play() {
+  finish();
+  if (motion.matches) {
+    animations.push(select(".brand").animate(
+      [{ opacity: 0 }, { opacity: 1 }],
+      { duration: 120, fill: "both" }
+    ));
+    return;
+  }
+  animate(".intro", [
+    { opacity: 0, transform: "translateY(22px)", offset: 0 },
+    { opacity: 1, transform: "translateY(0)", offset: .12 },
+    { opacity: 1, transform: "translateY(0)", offset: .32 },
+    { opacity: 0, transform: "translateY(-24px)", offset: .47 },
+    { opacity: 0, offset: 1 }
+  ]);
+  animate(".timeline", [
+    { opacity: 0, transform: "translate(7%, -40%) scale(1.12)", offset: 0 },
+    { opacity: 1, transform: "translate(3%, -40%) scale(1.08)", offset: .14 },
+    { opacity: 1, transform: "translate(-3%, -40%) scale(1.02)", offset: .40 },
+    { opacity: 0, transform: "translate(-9%, -40%) scale(.88)", offset: .59 },
+    { opacity: 0, offset: 1 }
+  ]);
+  animate(".playhead", [
+    { transform: "translateX(0)", offset: 0 },
+    { transform: "translateX(72vw)", offset: .56 },
+    { transform: "translateX(72vw)", offset: 1 }
+  ]);
+  animate(".mark", [
+    { opacity: 0, transform: "translateY(44px) scale(3.8)", offset: 0 },
+    { opacity: 0, transform: "translateY(44px) scale(3.8)", offset: .39 },
+    { opacity: 1, transform: "translateY(44px) scale(3.4)", offset: .52 },
+    { opacity: 1, transform: "translateY(0) scale(1)", offset: .79,
+      easing: "cubic-bezier(.2,.7,.2,1)" },
+    { opacity: 1, transform: "translateY(0) scale(1)", offset: 1 }
+  ]);
+  for (const [selector, direction] of [[".left", -1], [".right", 1]]) {
+    animate(selector, [
+      { transform: `translateX(${direction * 45}px)`, offset: 0 },
+      { transform: `translateX(${direction * 45}px)`, offset: .40,
+        easing: "cubic-bezier(.16,.8,.22,1)" },
+      { transform: "translateX(0)", offset: .68 },
+      { transform: "translateX(0)", offset: 1 }
+    ]);
+  }
+  for (const [selector, start, end] of [
+    [".brand h1", .70, .88], [".tagline", .80, 1]
+  ]) {
+    animate(selector, [
+      { opacity: 0, transform: "translateY(20px)", offset: 0 },
+      { opacity: 0, transform: "translateY(20px)", offset: start,
+        easing: "cubic-bezier(.2,.7,.2,1)" },
+      { opacity: 1, transform: "translateY(0)", offset: end },
+      ...(end < 1 ? [{ opacity: 1, transform: "translateY(0)", offset: 1 }] : [])
+    ]);
+  }
+}
+select(".skip").addEventListener("click", finish);
+select(".replay").addEventListener("click", play);
+motion.addEventListener("change", play);
+play();
+</script>
+</body>
+</html>
+```

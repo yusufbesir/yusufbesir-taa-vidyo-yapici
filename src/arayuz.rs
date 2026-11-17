@@ -23,6 +23,9 @@ const ACILIS: &[(&str, &str)] = &[
     ("iki-ekran", include_str!("../web/acilis/iki-ekran.html")),
     ("isik", include_str!("../web/acilis/isik.html")),
     ("odak", include_str!("../web/acilis/odak.html")),
+    ("zaman-sol", include_str!("../web/acilis/zaman-sol.html")),
+    ("gece-terra", include_str!("../web/acilis/gece-terra.html")),
+    ("kalibrasyon-luna", include_str!("../web/acilis/kalibrasyon-luna.html")),
 ];
 const ACILIS_LOGO_JS: &str = include_str!("../web/acilis/logo.js");
 const YZ_DAR: &[u8] = include_bytes!("../fonts/BarlowCondensed-Black.ttf");
@@ -431,7 +434,7 @@ mod t {
             assert!(m.contains("uygulama=1") && m.contains("taa-acilis-gec"), "{ad}: uygulama modu yok");
             assert!(m.contains("Yaz, önizle, tek tıkla videoyu yap."), "{ad}: slogan yok");
         }
-        assert!(ACILIS.len() >= 10);
+        assert!(ACILIS.len() >= 14);
         assert!(ACILIS_LOGO_JS.contains("#C9566F") && ACILIS_LOGO_JS.contains("#560D20"));
         assert!(SAYFA.contains("id=\"ikiz-kabartma\"") && SAYFA.contains("taa-acilis-son") && !SAYFA.contains("Tekrar oynat"));
     }
