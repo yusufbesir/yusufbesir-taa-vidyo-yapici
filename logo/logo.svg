@@ -1,8 +1,8 @@
-<!-- TAA Vidyo Yapıcı logosu (0.9.4): film karesi + oynat üçgeni (video yapımı). Sahip Yusuf; adaylar tasarim/ortak-gpt-gemini; eski logolar logo/eski/ -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="256" height="256">
-  <rect width="64" height="64" rx="14" fill="#18181B"/>
-  <rect x="8" y="16" width="48" height="32" rx="4" fill="none" stroke="#FAFAFA" stroke-width="3"/>
-  <path d="M28 25v14l12-7-12-7z" fill="#93C5FD"/>
-  <rect x="11" y="20" width="3" height="4" rx="1" fill="#B4B4BD"/><rect x="11" y="30" width="3" height="4" rx="1" fill="#B4B4BD"/><rect x="11" y="40" width="3" height="4" rx="1" fill="#B4B4BD"/>
-  <rect x="50" y="20" width="3" height="4" rx="1" fill="#B4B4BD"/><rect x="50" y="30" width="3" height="4" rx="1" fill="#B4B4BD"/><rect x="50" y="40" width="3" height="4" rx="1" fill="#B4B4BD"/>
+<!-- TAA Vidyo Yapıcı logosu (0.9.5): İKİZ KABARTMA (iki kabartmalı kumaş pilesi). Sahip Yusuf. Tek tanım yerleri: bu dosya, web/index.html <symbol id="ikiz-kabartma">, web/acilis/logo.js. Eski logo: logo/eski/ -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="256" height="256">
+  <rect width="128" height="128" rx="26" fill="#F1F0EC"/>
+  <g transform="translate(14.4 14.4) scale(.775)">
+    <path fill="#C9566F" d="M16 16 H40 L46 10 H22 Z"/><path fill="#6E1229" d="M40 16 L56 64 L62 58 L46 10 Z"/><path fill="#560D20" d="M56 64 L40 112 L46 106 L62 58 Z"/><path fill="#9A1B3C" d="M16 16 H40 L56 64 L40 112 H16 L32 64 Z"/>
+    <path fill="#C9566F" d="M88 16 H112 L106 10 H82 Z"/><path fill="#6E1229" d="M88 16 L72 64 L66 58 L82 10 Z"/><path fill="#560D20" d="M72 64 L88 112 L82 106 L66 58 Z"/><path fill="#9A1B3C" d="M88 16 H112 L96 64 L112 112 H88 L72 64 Z"/>
+  </g>
 </svg>

@@ -10,6 +10,21 @@ use std::time::{Duration, Instant};
 
 const SAYFA: &str = include_str!("../web/index.html");
 const LOGO: &str = include_str!("../logo/logo.svg");
+/// Açılış animasyonları (web/acilis): ana sayfa her açılışta rastgele birini iframe'de oynatır. Logo tek yerde: logo.js (İkiz Kabartma).
+const ACILIS: &[(&str, &str)] = &[
+    ("zaman", include_str!("../web/acilis/zaman.html")),
+    ("gece", include_str!("../web/acilis/gece.html")),
+    ("kalibrasyon", include_str!("../web/acilis/kalibrasyon.html")),
+    ("dikis", include_str!("../web/acilis/dikis.html")),
+    ("katlama", include_str!("../web/acilis/katlama.html")),
+    ("led", include_str!("../web/acilis/led.html")),
+    ("perde", include_str!("../web/acilis/perde.html")),
+    ("kurgu", include_str!("../web/acilis/kurgu.html")),
+    ("iki-ekran", include_str!("../web/acilis/iki-ekran.html")),
+    ("isik", include_str!("../web/acilis/isik.html")),
+    ("odak", include_str!("../web/acilis/odak.html")),
+];
+const ACILIS_LOGO_JS: &str = include_str!("../web/acilis/logo.js");
 const YZ_DAR: &[u8] = include_bytes!("../fonts/BarlowCondensed-Black.ttf");
 const YZ_RAF: &[u8] = include_bytes!("../fonts/Audiowide-Regular.ttf");
 pub const SURUM: &str = env!("CARGO_PKG_VERSION");
@@ -191,6 +206,11 @@ fn isle(mut s: TcpStream, o: Arc<Ortak>) {
     let metin = "text/plain; charset=utf-8";
     match (yontem.as_str(), yolu.as_str()) {
         ("GET", "/") => yanit(&mut s, 200, "text/html; charset=utf-8", SAYFA.as_bytes()),
+        ("GET", "/acilis/logo.js") => yanit(&mut s, 200, "text/javascript; charset=utf-8", ACILIS_LOGO_JS.as_bytes()),
+        ("GET", y) if y.starts_with("/acilis/") && y.ends_with(".html") => match ACILIS.iter().find(|(a, _)| *a == &y[8..y.len() - 5]) {
+            Some((_, m)) => yanit(&mut s, 200, "text/html; charset=utf-8", m.as_bytes()),
+            None => yanit(&mut s, 404, "text/plain; charset=utf-8", b"yok"),
+        },
         ("GET", "/logo.svg") => yanit(&mut s, 200, "image/svg+xml", LOGO.as_bytes()),
         ("GET", "/yz/dar.ttf") => yanit(&mut s, 200, "font/ttf", YZ_DAR),
         ("GET", "/yz/raf.ttf") => yanit(&mut s, 200, "font/ttf", YZ_RAF),
@@ -401,6 +421,19 @@ mod t {
         assert!(SAYFA.contains("taa-bina4") && SAYFA.contains("taa-gorunum"));
         assert!(SAYFA.contains("data-g=\"karsi\"") && SAYFA.contains("id=\"isikSeg\"") && !SAYFA.contains("data-g=\"ust\"") && !SAYFA.contains("bina-foto") && SAYFA.contains("id=\"binaFig\""));
         assert!(SAYFA.contains("UYARI: ekran üstü"));
+    }
+    #[test]
+    fn acilislar_gomulu_ve_sayfa_listesiyle_uyumlu() {
+        // index.html'deki ACILISLAR listesi ile sunucudaki tablo aynı adları içermeli; her açılış logo.js'i kullanmalı, uygulama modunda Tekrar oynat gizlenmeli.
+        for (ad, m) in ACILIS {
+            assert!(SAYFA.contains(&format!("'{ad}'")), "{ad} sayfa listesinde yok");
+            assert!(m.contains("src=\"logo.js\"") && m.contains("data-ikiz"), "{ad}: logo.js/İkiz Kabartma yok");
+            assert!(m.contains("uygulama=1") && m.contains("taa-acilis-gec"), "{ad}: uygulama modu yok");
+            assert!(m.contains("Yaz, önizle, tek tıkla videoyu yap."), "{ad}: slogan yok");
+        }
+        assert!(ACILIS.len() >= 10);
+        assert!(ACILIS_LOGO_JS.contains("#C9566F") && ACILIS_LOGO_JS.contains("#560D20"));
+        assert!(SAYFA.contains("id=\"ikiz-kabartma\"") && SAYFA.contains("taa-acilis-son") && !SAYFA.contains("Tekrar oynat"));
     }
     #[test]
     fn son_video_yolu_yalniz_cikti_klasorunden() {

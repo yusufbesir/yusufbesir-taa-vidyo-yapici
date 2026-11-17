@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+<!-- Ikiz Pile logosu, perspektifli heykel (zeminde iki levha). Sahip: TAA Vidyo Yapici. yazan: [Claude#Sonnet-5.5] -->
+<defs>
+<filter id="hey-bulanik" x="-30%" y="-40%" width="160%" height="180%"><feGaussianBlur stdDeviation="2.2"/></filter>
+<path id="hey-sol" d="M16 16 H40 L56 64 L40 112 H16 L32 64 Z"/>
+<path id="hey-sag" d="M112 16 H88 L72 64 L88 112 H112 L96 64 Z"/>
+<linearGradient id="hey-yuz" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#D2486A"/><stop offset=".55" stop-color="#9A1B3C"/><stop offset="1" stop-color="#7A1230"/></linearGradient>
+<linearGradient id="hey-yan" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#7C1432"/><stop offset="1" stop-color="#4A0A1B"/></linearGradient>
+<radialGradient id="hey-zemin" cx=".5" cy=".5" r=".5">
+<stop offset="0" stop-color="#9A1B3C" stop-opacity=".28"/><stop offset="1" stop-color="#9A1B3C" stop-opacity="0"/></radialGradient>
+</defs>
+<ellipse cx="64" cy="102" rx="62" ry="14" fill="url(#hey-zemin)"/>
+<g transform="translate(5 3) scale(.86)">
+<g fill="#1A0409" opacity=".5" filter="url(#hey-bulanik)" transform="matrix(1 0 -.22 -.12 24.6 125.4)">
+<use href="#hey-sol"/><use href="#hey-sag"/></g>
+<g fill="url(#hey-yan)">
+<use href="#hey-sol" transform="translate(12.00 -7.00)"/><use href="#hey-sol" transform="translate(11.25 -6.57)"/><use href="#hey-sol" transform="translate(10.50 -6.14)"/><use href="#hey-sol" transform="translate(9.75 -5.71)"/><use href="#hey-sol" transform="translate(9.00 -5.28)"/><use href="#hey-sol" transform="translate(8.25 -4.85)"/><use href="#hey-sol" transform="translate(7.50 -4.42)"/><use href="#hey-sol" transform="translate(6.75 -3.99)"/><use href="#hey-sol" transform="translate(6.00 -3.56)"/><use href="#hey-sol" transform="translate(5.25 -3.13)"/><use href="#hey-sol" transform="translate(4.50 -2.70)"/><use href="#hey-sol" transform="translate(3.75 -2.27)"/><use href="#hey-sol" transform="translate(3.00 -1.84)"/><use href="#hey-sol" transform="translate(2.25 -1.41)"/><use href="#hey-sol" transform="translate(1.50 -0.98)"/><use href="#hey-sol" transform="translate(0.75 -0.55)"/>
+</g>
+<use href="#hey-sol" fill="url(#hey-yuz)" stroke="#E0657F" stroke-width="1" stroke-linejoin="round"/>
+<g fill="url(#hey-yan)">
+<use href="#hey-sag" transform="translate(12.00 -7.00)"/><use href="#hey-sag" transform="translate(11.25 -6.57)"/><use href="#hey-sag" transform="translate(10.50 -6.14)"/><use href="#hey-sag" transform="translate(9.75 -5.71)"/><use href="#hey-sag" transform="translate(9.00 -5.28)"/><use href="#hey-sag" transform="translate(8.25 -4.85)"/><use href="#hey-sag" transform="translate(7.50 -4.42)"/><use href="#hey-sag" transform="translate(6.75 -3.99)"/><use href="#hey-sag" transform="translate(6.00 -3.56)"/><use href="#hey-sag" transform="translate(5.25 -3.13)"/><use href="#hey-sag" transform="translate(4.50 -2.70)"/><use href="#hey-sag" transform="translate(3.75 -2.27)"/><use href="#hey-sag" transform="translate(3.00 -1.84)"/><use href="#hey-sag" transform="translate(2.25 -1.41)"/><use href="#hey-sag" transform="translate(1.50 -0.98)"/><use href="#hey-sag" transform="translate(0.75 -0.55)"/>
+</g>
+<use href="#hey-sag" fill="url(#hey-yuz)" stroke="#E0657F" stroke-width="1" stroke-linejoin="round"/>
+<path d="M16 112 H40 L56 64" fill="none" stroke="#3A0714" stroke-width="1.4" opacity=".45"/>
+</g>
+</svg>

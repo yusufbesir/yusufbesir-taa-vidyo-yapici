@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+<!-- Ikiz Pile logosu, kil gibi yumusak hacim. Sahip: TAA Vidyo Yapici. yazan: [Claude#Sonnet-5.5] -->
+<defs>
+<filter id="kil-bulaniklik" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="4"/></filter>
+<filter id="kil-yumusak" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="1.6"/></filter>
+<path id="kil-sol" d="M16 16 H40 L56 64 L40 112 H16 L32 64 Z"/>
+<path id="kil-sag" d="M112 16 H88 L72 64 L88 112 H112 L96 64 Z"/>
+<linearGradient id="kil-kenar" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#D2486A"/><stop offset=".5" stop-color="#9A1B3C"/><stop offset="1" stop-color="#5A0C20"/></linearGradient>
+<radialGradient id="kil-dolgu-s" cx="26" cy="30" r="78" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#E0657F"/><stop offset=".35" stop-color="#B02549"/><stop offset=".75" stop-color="#8A1735"/><stop offset="1" stop-color="#5A0C20"/></radialGradient>
+<radialGradient id="kil-dolgu-g" cx="98" cy="30" r="78" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#DA5A76"/><stop offset=".35" stop-color="#AA2145"/><stop offset=".75" stop-color="#861533"/><stop offset="1" stop-color="#5A0C20"/></radialGradient>
+<radialGradient id="kil-isik" cx=".3" cy=".2" r=".6">
+<stop offset="0" stop-color="#FFD0DC" stop-opacity=".75"/><stop offset="1" stop-color="#FFD0DC" stop-opacity="0"/></radialGradient>
+<radialGradient id="kil-zemin" cx=".5" cy=".5" r=".5">
+<stop offset="0" stop-color="#2A0610" stop-opacity=".55"/><stop offset="1" stop-color="#2A0610" stop-opacity="0"/></radialGradient>
+</defs>
+<ellipse cx="64" cy="120" rx="50" ry="6" fill="url(#kil-zemin)"/>
+<g stroke-linejoin="round" stroke-width="9">
+<use href="#kil-sol" transform="translate(3 4)" fill="#2A0610" stroke="#2A0610" opacity=".45" filter="url(#kil-bulaniklik)"/>
+<use href="#kil-sag" transform="translate(3 4)" fill="#2A0610" stroke="#2A0610" opacity=".45" filter="url(#kil-bulaniklik)"/>
+<use href="#kil-sol" fill="url(#kil-dolgu-s)" stroke="url(#kil-kenar)"/>
+<use href="#kil-sag" fill="url(#kil-dolgu-g)" stroke="url(#kil-kenar)"/>
+</g>
+<g stroke-linejoin="round" stroke-width="5" opacity=".9">
+<use href="#kil-sol" fill="url(#kil-isik)" stroke="url(#kil-isik)" transform="translate(-1 -1)"/>
+<use href="#kil-sag" fill="url(#kil-isik)" stroke="url(#kil-isik)" transform="translate(-1 -1)"/>
+</g>
+<g fill="none" stroke="#FFC2D0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity=".5" filter="url(#kil-yumusak)">
+<path d="M19 20 H37 L50 58"/><path d="M91 20 H85 L77 44"/>
+</g>
+</svg>

@@ -12,7 +12,7 @@
 body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 "Segoe UI Variable","Segoe UI",system-ui,-apple-system,Roboto,sans-serif}
 button,select,input,textarea{font:inherit;color:inherit}
 header{display:flex;align-items:center;gap:12px;padding:12px 24px;border-bottom:1px solid var(--line)}
-header img{width:28px;height:28px}
+header img,header .marka{width:28px;height:28px}
 header h1{font-size:16px;margin:0;font-weight:700;letter-spacing:.01em}
 header .s{color:var(--mut);font-size:12px}
 header .bosluk{flex:1}
@@ -111,16 +111,13 @@ dialog video{width:100%;max-height:60vh;background:#000;border-radius:8px;margin
 .rehber span{color:var(--mut);font-size:12.5px}
 @media (max-width:1000px){main{grid-template-columns:1fr;padding:14px}.sag{position:static}canvas{height:52vh}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
-/* açılış ekranı: LED şerit; temaya göre renklenir, gerçek yükleme bitince kapanır */
-#yukleEkrani{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:var(--bg);color:var(--tx);transition:opacity .22s}
+/* açılış katmanı (0.9.5): web/acilis/*.html içinden her açılışta rastgele biri, tam pencere iframe; en geç 4,5 sn */
+#yukleEkrani{position:fixed;inset:0;z-index:9999;background:var(--bg);transition:opacity .2s}
 body:has(#yukleEkrani){overflow:hidden}
 #yukleEkrani.kapan{opacity:0;pointer-events:none}
-#yukleEkrani .ledler{display:grid;grid-template-columns:repeat(24,10px);gap:5px}
-#yukleEkrani .ledler i{width:10px;height:10px;border-radius:50%;background:var(--line);animation:acilisLed 1.2s ease-in-out infinite;animation-delay:calc(var(--k)*50ms)}
-#yukleEkrani b{font:700 28px/1 var(--fh);letter-spacing:.14em;text-transform:uppercase}
-#yukleEkrani small{font:12px var(--fm);color:var(--mut);letter-spacing:.08em}
-@keyframes acilisLed{0%,100%{background:var(--line);box-shadow:none}50%{background:var(--ac);box-shadow:0 0 10px var(--ac)}}
-@media (prefers-reduced-motion:reduce){#yukleEkrani .ledler i{animation:none;background:var(--ac)}}
+#yukleEkrani iframe{display:block;width:100%;height:100%;border:0}
+/* logo: İkiz Kabartma, renkler --ac'den türer (ön=--ac, üst=beyazla %35, yan=siyahla %30, alt yan=siyahla %45) */
+.marka{--ik-on:var(--ac);--ik-ust:color-mix(in srgb,var(--ac) 65%,#fff);--ik-yan:color-mix(in srgb,var(--ac) 70%,#000);--ik-alt:color-mix(in srgb,var(--ac) 55%,#000)}
 /* bina görünümleri (karşıdan / üstten) */
 .cerceve[hidden],.binaAyar[hidden],.binaAyar span[hidden]{display:none}
 .sahneler.bina{grid-template-columns:1fr}
@@ -157,7 +154,7 @@ main{gap:32px;padding:32px 24px}
 .sol{gap:24px}
 .kart{padding:24px}
 header{padding:12px 24px}
-header img{width:32px;height:32px}
+header img,header .marka{width:32px;height:32px}
 header h1{font-size:18px;font-weight:600;letter-spacing:0}
 .baslik{font-size:18px;font-weight:600;margin-bottom:16px}
 .no{background:var(--panel2);color:var(--mut);border:1px solid var(--line);font-weight:600;border-radius:6px}
@@ -184,10 +181,6 @@ select,input[type=text],input[type=search]{min-height:48px;padding:10px 12px}
 #yazi{font-size:20px;font-weight:600}
 .alt .btn{min-height:48px}
 .alt .btn.ana{min-height:56px}
-#yukleEkrani b{font:600 24px/1 var(--fh);letter-spacing:0;text-transform:none}
-#yukleEkrani small{font:14px var(--fh);letter-spacing:0}
-#yukleEkrani .ledler i{box-shadow:none}
-@keyframes acilisLed{0%,100%{background:var(--line)}50%{background:var(--ac)}}
 /* tek ana eylem: yalnız "Videoyu yap" dolu vurgu; Tarif et kartındaki düğmeler vurgu çerçeveli */
 .tarifBtn{background:var(--panel2);color:var(--tx);border:1px solid var(--line);font-weight:600}
 details.tarif[open]>summary .tarifBtn{border-color:var(--ac)}
@@ -213,9 +206,10 @@ details.kart>summary.hazirBas,details.tarif>summary{list-style:none;cursor:point
 </style>
 </head>
 <body>
-<div id="yukleEkrani" role="status" aria-label="Yükleniyor"><div class="ledler"><i style="--k:0"></i><i style="--k:1"></i><i style="--k:2"></i><i style="--k:3"></i><i style="--k:4"></i><i style="--k:5"></i><i style="--k:6"></i><i style="--k:7"></i><i style="--k:8"></i><i style="--k:9"></i><i style="--k:10"></i><i style="--k:11"></i><i style="--k:12"></i><i style="--k:13"></i><i style="--k:14"></i><i style="--k:15"></i><i style="--k:16"></i><i style="--k:17"></i><i style="--k:18"></i><i style="--k:19"></i><i style="--k:20"></i><i style="--k:21"></i><i style="--k:22"></i><i style="--k:23"></i></div><b>TAA Vidyo Yapıcı</b><small>LED ekran video stüdyosu</small></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="ikiz-kabartma" viewBox="0 0 128 128"><path style="fill:var(--ik-ust,#C9566F)" d="M16 16 H40 L46 10 H22 Z"/><path style="fill:var(--ik-yan,#6E1229)" d="M40 16 L56 64 L62 58 L46 10 Z"/><path style="fill:var(--ik-alt,#560D20)" d="M56 64 L40 112 L46 106 L62 58 Z"/><path style="fill:var(--ik-on,#9A1B3C)" d="M16 16 H40 L56 64 L40 112 H16 L32 64 Z"/><path style="fill:var(--ik-ust,#C9566F)" d="M88 16 H112 L106 10 H82 Z"/><path style="fill:var(--ik-yan,#6E1229)" d="M88 16 L72 64 L66 58 L82 10 Z"/><path style="fill:var(--ik-alt,#560D20)" d="M72 64 L88 112 L82 106 L66 58 Z"/><path style="fill:var(--ik-on,#9A1B3C)" d="M88 16 H112 L96 64 L112 112 H88 L72 64 Z"/></symbol></defs></svg>
+<div id="yukleEkrani" role="status" aria-label="Açılış animasyonu"><iframe id="acilisCerceve" title="Açılış animasyonu" tabindex="-1"></iframe></div>
 <header>
-  <img src="/logo.svg" alt="">
+  <svg class="marka" viewBox="0 0 128 128" aria-hidden="true"><use href="#ikiz-kabartma"/></svg>
   <h1>TAA Vidyo Yapıcı</h1>
   <span class="s" id="surum"></span>
   <span class="bosluk"></span>
@@ -400,8 +394,29 @@ TAKSİT</textarea>
 
 <script>
 'use strict';
-window.acilisKapat = () => { const a = document.getElementById('yukleEkrani'); if (!a) return; a.classList.add('kapan'); setTimeout(() => a.remove(), 300); };
-setTimeout(() => window.acilisKapat(), 6000);
+// Açılış: web/acilis/ içinden rastgele biri (son seçilen tekrar gelmez), en geç 4,5 sn; Esc/tıklama/Geç anında geçer.
+const ACILISLAR = ['zaman', 'gece', 'kalibrasyon', 'dikis', 'katlama', 'led', 'perde', 'kurgu', 'iki-ekran', 'isik', 'odak'];
+(() => {
+  const a = document.getElementById('yukleEkrani'), f = document.getElementById('acilisCerceve');
+  if (!a || !f) return;
+  let bitti = false, yuklendi = false, kapali = false;
+  const kapat = () => { if (kapali) return; kapali = true; a.classList.add('kapan'); setTimeout(() => a.remove(), 220); window.removeEventListener('keydown', tus, true); };
+  const dene = () => { if (bitti && yuklendi) kapat(); };
+  const gec = () => { bitti = true; yuklendi = true; kapat(); };
+  const tus = e => { if (e.key === 'Escape') gec(); };
+  window.acilisKapat = () => { yuklendi = true; dene(); };
+  window.addEventListener('message', e => { if (e.source === f.contentWindow && e.data === 'taa-acilis-gec') gec(); });
+  window.addEventListener('keydown', tus, true);
+  a.addEventListener('click', gec);
+  let son = ''; try { son = localStorage.getItem('taa-acilis-son') || ''; } catch (e) { /* kalıcılık yok */ }
+  const adaylar = ACILISLAR.filter(x => x !== son);
+  const secim = adaylar[Math.floor(Math.random() * adaylar.length)];
+  try { localStorage.setItem('taa-acilis-son', secim); } catch (e) { /* kalıcılık yok */ }
+  const azHareket = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  f.src = '/acilis/' + secim + '.html?uygulama=1';
+  setTimeout(() => { bitti = true; dene(); }, azHareket ? 400 : 4300); // animasyon ~3,5-4 sn; kapanış 0,2 sn solma ile toplam <= 4,5 sn
+  setTimeout(gec, 6000); // yükleme ne olursa olsun katman 6 sn'de kalkar
+})();
 (() => { const s = document.getElementById('tema'); let t = 'a'; try { t = localStorage.getItem('taa-tema') || 'a'; } catch (e) {} if (!['a','b'].includes(t)) t = 'a'; s.value = t; s.addEventListener('change', () => { const v = s.value; if (v === 'a') delete document.documentElement.dataset.tema; else document.documentElement.dataset.tema = v; try { localStorage.setItem('taa-tema', v); } catch (e) {} }); })();
 // Tema renkleri: vurgu ve zemin, tema başına kalıcı; "Varsayılana dön" ile sıfırlanır.
 (() => {

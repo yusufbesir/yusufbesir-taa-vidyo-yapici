@@ -1,0 +1,202 @@
+Model: claude-sonnet-4-6
+
+AD: Odak Açılışı
+FIKIR: Her şey bulanık ve çok yakın planda başlar; kamera odaklanıp geri çekilirken iki pile netleşir ve yerine oturur.
+
+```html
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TAA Vidyo Yapıcı</title>
+<style>
+/* Sıfırlama ve temel */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{
+  width:100%;height:100%;background:#191826;overflow:hidden;
+  font-family:'Segoe UI Variable','Segoe UI',system-ui,sans-serif;
+}
+
+/* Ana sahne — tam pencere, ortalı */
+#sahne{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  width:100%;height:100%;
+}
+
+/* Logo + metin grubu — tek transform birimi */
+#grup{
+  display:flex;flex-direction:column;align-items:center;
+  gap:clamp(14px,2.4vh,30px);
+  will-change:filter,transform,opacity;
+}
+
+/* Logo SVG boyutu: küçük ekranda 96 px, büyükte 152 px */
+#pile-svg{
+  width:clamp(96px,11vw,152px);
+  height:auto;
+  display:block;
+}
+
+/* Başlık */
+#baslik{
+  font-size:clamp(1.5rem,2.8vw,2.6rem);
+  font-weight:600;letter-spacing:.05em;
+  color:#F1F0EC;
+  opacity:0;will-change:opacity;
+}
+
+/* Alt yazı */
+#altyazi{
+  font-size:clamp(.82rem,1.3vw,1.05rem);
+  font-weight:400;letter-spacing:.09em;
+  color:#7A6E78;
+  opacity:0;will-change:opacity;
+}
+
+/* Ortak düğme stili */
+.btn{
+  position:fixed;border:none;background:transparent;
+  color:#5A5460;font-family:inherit;font-size:.85rem;letter-spacing:.04em;
+  cursor:pointer;padding:9px 15px;
+  transition:color .25s ease;
+}
+.btn:hover{color:#D2486A;}
+#gec{top:18px;right:18px;}
+#tekrar{bottom:18px;right:18px;opacity:0;}
+
+/* Azaltılmış hareket: animasyon yoktur, düğmeler hemen görünür */
+@media(prefers-reduced-motion:reduce){
+  .btn{opacity:1!important;}
+}
+</style>
+</head>
+<body>
+<div id="sahne">
+  <div id="grup">
+    <!-- İkiz Pile logosu: birbirine bakan iki kumaş pilesi -->
+    <svg id="pile-svg" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg"
+         role="img" aria-label="İkiz Pile logosu">
+      <!-- Sol pile: M → H → L tepesi → L tabanı → H → L tepesi Z -->
+      <path d="M16 16 H40 L56 64 L40 112 H16 L32 64 Z" fill="#9A1B3C"/>
+      <!-- Sağ pile: simetrik, içe bakıyor -->
+      <path d="M112 16 H88 L72 64 L88 112 H112 L96 64 Z" fill="#9A1B3C"/>
+    </svg>
+    <div id="baslik">TAA Vidyo Yapıcı</div>
+    <div id="altyazi">Yaz, önizle, tek tıkla videoyu yap.</div>
+  </div>
+</div>
+
+<!-- Geç: animasyonu atlayıp son kareye geçer -->
+<button class="btn" id="gec">Geç</button>
+<!-- Tekrar: sıfırlayıp yeniden oynatır -->
+<button class="btn" id="tekrar">↺ Tekrar oynat</button>
+
+<script>
+(function(){
+  const azHareket = matchMedia('(prefers-reduced-motion:reduce)').matches;
+  const grup    = document.getElementById('grup');
+  const baslik  = document.getElementById('baslik');
+  const altyazi = document.getElementById('altyazi');
+  const gecBtn  = document.getElementById('gec');
+  const tekrar  = document.getElementById('tekrar');
+  let aktifAnimler = [];
+
+  /* Son kare: tüm animasyonları bitir, stilleri kilitle */
+  function sonKare(){
+    aktifAnimler.forEach(a => { try{ a.finish(); }catch(_){} });
+    grup.style.filter    = 'none';
+    grup.style.transform = 'scale(1)';
+    grup.style.opacity   = '1';
+    baslik.style.opacity  = '1';
+    altyazi.style.opacity = '1';
+    tekrar.style.opacity  = '1';
+  }
+
+  /* Animasyonu sıfırla ve başlat */
+  function oynat(){
+    aktifAnimler = [];
+    // Stilleri temizle
+    [grup, baslik, altyazi].forEach(el => el.removeAttribute('style'));
+    tekrar.style.opacity = '0';
+
+    /* Azaltılmış hareket tercihi: 120 ms solma, hepsi */
+    if(azHareket){
+      grup.style.opacity = '0';
+      const a = grup.animate(
+        [{opacity:0},{opacity:1}],
+        {duration:120, fill:'forwards', easing:'ease'}
+      );
+      a.onfinish = sonKare;
+      aktifAnimler.push(a);
+      return;
+    }
+
+    /* ── ANA ANİMASYON: "odak çekme" ──
+       0 s  : çok bulanık, çok büyük, neredeyse görünmez
+       ~1 s : bulanıklık ve ölçek hızla düşmeye başlar
+       ~2 s : neredeyse net, yerine yakın
+       2.6 s: tam oturma
+    */
+    const aGrup = grup.animate([
+      { filter:'blur(32px)', transform:'scale(3.2)', opacity:.08,  offset:0    },
+      { filter:'blur(16px)', transform:'scale(2.0)', opacity:.40,  offset:.30  },
+      { filter:'blur(5px)',  transform:'scale(1.12)',opacity:.82,  offset:.68  },
+      { filter:'blur(1px)',  transform:'scale(1.02)',opacity:.97,  offset:.88  },
+      { filter:'blur(0px)',  transform:'scale(1)',   opacity:1,    offset:1    }
+    ],{
+      duration: 2700,
+      fill: 'forwards',
+      easing: 'cubic-bezier(.18,.65,.35,1)'
+    });
+    aktifAnimler.push(aGrup);
+
+    /* Başlık: odak oturunca ortaya çıkar */
+    const aBaslik = baslik.animate([
+      {opacity:0, offset:0},
+      {opacity:0, offset:.58},
+      {opacity:1, offset:.90},
+      {opacity:1, offset:1}
+    ],{
+      duration: 2800,
+      fill: 'forwards',
+      easing: 'ease'
+    });
+    aktifAnimler.push(aBaslik);
+
+    /* Alt yazı: en son, hafif gecikme */
+    const aAltyazi = altyazi.animate([
+      {opacity:0, offset:0},
+      {opacity:0, offset:.74},
+      {opacity:1, offset:1}
+    ],{
+      duration: 3400,
+      fill: 'forwards',
+      easing: 'ease'
+    });
+    aktifAnimler.push(aAltyazi);
+
+    /* Tekrar düğmesi: her şey bittikten sonra belirir */
+    const aTekrar = tekrar.animate([
+      {opacity:0, offset:0},
+      {opacity:0, offset:.88},
+      {opacity:1, offset:1}
+    ],{
+      duration: 3800,
+      fill: 'forwards',
+      easing: 'ease'
+    });
+    aTekrar.onfinish = () => { tekrar.style.opacity = '1'; };
+    aktifAnimler.push(aTekrar);
+  }
+
+  gecBtn.addEventListener('click',  sonKare);
+  tekrar.addEventListener('click',  oynat);
+
+  // İlk çalışma
+  oynat();
+})();
+</script>
+</body>
+</html>
+```

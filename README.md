@@ -106,3 +106,8 @@ Ana ekranda **Tarif et** kartı: videoyu yazıyla anlatırsınız, program sahne
 - **Hazır senaryolar** (13 adet): kampanya, açılış, bayram, ürün tanıtımı vb.; her biri geçerli sahne listesidir, satırlar en çok 7 harf (3 m okunurluk testten geçer); metni düzeltip "Bu senaryoyu yükle", sonra "Videoyu yap". Kaynak: kurallar/hazir-senaryolar.json.
 - **Bina karşıdan**: yalnız tam karşıdan düz ön cephe (bina üstten ve fotoğraf görünümü kaldırıldı); çıtalı ekranlar, krem baklava panel, bakır TAA logosu, çatı yazısı, tabela bandı, vitrin, kolonlar; Gündüz/Akşam; ölçüler aynı.
 - **Logo**: film karesi + oynat üçgeni; eski logolar logo/eski/.
+
+## 0.9.5: rastgele açılış animasyonu, İkiz Kabartma logosu
+- **Açılış**: program her açılışta `web/acilis/` içindeki 11 animasyondan rastgele birini tam pencere oynatır (son oynayan bir sonrakinde tekrar gelmez; `localStorage taa-acilis-son`). En geç 4,5 sn sürer; Esc, tıklama ya da Geç anında geçer; `prefers-reduced-motion` açıksa animasyon oynamaz. Uygulama içinde "Tekrar oynat" görünmez (`?uygulama=1`); animasyon dosyaları tek başına tarayıcıda açılırsa görünür.
+- **Logo: İkiz Kabartma** (iki kabartmalı kumaş pilesi): `web/index.html` içindeki `<symbol id="ikiz-kabartma">` (renkler vurgu renginden türer), `logo/logo.svg` (+ `logo.png`, `simge.ico`) ve `web/acilis/logo.js` (açılışlar). **Logoyu değiştirmek için yalnız bu üç yer güncellenir.** Eski logo: `logo/eski/`.
+- Animasyonlar: tur 2 (zaman, gece, kalibrasyon, dikis, katlama), Opus (led, perde, kurgu, iki-ekran, isik) ve odak. Kaynaklar `tasarim/acilis-tur2/`; web sürümlerini `tasarim/acilis-tur2/uret_web_acilis.py` üretir.
