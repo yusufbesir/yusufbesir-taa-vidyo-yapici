@@ -436,7 +436,17 @@ mod t {
         }
         assert!(ACILIS.len() >= 14);
         assert!(ACILIS_LOGO_JS.contains("#C9566F") && ACILIS_LOGO_JS.contains("#560D20"));
-        assert!(SAYFA.contains("id=\"ikiz-kabartma\"") && SAYFA.contains("taa-acilis-son") && !SAYFA.contains("Tekrar oynat"));
+        assert!(SAYFA.contains("id=\"ikiz-kabartma\"") && SAYFA.contains("taa-acilis-torba") && SAYFA.contains("taa-acilis-ayar") && !SAYFA.contains("Tekrar oynat"));
+    }
+    #[test]
+    fn acilis_torbasi_node_testi() {
+        // Karıştırılmış torba mantığı (web/index.html TORBA bloğu) tests/torba_test.js ile denenir; node yoksa atlanır.
+        assert!(SAYFA.contains("// TORBA-BASLA") && SAYFA.contains("// TORBA-BITIS") && SAYFA.contains("id=\"acilisTam\"") && SAYFA.contains("id=\"acilisListe\""));
+        let betik = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/torba_test.js");
+        match std::process::Command::new("node").arg(betik).output() {
+            Ok(o) => assert!(o.status.success(), "torba_test.js başarısız: {}{}", String::from_utf8_lossy(&o.stdout), String::from_utf8_lossy(&o.stderr)),
+            Err(_) => eprintln!("node bulunamadı, torba testi atlandı"),
+        }
     }
     #[test]
     fn son_video_yolu_yalniz_cikti_klasorunden() {

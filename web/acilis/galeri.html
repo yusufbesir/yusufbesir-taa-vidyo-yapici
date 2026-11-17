@@ -1,0 +1,32 @@
+<!doctype html>
+<!-- Açıklama: TAA Vidyo Yapıcı açılış animasyonları galerisi (14 adet, tek sayfa). Aynı klasördeki animasyon dosyalarını iframe'de oynatır. Sahip: Yusuf. Yazan: [Claude#Sonnet-5.5, 2026-11-17]. Yalnız yazan yapay zekâ ya da Yusuf'un izniyle değişir; silme yok. -->
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Açılış Galerisi</title>
+<style>
+:root{--bg:#F1F0EC;--tx:#191826;--mut:#5A564F;--kart:#fff;--cer:#CFCBC3;--ac:#9A1B3C}
+@media (prefers-color-scheme:dark){:root{--bg:#191826;--tx:#F1F0EC;--mut:#B7B2CE;--kart:#232234;--cer:#4A4760;--ac:#D2486A}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 "Segoe UI Variable","Segoe UI",system-ui,sans-serif}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:20px 24px}
+h1{margin:0;font-size:22px}
+p{margin:2px 0 0;color:var(--mut);font-size:14px}
+button{min-height:44px;padding:0 18px;border-radius:999px;border:1px solid var(--cer);background:var(--kart);color:var(--tx);font:inherit;font-size:15px;cursor:pointer}
+button:hover{border-color:var(--ac)}button:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+main{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr));gap:16px;padding:0 24px 32px}
+.k{background:var(--kart);border:1px solid var(--cer);border-radius:10px;overflow:hidden}
+.k iframe{display:block;width:100%;aspect-ratio:16/9;border:0;background:#000}
+.k div{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px}
+.k b{font-size:15px}.k small{color:var(--mut)}
+</style></head><body>
+<header><div><h1>Açılış animasyonları</h1><p>14 animasyon. Programda her açılışta rastgele biri oynar. Kartta "Oynat" ile yeniden başlatın.</p></div><button id="hepsi" type="button">Hepsini yeniden oynat</button></header>
+<main id="ana"></main>
+<script>
+var L=[['zaman','Zaman çizelgesi','tur 2'],['gece','Gece cephesi','tur 2'],['kalibrasyon','Kalibrasyon','tur 2'],['dikis','Dikiş','tur 2'],['katlama','Katlama','tur 2'],
+['led','LED uyanış','Opus'],['perde','Kumaş perde','Opus'],['kurgu','Kurgu kesmesi','Opus'],['iki-ekran','İki ekran','Opus'],['isik','Sahne ışığı','Opus'],
+['odak','Odak açılışı','agy Sonnet 4.6'],['zaman-sol','Zaman çizelgesi','Codex gpt-6.1-sol'],['gece-terra','Gece cephesi','Codex gpt-6.1-terra'],['kalibrasyon-luna','Kalibrasyon','Codex gpt-6-luna']];
+var ana=document.getElementById('ana');
+L.forEach(function(a,i){var k=document.createElement('section');k.className='k';
+ k.innerHTML='<iframe title="'+a[1]+'" loading="lazy" src="'+a[0]+'.html"></iframe><div><span><b>'+(i+1)+'. '+a[1]+'</b><br><small>'+a[2]+' · '+a[0]+'.html</small></span><button type="button">Oynat</button></div>';
+ k.querySelector('button').onclick=function(){var f=k.querySelector('iframe');f.src=f.src};ana.appendChild(k)});
+document.getElementById('hepsi').onclick=function(){document.querySelectorAll('iframe').forEach(function(f){f.src=f.src})};
+</script></body></html>
