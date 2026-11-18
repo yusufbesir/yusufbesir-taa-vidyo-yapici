@@ -1,7 +1,13 @@
 //! "Tarif et" HTTP uçları (yalnız 127.0.0.1, jetonlu oturum içinde çalışır; arayuz.rs yönlendirir).
 //! Sahip: Yusuf; yazan [Claude#ebd691, 2026-11-16]. Dış sitelere yalnız ADI verilen listeden gidilir; istekten gelen adres açılmaz.
+//! Yenileme [Claude#AI Opus 5.5, yenileme-1.0, 2026-11-18]: tek giriş noktası POST /tarif/hazirla (yapay zekâ → kural → şablon yedek zinciri), POST /tarif/iptal,
+//! sade hata özeti ("ozet"). Uç tanımları: docs/TARIF-API.md. Yalnız yazan yapay zekâ ya da Yusuf'un izniyle değişir; silme yok.
 use crate::tarif::*;
 use std::path::Path;
+use std::sync::atomic::{AtomicBool, Ordering};
+
+/// Süren yapay zekâ isteğini iptal bayrağı (POST /tarif/iptal kurar, her hazırlıkta sıfırlanır).
+pub static IPTAL: AtomicBool = AtomicBool::new(false);
 
 pub type Yanit = (u16, &'static str, String);
 const JSON: &str = "application/json; charset=utf-8";
@@ -68,12 +74,74 @@ pub fn kullanici_kurallari(k: &Path) -> Vec<Kural> { std::fs::read_to_string(kur
 fn sonuc_json(tarif: Option<&Tarif>, notlar: &[String], anladim: &[String], anlasilmayan: &[String], hatalar: &[String], kat: &Katalog) -> String {
     match tarif {
         Some(t) => {
-            let sahneler: Vec<String> = t.sahneler.iter().map(|s| format!("{{\"metin\":\"{}\",\"giris\":\"{}\",\"cikis\":\"{}\",\"efekt\":\"{}\",\"palet\":\"{}\",\"font\":\"{}\",\"sure\":{:.1}}}", kac(&s.metin.join(" / ")), kac(&s.giris), kac(&s.cikis), kac(&s.efekt.join(", ")), kac(&s.palet), kac(&s.font), s.sure)).collect();
+            let sahneler: Vec<String> = t.sahneler.iter().map(|s| format!("{{\"satirlar\":{},\"metin\":\"{}\",\"giris\":\"{}\",\"cikis\":\"{}\",\"efekt\":\"{}\",\"palet\":\"{}\",\"font\":\"{}\",\"sure\":{:.1}}}", dizi(&s.metin), kac(&s.metin.join(" / ")), kac(&s.giris), kac(&s.cikis), kac(&s.efekt.join(", ")), kac(&s.palet), kac(&s.font), s.sure)).collect();
             format!("{{\"ok\":true,\"senaryo\":\"{}\",\"gorunum\":\"{}\",\"sure\":{:.1},\"acilis\":\"{}\",\"kapanis\":\"{}\",\"sahneler\":[{}],\"notlar\":{},\"anladim\":{},\"anlasilmayan\":{}}}",
                 kac(&senaryo_metni(t)), kac(&t.gorunum), toplam_sure(t), kac(&t.acilis), kac(&t.kapanis), sahneler.join(","), dizi(notlar), dizi(anladim), dizi(anlasilmayan))
         }
-        None => format!("{{\"ok\":false,\"hatalar\":{},\"duzelt\":\"{}\",\"anladim\":{},\"anlasilmayan\":{}}}", dizi(hatalar), kac(&duzelt_istemi(hatalar, kat)), dizi(anladim), dizi(anlasilmayan)),
+        None => format!("{{\"ok\":false,\"ozet\":\"{}\",\"hatalar\":{},\"duzelt\":\"{}\",\"anladim\":{},\"anlasilmayan\":{}}}", kac(&hata_ozeti(hatalar)), dizi(hatalar), kac(&duzelt_istemi(hatalar, kat)), dizi(anladim), dizi(anlasilmayan)),
     }
+}
+
+/// Teknik doğrulama hatalarını tek cümlelik sade Türkçe özete çevirir (ayrıntı "hatalar" listesinde kalır).
+pub fn hata_ozeti(h: &[String]) -> String {
+    let j = h.join(" ");
+    if j.contains("JSON bulunamadı") || j.contains("JSON okunamadı") || j.contains("JSON nesnesi") { "Yapıştırılan yanıtta video planı bulunamadı. Yapay zekâya \"yalnız JSON ver\" deyip yanıtın TAMAMINI kopyalayın.".into() }
+    else if j.contains("sahneler") { "Yanıtta sahne listesi yok. Aşağıdaki \"Düzelt istemi\"ni yapay zekâya yapıştırın.".into() }
+    else if j.contains("Toplam süre") || j.contains("Çok fazla sahne") { "Video çok uzun. Daha az sahneyle yeniden isteyin.".into() }
+    else if j.contains("çok uzun") { "Yanıt çok uzun; yalnız sahne listesini yapıştırın.".into() }
+    else if h.is_empty() { "Bir sorun oluştu.".into() }
+    else { "Yanıtın bir bölümü kullanılamadı. Aşağıdaki \"Düzelt istemi\"ni yapay zekâya yapıştırın.".into() }
+}
+
+/// Zincir adımının sonucu (arayüzde ilerleme ve rozet için).
+struct Adim { ad: &'static str, durum: &'static str, mesaj: String }
+fn adimlar_json(v: &[Adim]) -> String { format!("[{}]", v.iter().map(|a| format!("{{\"ad\":\"{}\",\"durum\":\"{}\",\"mesaj\":\"{}\"}}", a.ad, a.durum, kac(&a.mesaj))).collect::<Vec<_>>().join(",")) }
+fn kaynak_ad(k: &str) -> &'static str { match k { "yapay-zeka" => "Yapay zekâ", "kural" => "Kural", _ => "Şablon" } }
+
+/// Yedek zinciri: (izinliyse) doğrudan yapay zekâ → katı şema doğrulaması → yerel kural/niyet üretici → güvenli şablon. HER ZAMAN ok:true ve geçerli senaryo döner.
+pub fn hazirla(yazi: &str, klasor: &Path, kat: &Katalog, tasiyici: &dyn crate::llm::Tasiyici) -> String {
+    let j = json_coz(yazi).ok().filter(|j| matches!(j, Json::Nesne(_)));
+    let metin: String = match &j { Some(j) => j.al("metin").and_then(|x| x.yazi()).unwrap_or("").to_string(), None => yazi.to_string() };
+    let metin: String = metin.chars().take(MAX_TARIF).collect();
+    let b = |k: &str| j.as_ref().and_then(|j| j.al(k)).map(|x| matches!(x, Json::Mantik(true)));
+    let cesit = j.as_ref().and_then(|j| j.al("cesit")).and_then(|x| if let Json::Sayi(n) = x { Some(n.max(0.0).min(1000.0) as usize) } else { None }).unwrap_or(0);
+    let yz_iste = b("yz").unwrap_or(true);
+    let onay = b("onay").unwrap_or(false);
+    IPTAL.store(false, Ordering::Relaxed);
+    let mut adimlar: Vec<Adim> = vec![];
+    let mut yz_onay_gerekli = false;
+    let ayar = crate::llm::ayar_oku(klasor);
+    // 1) yapay zekâ
+    if metin.trim().is_empty() { adimlar.push(Adim { ad: "yapay-zeka", durum: "atlandi", mesaj: "Tarif boş.".into() }); }
+    else if !yz_iste { adimlar.push(Adim { ad: "yapay-zeka", durum: "atlandi", mesaj: "Yapay zekâ istenmedi.".into() }); }
+    else {
+        match crate::llm::hazir_mi(klasor) {
+            Err(e) => adimlar.push(Adim { ad: "yapay-zeka", durum: "atlandi", mesaj: e.mesaj() }),
+            Ok(()) if !(ayar.sorma || onay) => { yz_onay_gerekli = true; adimlar.push(Adim { ad: "yapay-zeka", durum: "onay-bekliyor", mesaj: "Tarifin yapay zekâ hizmetine gönderilmesi için onayınız gerekiyor.".into() }); }
+            Ok(()) => {
+                let ek = if cesit > 0 { format!("\n(Öncekinden farklı bir öneri ver; çeşit {cesit}.)") } else { String::new() };
+                match crate::llm::gonder_ile(tasiyici, klasor, &istem_uret(&format!("{metin}{ek}"), kat), &IPTAL) {
+                    Ok(m) => match dogrula(&m, kat) {
+                        Ok(d) => {
+                            adimlar.push(Adim { ad: "yapay-zeka", durum: "basarili", mesaj: "Yapay zekâ planı hazırladı.".into() });
+                            return ekle(sonuc_json(Some(&d.tarif), &d.notlar, &[], &[], &[], kat), "yapay-zeka", &[], &adimlar, false);
+                        }
+                        Err(_) => adimlar.push(Adim { ad: "yapay-zeka", durum: "hata", mesaj: "Yapay zekânın yanıtı video planına uymadı; yerel kurallarla hazırlandı.".into() }),
+                    },
+                    Err(e) => adimlar.push(Adim { ad: "yapay-zeka", durum: if e == crate::llm::LlmHata::Iptal { "iptal" } else { "hata" }, mesaj: e.mesaj() }),
+                }
+            }
+        }
+    }
+    // 2) kural + 3) şablon (niyet::kural_hazirla ikisini de kapsar, her zaman geçerli tarif döner)
+    let h = niyet::kural_hazirla(&metin, kat, &kullanici_kurallari(klasor), cesit);
+    adimlar.push(Adim { ad: "kural", durum: if h.kaynak == "kural" { "basarili" } else { "atlandi" }, mesaj: if h.kaynak == "kural" { "Yerel kurallarla hazırlandı.".into() } else { "Tariften metin çıkarılamadı.".into() } });
+    if h.kaynak == "sablon" { adimlar.push(Adim { ad: "sablon", durum: "basarili", mesaj: "Güvenli şablon kullanıldı.".into() }); }
+    ekle(sonuc_json(Some(&h.tarif), &h.notlar, &h.anladim, &h.anlasilmayan, &[], kat), h.kaynak, &h.varsayimlar, &adimlar, yz_onay_gerekli)
+}
+fn ekle(govde: String, kaynak: &str, varsayimlar: &[String], adimlar: &[Adim], yz_onay: bool) -> String {
+    let mut g = govde; g.pop(); // sondaki '}'
+    format!("{g},\"kaynak\":\"{kaynak}\",\"kaynak_ad\":\"{}\",\"varsayimlar\":{},\"adimlar\":{},\"yz_onay_gerekli\":{yz_onay}}}", kaynak_ad(kaynak), dizi(varsayimlar), adimlar_json(adimlar))
 }
 
 /// `ad`: "/tarif/" sonrası yol. `yazi`: istek gövdesi. `klasor`: kullanıcı verisi klasörü (kurallar, siteler).
@@ -81,6 +149,8 @@ pub fn isle(yontem: &str, ad: &str, yazi: &str, klasor: &Path) -> Yanit {
     let kat = Katalog::gercek();
     match (yontem, ad) {
         ("POST", "istem") => (200, METIN, istem_uret(yazi, &kat)),
+        ("POST", "hazirla") => (200, JSON, hazirla(yazi, klasor, &kat, &crate::llm::UreqTasiyici::default())),
+        ("POST", "iptal") => { IPTAL.store(true, Ordering::Relaxed); (200, METIN, "ok".into()) }
         ("POST", "kural-coz") => {
             let z = kural_coz(yazi, &kat, &kullanici_kurallari(klasor));
             let hatalar = if z.tarif.is_none() { z.notlar.clone() } else { vec![] };
@@ -140,12 +210,13 @@ pub fn isle(yontem: &str, ad: &str, yazi: &str, klasor: &Path) -> Yanit {
             if !matches!(j.al("onay"), Some(Json::Mantik(true))) { return (400, METIN, "Gönderilecek metin onaylanmadı.".into()); }
             let metin = j.al("metin").and_then(|x| x.yazi()).unwrap_or("");
             if metin.trim().is_empty() { return (400, METIN, "Tarif boş.".into()); }
-            match crate::llm::gonder(klasor, metin, &kat) {
+            IPTAL.store(false, Ordering::Relaxed);
+            match crate::llm::gonder_ile(&crate::llm::UreqTasiyici::default(), klasor, &istem_uret(metin, &kat), &IPTAL).map_err(|e| e.mesaj()) {
                 Ok(m) => match dogrula(&m, &kat) {
                     Ok(d) => (200, JSON, sonuc_json(Some(&d.tarif), &d.notlar, &[], &[], &[], &kat)),
                     Err(h) => (200, JSON, sonuc_json(None, &[], &[], &[], &h, &kat)),
                 },
-                Err(e) => (200, JSON, format!("{{\"ok\":false,\"baglanti\":true,\"hatalar\":{},\"duzelt\":\"\",\"anladim\":[],\"anlasilmayan\":[]}}", dizi(&[e]))),
+                Err(e) => (200, JSON, format!("{{\"ok\":false,\"baglanti\":true,\"ozet\":\"{}\",\"hatalar\":{},\"duzelt\":\"\",\"anladim\":[],\"anlasilmayan\":[]}}", kac(&e), dizi(&[e.clone()]))),
             }
         }
         ("GET", "katalog") => {
@@ -160,6 +231,59 @@ pub fn isle(yontem: &str, ad: &str, yazi: &str, klasor: &Path) -> Yanit {
 mod testler {
     use super::*;
     fn gecici(ad: &str) -> std::path::PathBuf { let k = std::env::temp_dir().join(format!("taa-tarif-test-{ad}-{}", std::process::id())); let _ = std::fs::create_dir_all(&k); k }
+    // ───── Yedek zinciri (sahte taşıyıcı; dış hizmete istek gitmez) ─────
+    use std::cell::RefCell;
+    struct Sahte(RefCell<Vec<Result<(u16, String), crate::llm::TasimaHata>>>, RefCell<u32>);
+    impl crate::llm::Tasiyici for Sahte {
+        fn gonder(&self, _: &str, _: &[(String, String)], _: &str) -> Result<(u16, String), crate::llm::TasimaHata> { *self.1.borrow_mut() += 1; self.0.borrow_mut().pop().unwrap_or(Err(crate::llm::TasimaHata::ZamanAsimi)) }
+    }
+    fn sahte(v: Vec<Result<(u16, String), crate::llm::TasimaHata>>) -> Sahte { Sahte(RefCell::new(v.into_iter().rev().collect()), RefCell::new(0)) }
+    fn kaynak(j: &str) -> String { json_coz(j).unwrap().al("kaynak").and_then(|x| x.yazi()).unwrap_or("").to_string() }
+    fn senaryo_gecerli(j: &str) { let k = json_coz(j).unwrap(); assert!(matches!(k.al("ok"), Some(Json::Mantik(true))), "{j}"); let s = k.al("senaryo").and_then(|x| x.yazi()).unwrap(); crate::senaryo::ayristir(s).unwrap_or_else(|e| panic!("senaryo okunamadı: {e}\n{s}")); }
+    #[test]
+    fn zincir_yz_kapaliyken_kural_ya_da_sablon() {
+        let k = gecici("zincir-kapali"); let kat = Katalog::gercek();
+        let s = sahte(vec![]);
+        let r = hazirla("{\"metin\":\"takım elbiselerde yüzde 20 indirim\"}", &k, &kat, &s);
+        senaryo_gecerli(&r); assert_eq!(kaynak(&r), "kural"); assert!(r.contains("%20") && r.contains("\"durum\":\"atlandi\""), "{r}");
+        assert_eq!(*s.1.borrow(), 0, "bağlantı kapalıyken istek gitmez");
+        let r = hazirla("", &k, &kat, &s); senaryo_gecerli(&r); assert_eq!(kaynak(&r), "sablon");
+        let r = hazirla("kredi kartına 6 taksit", &k, &kat, &s); senaryo_gecerli(&r); assert!(r.contains("TAKSİT"), "düz metin gövde de kabul edilir: {r}");
+        let r = hazirla("{\"metin\":\"bayram\",\"cesit\":3}", &k, &kat, &s); senaryo_gecerli(&r);
+        let u = isle("POST", "uygula", "bozuk", &k); assert!(u.2.contains("\"ozet\":\"Yapıştırılan yanıtta video planı bulunamadı"), "{}", u.2);
+        let u = isle("POST", "uygula", "İşte: [{\"metin\":[\"A\"]},{\"metin\":[\"B\"]}]", &k); assert!(u.2.contains("\"ok\":true"), "üst düzey dizi kabul edilir: {}", u.2);
+    }
+    #[cfg(windows)]
+    #[test]
+    fn zincir_yapay_zeka_ve_dusus() {
+        let k = gecici("zincir-yz"); let kat = Katalog::gercek();
+        let mut a = crate::llm::Ayar { acik: false, saglayici: "chatgpt".into(), model: "gpt-4o-mini".into(), adres: String::new(), sorma: false };
+        crate::llm::anahtar_kaydet(&k, "sk-test-0123456789", &crate::llm::bag(&a)).unwrap();
+        a.acik = true; crate::llm::ayar_yaz(&k, &a).unwrap();
+        // onay yokken gönderilmez, kural ile döner
+        let s = sahte(vec![]);
+        let r = hazirla("{\"metin\":\"hoş geldiniz\"}", &k, &kat, &s);
+        senaryo_gecerli(&r); assert!(r.contains("\"yz_onay_gerekli\":true")); assert_eq!(*s.1.borrow(), 0);
+        let oai = |c: &str| Ok((200u16, format!("{{\"choices\":[{{\"message\":{{\"content\":\"{}\"}}}}]}}", c.replace('"', "\\\""))));
+        // geçerli yanıt → yapay zekâ
+        let s = sahte(vec![oai("```json\n{\"sahneler\":[{\"metin\":[\"%20\",\"İNDİRİM\"],\"giris\":\"zipla\"}]}\n```")]);
+        let r = hazirla("{\"metin\":\"indirim\",\"onay\":true}", &k, &kat, &s); senaryo_gecerli(&r); assert_eq!(kaynak(&r), "yapay-zeka", "{r}");
+        // bozuk yanıt → kural
+        let s = sahte(vec![oai("Üzgünüm, yardımcı olamam.")]);
+        let r = hazirla("{\"metin\":\"indirim\",\"onay\":true}", &k, &kat, &s); senaryo_gecerli(&r); assert_eq!(kaynak(&r), "kural"); assert!(r.contains("video planına uymadı"));
+        // 500 x3 → kural, sade mesaj
+        let s = sahte(vec![Ok((500, String::new())), Ok((500, String::new())), Ok((500, String::new()))]);
+        let r = hazirla("{\"metin\":\"indirim\",\"onay\":true}", &k, &kat, &s); senaryo_gecerli(&r); assert_eq!(kaynak(&r), "kural"); assert!(r.contains("yanıt vermiyor"), "{r}"); assert_eq!(*s.1.borrow(), 3);
+        // anahtar reddi → kural, anahtar sızmaz
+        let s = sahte(vec![Ok((401, "{\"error\":{\"message\":\"bad key sk-test-0123456789\"}}".into()))]);
+        let r = hazirla("{\"metin\":\"indirim\",\"onay\":true}", &k, &kat, &s); assert!(r.contains("Anahtar geçersiz") && !r.contains("sk-test"), "{r}");
+        // boş yanıt
+        let s = sahte(vec![Ok((200, String::new()))]);
+        let r = hazirla("{\"metin\":\"indirim\",\"onay\":true}", &k, &kat, &s); senaryo_gecerli(&r); assert!(r.contains("boş yanıt"));
+        // iptal ucu bayrağı kurar (paralel testleri bozmamak için en sonda)
+        assert_eq!(isle("POST", "iptal", "", &k).0, 200);
+        assert!(IPTAL.load(Ordering::Relaxed));
+    }
     #[test]
     fn adres_denetimi() {
         for iyi in ["https://chatgpt.com/", "https://gemini.google.com/app?x=1&y=2", "https://a.b/c#d"] { assert!(adres_gecerli(iyi), "{iyi}"); }

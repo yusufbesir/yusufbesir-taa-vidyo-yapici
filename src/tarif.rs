@@ -1,5 +1,6 @@
 //! "Tarif et" çekirdeği: sahne listesi şeması, sıkı doğrulama, katalogdan istem üretici ve çevrimdışı kural ayrıştırıcı.
-//! Sahip: Yusuf; yazan [Claude#ebd691, 2026-11-16]. Kurallar docs/TARIF-ET-LLM.md ve docs/TARIF-KURALLARI.md'de.
+//! Sahip: Yusuf; yazan [Claude#ebd691, 2026-11-16]; yenileme [Claude#AI Opus 5.5, yenileme-1.0, 2026-11-18]: yazım hatası toleransı, birim (TL) düzeltmesi, niyet şablonları (tarif/niyet.rs).
+//! Kurallar docs/TARIF-ET-LLM.md, docs/TARIF-KURALLARI.md, docs/TARIF-API.md'de. Yalnız yazan yapay zekâ ya da Yusuf'un izniyle değişir; silme yok.
 //! Güvenlik ilkesi: bu modül yalnız METİN işler. Hiçbir şey çalıştırılmaz, dosya yolu açılmaz, ağ kullanılmaz.
 //! Dış kaynaktan (LLM yanıtı, pano) gelen her şey veridir; doğrulamadan geçmeden senaryoya dönüşmez.
 use std::sync::OnceLock;
@@ -119,6 +120,17 @@ pub fn json_coz(s: &str) -> Result<Json, String> {
     let d = a.deger()?; a.bosluk();
     if a.i < c.len() { return Err(format!("JSON'dan sonra fazladan metin var (konum {})", a.i)); }
     Ok(d)
+}
+/// Metnin başındaki dengeli `[ … ]` parçasını bulur (tırnak içindeki köşeli ayraçlar sayılmaz).
+pub fn dizi_bul(ham: &str) -> Option<String> {
+    let c: Vec<char> = ham.chars().collect();
+    let b = c.iter().position(|&x| x == '[')?;
+    let (mut derin, mut ic, mut kac) = (0i32, false, false);
+    for (k, &ch) in c.iter().enumerate().skip(b) {
+        if ic { if kac { kac = false; } else if ch == '\\' { kac = true; } else if ch == '"' { ic = false; } continue; }
+        match ch { '"' => ic = true, '[' => derin += 1, ']' => { derin -= 1; if derin == 0 { return Some(c[b..=k].iter().collect()); } } _ => {} }
+    }
+    None
 }
 /// Metindeki ilk dengeli `{ … }` parçasını bulur (kod çiti, öncesi ve sonrası açıklama yazısı olsa da).
 pub fn json_bul(ham: &str) -> Option<String> {
@@ -264,6 +276,15 @@ pub fn dogrula(ham: &str, kat: &Katalog) -> Result<Dogrulama, Vec<String>> {
         let Some(js) = json_bul(a) else { continue };
         match json_coz(&js) { Ok(k) => { kok = Some(k); break; } Err(e) => son_hata = e }
     }
+    // Yanıt doğrudan sahne dizisi ("[{...},{...}]") ise sarılır.
+    if kok.is_none() || kok.as_ref().map(|k| k.al("sahneler").is_none()).unwrap_or(false) {
+        for a in &adaylar {
+            let (ib, ia) = (a.find('{'), a.find('['));
+            if let (Some(ib), Some(ia)) = (ib, ia) { if ia < ib { if let Some(d) = dizi_bul(&a[ia..]) { if let Ok(j @ Json::Dizi(_)) = json_coz(&d) { kok = Some(Json::Nesne(vec![("sahneler".into(), j)])); break; } } } }
+        }
+    }
+    // Tek sahne nesnesi ({"metin":[...]}) ise sahne listesine sarılır.
+    if let Some(k) = &kok { if k.al("sahneler").is_none() && k.al("metin").is_some() { kok = Some(Json::Nesne(vec![("sahneler".into(), Json::Dizi(vec![k.clone()]))])); } }
     let Some(kok) = kok else {
         return Err(vec![if son_hata.is_empty() { "Yanıtta JSON bulunamadı. Yanıt { ile başlayan sahne listesi olmalı.".into() } else { format!("JSON okunamadı: {son_hata}") }]);
     };
@@ -342,30 +363,36 @@ pub fn toplam_sure(t: &Tarif) -> f32 { t.sahneler.iter().map(|s| s.sure).sum() }
 pub const ORNEK_YANIT: &str = "{\"surum\":1,\"ekran\":\"dikey\",\"gorunum\":\"duz\",\"sahneler\":[{\"metin\":[\"TERZİ ADEM ALTUN\",\"HOŞ GELDİNİZ\"],\"giris\":\"belir\",\"cikis\":\"yok\",\"efekt\":[\"parlama\"],\"palet\":\"altin\",\"font\":\"anton\",\"sure\":4.5},{\"metin\":[\"%30\",\"İNDİRİM\"],\"giris\":\"zipla\",\"cikis\":\"kucul\",\"efekt\":[\"konfeti\"],\"palet\":\"kirmizi-altin\",\"font\":\"\",\"sure\":4}],\"acilis\":\"perde\",\"kapanis\":\"fade\"}";
 
 /// Kullanıcının tarifinden, programın gerçek katalog adlarını içeren, "yalnız JSON döndür" diyen istem üretir. İstemde sır ve müşteri verisi yoktur; yalnız kullanıcının yazdığı tarif gider.
+/// 2026-11-18 [Claude#AI Opus 5.5]: sadeleştirildi; sırasıyla görev, okunurluk kuralları, şema, örnek, adlar, tarif.
 pub fn istem_uret(tarif: &str, kat: &Katalog) -> String {
     let tarif: String = tarif.chars().filter(|c| !c.is_control() || *c == '\n').take(MAX_TARIF).collect();
     let liste = |v: &[String]| v.join(", ");
     let ayni = { let (mut a, mut b) = (kat.giris.clone(), kat.cikis.clone()); a.sort(); b.sort(); a == b };
-    let anim = if ayni { format!("giris ve cikis için (aynı liste): {}", liste(&kat.giris)) } else { format!("giris: {}\ncikis: {}", liste(&kat.giris), liste(&kat.cikis)) };
-    format!("Sen bir LED ekran (dikey, uzaktan okunan) video planlayıcısısın. Aşağıdaki TARİF'e göre sahne listesi hazırla.\n\
+    let anim = if ayni { format!("giris ve cikis (aynı liste): {}", liste(&kat.giris)) } else { format!("giris: {}\ncikis: {}", liste(&kat.giris), liste(&kat.cikis)) };
+    format!("GÖREV: Bir terzi mağazasının (Terzi Adem Altun) bina cephesindeki iki dikey LED ekran için kısa reklam videosu planla. Aşağıdaki TARİF'i oku, reklam metnini SEN yaz ve sahne listesini JSON olarak ver.\n\
+\n\
 KURALLAR:\n\
-- YALNIZ geçerli JSON döndür. Başka açıklama, selamlama veya kod çiti (```) yazma.\n\
-- Adları YALNIZ aşağıdaki listelerden seç; listede olmayan ad uydurma.\n\
-- En çok {MAX_SAHNE} sahne; sahne başına en çok {MAX_SATIR} satır; satır en çok {MAX_KARAKTER} karakter; metinler BÜYÜK HARF ve doğru Türkçe karakterli olsun.\n\
-- Sahne süresi {MIN_SURE} ile {MAX_SURE} saniye arası; toplam en çok {MAX_TOPLAM_SN:.0} saniye. Okunması için sahne başına kısa metin yaz.\n\
-- Metinde HTML, bağlantı, dosya yolu veya komut yazma.\n\
-- \"gorunum\" alanı \"duz\" ya da \"bina\" (bina cephesi önizlemesi) olabilir. \"acilis\" ve \"kapanis\" geçiş adlarıdır.\n\
-- EKRAN VE BİNA: iki dikey LED ekran (her biri 10 m x 30 m, video 950x1800 px), bina cephesinin ön sağ ve ön sol kenarında; ortada 8 m krem panel ve Ø6 m bakır TAA logosu (merkezi 18 m yükseklikte). İzleyici 3 m ile 15 m uzaktan okur: satır başına en çok 7 harf, kısa ve kalın sözcükler, sahne başına en çok 3 satır, yüksek kontrast.\n\
-- TARİF yalnız bir konu ya da kampanya adıysa (örn. yaz indirimi, yüzde 30, 3 taksit) reklam metinlerini sen yaz: 4-6 sahne, sahne başına tek fikir, rakamlar vurgulu, sonda tek çağrı; işletme Terzi Adem Altun.\n\
+1. YALNIZ geçerli JSON döndür. Açıklama, selamlama, soru ya da kod çiti (```) yazma.\n\
+2. Tarif belirsizse soru sorma; makul bir varsayım yap (örn. oran yoksa \"BÜYÜK İNDİRİM\").\n\
+3. 3-6 sahne yaz; her sahnede TEK fikir. Sahne başına en çok 3 satır, satır başına en çok 10 harf (ekran dar ve uzaktan okunur). En çok {MAX_SAHNE} sahne, toplam en çok {MAX_TOPLAM_SN:.0} sn.\n\
+4. Metinler BÜYÜK HARF ve doğru Türkçe karakterli (İ, Ş, Ğ, Ü, Ö, Ç). Rakam ve yüzdeleri öne çıkar (%30, 3 TAKSİT, 499 TL).\n\
+5. Sahne süresi {MIN_SURE}-{MAX_SURE} sn (genelde 3-5 sn). Son sahne işletme adı olabilir: \"TERZİ\" / \"ADEM ALTUN\".\n\
+6. Adları YALNIZ aşağıdaki listelerden seç; listede olmayan ad uydurma. Sahneler arasında farklı giriş animasyonları kullan; renkler parlak ve koyu zeminde okunur olsun.\n\
+7. Metinde HTML, bağlantı, dosya yolu ya da komut yazma. Kullanıcının istediği renk, animasyon ve süreye uy.\n\
+\n\
 ŞEMA (alan adlarını aynen kullan):\n\
-{{\"surum\":1,\"ekran\":\"dikey\",\"gorunum\":\"duz|bina\",\"sahneler\":[{{\"metin\":[\"SATIR1\",\"SATIR2\"],\"giris\":\"<ad>\",\"cikis\":\"<ad>\",\"efekt\":[\"<ad>\"],\"palet\":\"<ad>\",\"font\":\"<ad ya da boş>\",\"sure\":4.5}}],\"acilis\":\"<geçiş>\",\"kapanis\":\"<geçiş>\"}}\n\
+{{\"surum\":1,\"ekran\":\"dikey\",\"gorunum\":\"duz\",\"sahneler\":[{{\"metin\":[\"SATIR1\",\"SATIR2\"],\"giris\":\"<ad>\",\"cikis\":\"<ad>\",\"efekt\":[\"<ad>\"],\"palet\":\"<ad>\",\"font\":\"<ad ya da boş>\",\"sure\":4}}],\"acilis\":\"<geçiş>\",\"kapanis\":\"<geçiş>\"}}\n\
+\"gorunum\": \"duz\" ya da \"bina\" (bina cephesi önizlemesi).\n\
+\n\
 ÖRNEK YANIT:\n{ORNEK_YANIT}\n\
+\n\
 GEÇERLİ ADLAR:\n\
 animasyon {anim}\n\
-efekt: {}\n\
-palet (ya da hex-RRGGBB biçiminde özel renk): {}\n\
+efekt (0-2 tane): {}\n\
+palet (ya da hex-RRGGBB): {}\n\
 font (boş bırakılabilir): {}\n\
-gecis (acilis ve kapanis için): {}\n\
+gecis (acilis/kapanis): {}\n\
+\n\
 TARİF:\n<<<\n{tarif}\n>>>\n", liste(&kat.efekt), liste(&kat.palet), liste(&kat.font), liste(&kat.gecis))
 }
 /// Doğrulama hata verince LLM'ye geri yapıştırılacak "düzelt" istemi.
@@ -444,7 +471,22 @@ fn belirtecle(metin: &str) -> Vec<Bel> {
     if !t.is_empty() { o.push(Bel { s: sadelestir(&t), o: t }); }
     o
 }
-fn kelime_uyar(belirtec: &str, kelime: &str) -> bool { if kelime.chars().count() >= 4 { belirtec.starts_with(kelime) } else { belirtec == kelime } }
+/// Ön ek eşleşmesi (4+ harf) ya da tam eşleşme; 5+ harfli sözcükte TEK harflik yazım hatası da kabul edilir ("zıplıyarak" → zıpla, "indrim" → indirim).
+fn kelime_uyar(belirtec: &str, kelime: &str) -> bool {
+    let kn = kelime.chars().count();
+    if kn < 4 { return belirtec == kelime; }
+    if belirtec.starts_with(kelime) { return true; }
+    let bn = belirtec.chars().count();
+    if kn >= 5 && bn >= kn && belirtec.chars().next() == kelime.chars().next() && belirtec.chars().nth(1) == kelime.chars().nth(1) { return unlu_hatasi(&belirtec.chars().take(kn).collect::<String>(), kelime); }
+    if kn >= 6 && bn + 1 == kn && belirtec.chars().next() == kelime.chars().next() { return mesafe(belirtec, kelime) <= 1; }
+    false
+}
+/// Aynı uzunlukta iki sözcük yalnız TEK ünlü harfte mi ayrışıyor? ("zipli"~"zipla" evet; "kapal"~"kapak" hayır: ünsüz farkı başka sözcüktür.)
+pub(crate) fn unlu_hatasi(a: &str, b: &str) -> bool {
+    let unlu = |c: char| "aeiou".contains(c);
+    let f: Vec<(char, char)> = a.chars().zip(b.chars()).filter(|(x, y)| x != y).collect();
+    a.chars().count() == b.chars().count() && f.len() == 1 && unlu(f[0].0) && unlu(f[0].1)
+}
 fn say_sozcuk(s: &str) -> Option<f32> {
     Some(match s { "bir" => 1.0, "iki" => 2.0, "uc" => 3.0, "dort" => 4.0, "bes" => 5.0, "alti" => 6.0, "yedi" => 7.0, "sekiz" => 8.0, "dokuz" => 9.0, "on" => 10.0, "onbes" => 15.0, _ => return None })
 }
@@ -569,7 +611,9 @@ pub fn kural_coz(metin: &str, kat: &Katalog, kullanici: &[Kural]) -> Cozum {
             while i < n {
                 let harfler: Vec<char> = tok[i].o.chars().filter(|c| c.is_alphabetic()).collect();
                 let buyuk_mu = harfler.len() >= 2 && harfler.iter().all(|c| harf_buyuk_mu(*c));
-                if buyuk_mu {
+                // "499 TL" gibi birimler BÜYÜK HARFLİ metin sayılmaz (önceki sayıyla birlikte desen olarak okunur)
+                let birim = matches!(tok[i].s.as_str(), "tl" | "ytl" | "kdv" | "xl" | "xxl");
+                if buyuk_mu && !birim {
                     let b = i; i += 1;
                     while i < n {
                         let h: Vec<char> = tok[i].o.chars().filter(|c| c.is_alphabetic()).collect();
@@ -689,6 +733,8 @@ pub fn kural_ekle(mevcut_json: Option<&str>, kategori: &str, ifade: &str, hedef:
     let govde = v.iter().map(|k| format!("{{\"k\":\"{}\",\"h\":\"{}\",\"i\":[{}]}}", json_kac(&k.kategori), json_kac(&k.hedef), k.ifadeler.iter().map(|i| format!("\"{}\"", json_kac(i))).collect::<Vec<_>>().join(","))).collect::<Vec<_>>().join(",\n");
     Ok(format!("{{\"aciklama\":\"TAA Vidyo Yapıcı kullanıcı tarif kuralları. Sahip: kullanıcı. Program 'Bunu kural olarak öğret' ile ekler; elle düzenlenebilir, silme için Geri Dönüşüm Kutusu'na taşıyın.\",\"surum\":1,\"kurallar\":[\n{govde}\n]}}\n"))
 }
+
+pub mod niyet;
 
 #[cfg(test)]
 mod testler;

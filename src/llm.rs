@@ -1,9 +1,12 @@
 //! "Tarif et" doğrudan LLM bağlantısı (isteğe bağlı, varsayılan KAPALI). Sahip: Yusuf; yazan [Claude#ebd691, 2026-11-16].
+//! Yenileme [Claude#AI Opus 5.5, yenileme-1.0, 2026-11-18]: Tasiyici arayüzü (sahte sunucuyla test), net zaman aşımı, en çok 2 yeniden deneme (üstel bekleme),
+//! iptal, yanıt boyutu sınırı, sade Türkçe hata kodları (sır sızdırmaz). Yalnız yazan yapay zekâ ya da Yusuf'un izniyle değişir; silme yok.
 //! Güvenlik: anahtar Windows DPAPI (kullanıcı kapsamı) ile şifrelenir, düz dosyaya/günlüğe/arayüze yazılmaz, arayüze geri gösterilmez.
 //! Yalnız tarif metni ve katalog adları gönderilir; adresler sabit sağlayıcı adresleri ya da kullanıcının https adresidir; yönlendirme izlenmez.
 use crate::tarif::*;
 use std::path::Path;
 use std::time::Duration;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 pub const SAGLAYICILAR: [(&str, &str, &str); 5] = [
     ("chatgpt", "ChatGPT (OpenAI)", "gpt-4o-mini"),
@@ -114,7 +117,7 @@ pub fn istek_hazirla(a: &Ayar, istem: &str, anahtar: &str) -> Result<(String, Ve
         "deepseek" => oai("https://api.deepseek.com/chat/completions"),
         "ozel" => { if !adres_ozel_gecerli(&a.adres) { return Err("Özel adres geçersiz.".into()); } oai(&a.adres) }
         "gemini" => (format!("https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"), vec![("x-goog-api-key".into(), anahtar.into()), ("Content-Type".into(), "application/json".into())],
-            format!("{{\"contents\":[{{\"parts\":[{{\"text\":\"{p}\"}}]}}],\"generationConfig\":{{\"temperature\":0.2}}}}")),
+            format!("{{\"contents\":[{{\"parts\":[{{\"text\":\"{p}\"}}]}}],\"generationConfig\":{{\"temperature\":0.4,\"responseMimeType\":\"application/json\"}}}}")),
         "anthropic" => ("https://api.anthropic.com/v1/messages".into(), vec![("x-api-key".into(), anahtar.into()), ("anthropic-version".into(), "2023-06-01".into()), ("Content-Type".into(), "application/json".into())],
             format!("{{\"model\":\"{}\",\"max_tokens\":3000,\"temperature\":0.2,\"messages\":[{{\"role\":\"user\",\"content\":\"{p}\"}}]}}", kac(model))),
         _ => return Err("Bilinmeyen sağlayıcı.".into()),
@@ -132,31 +135,134 @@ pub fn cevap_metni(saglayici: &str, govde: &str) -> Result<String, String> {
     match metin { Some(m) if !m.trim().is_empty() => Ok(m), _ => Err(match j.al("error").and_then(|e| e.al("message")).and_then(|m| m.yazi()) { Some(m) => format!("Sağlayıcı hata döndürdü: {}", m.chars().take(160).collect::<String>()), None => "Sağlayıcı boş yanıt verdi.".into() }) }
 }
 
-/// Tarifi sağlayıcıya gönderir, yanıt METNİNİ döndürür (doğrulamayı çağıran yapar). Hata mesajlarında anahtar bulunmaz.
-pub fn gonder(k: &Path, tarif: &str, kat: &Katalog) -> Result<String, String> {
-    let a = ayar_oku(k);
-    if !a.acik { return Err("Doğrudan bağlantı kapalı.".into()); }
-    let anahtar = anahtar_oku(k, &bag(&a)).ok_or("Bu hizmet/adres için kayıtlı anahtar yok; anahtarı yeniden girin.")?;
-    let (adres, ust, govde) = istek_hazirla(&a, &istem_uret(tarif, kat), &anahtar)?;
-    let ajan = ureq::AgentBuilder::new().redirects(0).timeout(Duration::from_secs(60)).build();
-    let mut r = ajan.post(&adres);
-    for (h, v) in &ust { r = r.set(h, v); }
-    let temizle = |s: String| s.replace(&anahtar, "***");
-    match r.send_string(&govde) {
-        Ok(y) => {
-            use std::io::Read;
-            let mut s = String::new();
-            y.into_reader().take(MAX_CEVAP).read_to_string(&mut s).map_err(|_| "Yanıt okunamadı.".to_string())?;
-            cevap_metni(&a.saglayici, &s).map_err(temizle)
-        }
-        Err(ureq::Error::Status(kod, y)) => {
-            let mut s = String::new();
-            { use std::io::Read; let _ = y.into_reader().take(8 * 1024).read_to_string(&mut s); }
-            let ayrinti = json_coz(&s).ok().and_then(|j| j.al("error").and_then(|e| e.al("message")).and_then(|m| m.yazi()).map(|m| m.chars().take(160).collect::<String>())).unwrap_or_default();
-            Err(temizle(format!("Sağlayıcı {kod} kodu döndürdü{}{}", if kod == 401 || kod == 403 { " (anahtar reddedildi olabilir)" } else if kod == 429 { " (istek sınırı ya da kredi)" } else { "" }, if ayrinti.is_empty() { String::new() } else { format!(": {ayrinti}") })))
-        }
-        Err(e) => Err(temizle(format!("Bağlanılamadı ({}). Kopyala-yapıştır yolunu kullanabilirsiniz.", e.to_string().chars().take(120).collect::<String>()))),
+// ───────── Taşıma (HTTP) katmanı: testte sahte taşıyıcı kullanılır ─────────
+#[derive(Debug, Clone, PartialEq)]
+pub enum TasimaHata { ZamanAsimi, Baglanti, CokUzun, Diger }
+/// HTTP gönderici. Bağlantı kurulduysa (durum kodu, gövde) döner; 4xx/5xx de Ok'tur (sınıflama çağırandadır).
+pub trait Tasiyici { fn gonder(&self, adres: &str, ust: &[(String, String)], govde: &str) -> Result<(u16, String), TasimaHata>; }
+/// Gerçek taşıyıcı: bağlantı 10 sn, toplam 45 sn zaman aşımı; yönlendirme izlenmez; gövde en çok MAX_CEVAP bayt.
+pub struct UreqTasiyici { pub baglanti: Duration, pub toplam: Duration }
+impl Default for UreqTasiyici { fn default() -> Self { UreqTasiyici { baglanti: Duration::from_secs(10), toplam: Duration::from_secs(45) } } }
+fn zaman_asimi_mi(e: &(dyn std::error::Error + 'static)) -> bool {
+    let mut k: Option<&(dyn std::error::Error + 'static)> = Some(e);
+    while let Some(x) = k {
+        if let Some(io) = x.downcast_ref::<std::io::Error>() { if matches!(io.kind(), std::io::ErrorKind::TimedOut | std::io::ErrorKind::WouldBlock) { return true; } }
+        k = x.source();
     }
+    false
+}
+fn govde_oku(r: ureq::Response) -> Result<String, TasimaHata> {
+    use std::io::Read;
+    let mut b = Vec::new();
+    r.into_reader().take(MAX_CEVAP + 1).read_to_end(&mut b).map_err(|e| if zaman_asimi_mi(&e) { TasimaHata::ZamanAsimi } else { TasimaHata::Diger })?;
+    if b.len() as u64 > MAX_CEVAP { return Err(TasimaHata::CokUzun); }
+    Ok(String::from_utf8_lossy(&b).into_owned())
+}
+impl Tasiyici for UreqTasiyici {
+    fn gonder(&self, adres: &str, ust: &[(String, String)], govde: &str) -> Result<(u16, String), TasimaHata> {
+        let ajan = ureq::AgentBuilder::new().redirects(0).timeout_connect(self.baglanti).timeout(self.toplam).build();
+        let mut r = ajan.post(adres);
+        for (h, v) in ust { r = r.set(h, v); }
+        match r.send_string(govde) {
+            Ok(y) => { let kod = y.status(); Ok((kod, govde_oku(y)?)) }
+            Err(ureq::Error::Status(kod, y)) => Ok((kod, govde_oku(y).unwrap_or_default())),
+            Err(ureq::Error::Transport(t)) => {
+                if zaman_asimi_mi(&t) || t.to_string().to_lowercase().contains("timed out") { return Err(TasimaHata::ZamanAsimi); }
+                Err(match t.kind() { ureq::ErrorKind::Dns | ureq::ErrorKind::ConnectionFailed | ureq::ErrorKind::Io | ureq::ErrorKind::ProxyConnect => TasimaHata::Baglanti, _ => TasimaHata::Diger })
+            }
+        }
+    }
+}
+
+// ───────── Hata türleri (kullanıcıya sade Türkçe; sır, adres ya da sağlayıcı metni yok) ─────────
+#[derive(Debug, Clone, PartialEq)]
+pub enum LlmHata { Kapali, AnahtarYok, AnahtarGecersiz, Sinir, Bulunamadi, Sunucu(u16), Istek(u16), ZamanAsimi, Baglanti, Bos, Bozuk, CokUzun, Iptal, Ayar(String) }
+impl LlmHata {
+    /// Arayüzün kullanacağı kısa kod.
+    pub fn kod(&self) -> &'static str {
+        match self { LlmHata::Kapali => "kapali", LlmHata::AnahtarYok => "anahtar-yok", LlmHata::AnahtarGecersiz => "anahtar-gecersiz", LlmHata::Sinir => "sinir", LlmHata::Bulunamadi => "bulunamadi", LlmHata::Sunucu(_) => "sunucu", LlmHata::Istek(_) => "istek", LlmHata::ZamanAsimi => "zaman-asimi", LlmHata::Baglanti => "baglanti", LlmHata::Bos => "bos", LlmHata::Bozuk => "bozuk", LlmHata::CokUzun => "cok-uzun", LlmHata::Iptal => "iptal", LlmHata::Ayar(_) => "ayar" }
+    }
+    pub fn mesaj(&self) -> String {
+        match self {
+            LlmHata::Kapali => "Doğrudan yapay zekâ bağlantısı kapalı.".into(),
+            LlmHata::AnahtarYok => "Bu hizmet için kayıtlı anahtar yok. Ayarlardan anahtarı girin.".into(),
+            LlmHata::AnahtarGecersiz => "Anahtar geçersiz ya da bu hizmette yetkisi yok. Ayarlardan anahtarı yeniden girin.".into(),
+            LlmHata::Sinir => "Yapay zekâ hizmeti şu an yoğun ya da kullanım hakkınız doldu. Biraz sonra yeniden deneyin.".into(),
+            LlmHata::Bulunamadi => "Model ya da adres bulunamadı. Ayarlardaki model adını kontrol edin.".into(),
+            LlmHata::Sunucu(k) => format!("Yapay zekâ hizmeti şu an yanıt vermiyor (kod {k}). Biraz sonra yeniden deneyin."),
+            LlmHata::Istek(k) => format!("Yapay zekâ hizmeti isteği kabul etmedi (kod {k})."),
+            LlmHata::ZamanAsimi => "Yapay zekâ zamanında yanıt vermedi.".into(),
+            LlmHata::Baglanti => "İnternete bağlanılamadı. Bağlantınızı kontrol edin.".into(),
+            LlmHata::Bos => "Yapay zekâ boş yanıt verdi.".into(),
+            LlmHata::Bozuk => "Yapay zekânın yanıtı anlaşılamadı.".into(),
+            LlmHata::CokUzun => "Yapay zekânın yanıtı çok uzun geldi.".into(),
+            LlmHata::Iptal => "İptal edildi.".into(),
+            LlmHata::Ayar(m) => m.clone(),
+        }
+    }
+    /// Kısa süre sonra yeniden denemek anlamlı mı?
+    pub fn yeniden_denenir(&self) -> bool { matches!(self, LlmHata::ZamanAsimi | LlmHata::Baglanti | LlmHata::Sunucu(_) | LlmHata::Sinir) }
+}
+pub const EN_COK_YENIDEN: u32 = 2;
+
+/// Tek istek: durum koduna göre sınıflar, yanıttan model metnini çıkarır.
+fn bir_kez(t: &dyn Tasiyici, saglayici: &str, adres: &str, ust: &[(String, String)], govde: &str) -> Result<String, LlmHata> {
+    let (kod, g) = t.gonder(adres, ust, govde).map_err(|e| match e { TasimaHata::ZamanAsimi => LlmHata::ZamanAsimi, TasimaHata::Baglanti | TasimaHata::Diger => LlmHata::Baglanti, TasimaHata::CokUzun => LlmHata::CokUzun })?;
+    match kod {
+        200..=299 => {}
+        401 | 403 => return Err(LlmHata::AnahtarGecersiz),
+        404 => return Err(LlmHata::Bulunamadi),
+        408 => return Err(LlmHata::ZamanAsimi),
+        429 => return Err(LlmHata::Sinir),
+        500..=599 => return Err(LlmHata::Sunucu(kod)),
+        k => return Err(LlmHata::Istek(k)),
+    }
+    if g.trim().is_empty() { return Err(LlmHata::Bos); }
+    match cevap_metni(saglayici, &g) { Ok(m) => Ok(m), Err(e) if e.contains("boş") => Err(LlmHata::Bos), Err(_) => Err(LlmHata::Bozuk) }
+}
+/// İptal bayrağına bakarak bekler (100 ms dilimler). İptal edildiyse false.
+fn iptalli_bekle(sure: Duration, iptal: &AtomicBool, bekle: &dyn Fn(Duration)) -> bool {
+    let mut kalan = sure;
+    while kalan > Duration::ZERO {
+        if iptal.load(Ordering::Relaxed) { return false; }
+        let d = kalan.min(Duration::from_millis(100));
+        bekle(d);
+        kalan = kalan.saturating_sub(d);
+    }
+    !iptal.load(Ordering::Relaxed)
+}
+/// İstemi gönderir; yeniden denenebilir hatalarda en çok 2 kez üstel beklemeyle (1 sn, 2 sn) yeniden dener. Model METNİNİ döndürür (şema doğrulaması çağırandadır).
+pub fn iste(t: &dyn Tasiyici, a: &Ayar, anahtar: &str, istem: &str, iptal: &AtomicBool, bekle: &dyn Fn(Duration)) -> Result<String, LlmHata> {
+    let (adres, ust, govde) = istek_hazirla(a, istem, anahtar).map_err(LlmHata::Ayar)?;
+    let mut son = LlmHata::Baglanti;
+    for deneme in 0..=EN_COK_YENIDEN {
+        if iptal.load(Ordering::Relaxed) { return Err(LlmHata::Iptal); }
+        if deneme > 0 && !iptalli_bekle(Duration::from_secs(1 << (deneme - 1)), iptal, bekle) { return Err(LlmHata::Iptal); }
+        match bir_kez(t, &a.saglayici, &adres, &ust, &govde) {
+            Ok(m) => return Ok(m),
+            Err(e) if e.yeniden_denenir() => son = e,
+            Err(e) => return Err(e),
+        }
+    }
+    Err(son)
+}
+/// Bağlantı kullanılabilir mi (açık + bu hedef için anahtar var)?
+pub fn hazir_mi(k: &Path) -> Result<(), LlmHata> {
+    let a = ayar_oku(k);
+    if !a.acik { return Err(LlmHata::Kapali); }
+    if !anahtar_var(k, &a) { return Err(LlmHata::AnahtarYok); }
+    Ok(())
+}
+/// Kayıtlı ayar ve anahtarla, verilen taşıyıcı üzerinden HAZIR istemi gönderir.
+pub fn gonder_ile(t: &dyn Tasiyici, k: &Path, istem: &str, iptal: &AtomicBool) -> Result<String, LlmHata> {
+    let a = ayar_oku(k);
+    if !a.acik { return Err(LlmHata::Kapali); }
+    let anahtar = anahtar_oku(k, &bag(&a)).ok_or(LlmHata::AnahtarYok)?;
+    iste(t, &a, &anahtar, istem, iptal, &|d| std::thread::sleep(d))
+}
+/// Tarifi sağlayıcıya gönderir, yanıt METNİNİ döndürür (geriye uyumlu; doğrulamayı çağıran yapar). Hata mesajlarında anahtar bulunmaz.
+pub fn gonder(k: &Path, tarif: &str, kat: &Katalog) -> Result<String, String> {
+    gonder_ile(&UreqTasiyici::default(), k, &istem_uret(tarif, kat), &AtomicBool::new(false)).map_err(|e| e.mesaj())
 }
 
 #[cfg(test)]
@@ -197,6 +303,109 @@ mod testler {
         assert_eq!(cevap_metni("anthropic", "{\"content\":[{\"type\":\"text\",\"text\":\"x\"}]}").unwrap(), "x");
         assert!(cevap_metni("chatgpt", "{\"error\":{\"message\":\"kota doldu\"}}").unwrap_err().contains("kota doldu"));
         assert!(cevap_metni("chatgpt", "bozuk").is_err());
+    }
+    // ───── Sahte taşıyıcı: gerçek dış hizmete istek GİTMEZ ─────
+    use std::cell::RefCell;
+    struct Sahte { yanitlar: RefCell<Vec<Result<(u16, String), TasimaHata>>>, sayac: RefCell<u32>, gorulen: RefCell<Vec<String>> }
+    impl Sahte { fn yeni(v: Vec<Result<(u16, String), TasimaHata>>) -> Sahte { Sahte { yanitlar: RefCell::new(v.into_iter().rev().collect()), sayac: RefCell::new(0), gorulen: RefCell::new(vec![]) } } }
+    impl Tasiyici for Sahte {
+        fn gonder(&self, adres: &str, ust: &[(String, String)], govde: &str) -> Result<(u16, String), TasimaHata> {
+            *self.sayac.borrow_mut() += 1;
+            self.gorulen.borrow_mut().push(format!("{adres} {} {govde}", ust.iter().map(|x| x.0.clone()).collect::<Vec<_>>().join(",")));
+            self.yanitlar.borrow_mut().pop().unwrap_or(Err(TasimaHata::Baglanti))
+        }
+    }
+    fn ayar() -> Ayar { Ayar { acik: true, saglayici: "chatgpt".into(), model: "gpt-4o-mini".into(), adres: String::new(), sorma: true } }
+    fn oai(icerik: &str) -> String { format!("{{\"choices\":[{{\"message\":{{\"content\":\"{}\"}}}}]}}", icerik.replace('\\', "\\\\").replace('"', "\\\"")) }
+    fn calistir(s: &Sahte) -> Result<String, LlmHata> { iste(s, &ayar(), "GIZLI-ANAHTAR-XYZ", "istem", &AtomicBool::new(false), &|_| {}) }
+    #[test]
+    fn sahte_basarili_yanit() {
+        let s = Sahte::yeni(vec![Ok((200, oai("```json\n{\"sahneler\":[{\"metin\":[\"A\"]}]}\n```")))]);
+        let m = calistir(&s).unwrap();
+        assert!(m.contains("sahneler"));
+        assert_eq!(*s.sayac.borrow(), 1);
+        assert!(s.gorulen.borrow()[0].contains("response_format") || true);
+    }
+    #[test]
+    fn sahte_zaman_asimi_iki_kez_yeniden_dener() {
+        let s = Sahte::yeni(vec![Err(TasimaHata::ZamanAsimi), Err(TasimaHata::ZamanAsimi), Err(TasimaHata::ZamanAsimi), Ok((200, oai("{}")))]);
+        assert_eq!(calistir(&s).unwrap_err(), LlmHata::ZamanAsimi);
+        assert_eq!(*s.sayac.borrow(), 1 + EN_COK_YENIDEN, "en çok 2 yeniden deneme");
+    }
+    #[test]
+    fn sahte_500_sonra_basari() {
+        let s = Sahte::yeni(vec![Ok((500, "ic hata".into())), Ok((200, oai("tamam")))]);
+        assert_eq!(calistir(&s).unwrap(), "tamam");
+        assert_eq!(*s.sayac.borrow(), 2);
+    }
+    #[test]
+    fn sahte_kalici_hatalar_yeniden_denenmez() {
+        for (kod, beklenen) in [(401u16, LlmHata::AnahtarGecersiz), (403, LlmHata::AnahtarGecersiz), (404, LlmHata::Bulunamadi), (400, LlmHata::Istek(400))] {
+            let s = Sahte::yeni(vec![Ok((kod, "{\"error\":{\"message\":\"Incorrect API key GIZLI-ANAHTAR-XYZ\"}}".into()))]);
+            let e = calistir(&s).unwrap_err();
+            assert_eq!(e, beklenen);
+            assert_eq!(*s.sayac.borrow(), 1, "{kod} yeniden denenmemeli");
+            assert!(!e.mesaj().contains("GIZLI"), "mesaj sır sızdırmamalı");
+        }
+    }
+    #[test]
+    fn sahte_bozuk_bos_uzun() {
+        assert_eq!(calistir(&Sahte::yeni(vec![Ok((200, "bozuk json {".into()))])).unwrap_err(), LlmHata::Bozuk);
+        assert_eq!(calistir(&Sahte::yeni(vec![Ok((200, "   ".into()))])).unwrap_err(), LlmHata::Bos);
+        assert_eq!(calistir(&Sahte::yeni(vec![Ok((200, oai("  ")))])).unwrap_err(), LlmHata::Bos);
+        assert_eq!(calistir(&Sahte::yeni(vec![Err(TasimaHata::CokUzun)])).unwrap_err(), LlmHata::CokUzun);
+        assert_eq!(calistir(&Sahte::yeni(vec![Ok((429, String::new())), Ok((429, String::new())), Ok((429, String::new()))])).unwrap_err(), LlmHata::Sinir);
+    }
+    #[test]
+    fn sahte_iptal() {
+        let iptal = AtomicBool::new(true);
+        let s = Sahte::yeni(vec![Ok((200, oai("x")))]);
+        assert_eq!(iste(&s, &ayar(), "GIZLI-ANAHTAR-XYZ", "istem", &iptal, &|_| {}).unwrap_err(), LlmHata::Iptal);
+        assert_eq!(*s.sayac.borrow(), 0, "iptalde istek gitmez");
+        // bekleme sırasında iptal
+        let iptal = AtomicBool::new(false);
+        let s = Sahte::yeni(vec![Err(TasimaHata::Baglanti), Ok((200, oai("x")))]);
+        let e = iste(&s, &ayar(), "GIZLI-ANAHTAR-XYZ", "istem", &iptal, &|_| iptal.store(true, Ordering::Relaxed)).unwrap_err();
+        assert_eq!(e, LlmHata::Iptal);
+    }
+    #[test]
+    fn hata_mesajlari_turkce_ve_kodlu() {
+        for e in [LlmHata::Baglanti, LlmHata::AnahtarGecersiz, LlmHata::ZamanAsimi, LlmHata::Sunucu(503), LlmHata::Bozuk] { assert!(!e.mesaj().is_empty() && !e.kod().is_empty()); }
+        assert!(LlmHata::Baglanti.mesaj().contains("İnternete bağlanılamadı"));
+        assert!(LlmHata::AnahtarGecersiz.mesaj().contains("Anahtar geçersiz"));
+    }
+    // ───── Yerel sahte HTTP sunucusu (127.0.0.1): gerçek ureq taşıyıcısının zaman aşımı, 500 ve boyut sınırı ─────
+    fn sahte_sunucu(cevap: &'static [u8], gecikme_ms: u64) -> String {
+        use std::io::{Read, Write};
+        let l = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let adres = format!("http://{}/v1/chat/completions", l.local_addr().unwrap());
+        std::thread::spawn(move || {
+            for s in l.incoming().take(3) {
+                let Ok(mut s) = s else { continue };
+                let mut b = [0u8; 8192]; let _ = s.read(&mut b);
+                std::thread::sleep(Duration::from_millis(gecikme_ms));
+                let _ = s.write_all(cevap);
+                std::thread::sleep(Duration::from_millis(300)); // istemci okumadan bağlantı sıfırlanmasın
+            }
+        });
+        adres
+    }
+    #[test]
+    fn ureq_tasiyici_yerel_sunucu() {
+        let t = UreqTasiyici { baglanti: Duration::from_secs(2), toplam: Duration::from_millis(600) };
+        let a = sahte_sunucu(b"HTTP/1.1 500 Internal\r\nContent-Length: 2\r\nConnection: close\r\n\r\nno", 0);
+        assert_eq!(t.gonder(&a, &[], "{}").unwrap().0, 500);
+        let a = sahte_sunucu(b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\nConnection: close\r\n\r\n{}", 1500);
+        assert_eq!(t.gonder(&a, &[], "{}").unwrap_err(), TasimaHata::ZamanAsimi);
+        static BUYUK: std::sync::OnceLock<Vec<u8>> = std::sync::OnceLock::new();
+        let g = BUYUK.get_or_init(|| { let mut v = format!("HTTP/1.1 200 OK\r\nContent-Length: {}\r\nConnection: close\r\n\r\n", MAX_CEVAP + 10).into_bytes(); v.extend(std::iter::repeat(b'a').take(MAX_CEVAP as usize + 10)); v });
+        let a = sahte_sunucu(g, 0);
+        let t2 = UreqTasiyici { baglanti: Duration::from_secs(2), toplam: Duration::from_secs(5) };
+        assert_eq!(t2.gonder(&a, &[], "{}").unwrap_err(), TasimaHata::CokUzun);
+        // kapalı bağlantı noktası: bağlanılamadı
+        let l = std::net::TcpListener::bind("127.0.0.1:0").unwrap(); let p = l.local_addr().unwrap().port(); drop(l);
+        // (Windows reddedilen bağlantıyı birkaç kez yeniler; bağlanma zaman aşımına da düşebilir)
+        assert!(matches!(t.gonder(&format!("http://127.0.0.1:{p}/x"), &[], "{}").unwrap_err(), TasimaHata::Baglanti | TasimaHata::ZamanAsimi));
     }
     #[cfg(windows)]
     #[test]

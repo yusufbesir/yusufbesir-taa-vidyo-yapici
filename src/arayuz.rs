@@ -1,5 +1,6 @@
 //! Yerel arayüz: 127.0.0.1 üzerinde küçük bir HTTP sunucusu; sayfa tarayıcıda açılır.
 //! Dış bağımlılık yok. Yalnız bu bilgisayardan erişilir (Host ve X-LED denetimi).
+//! 1.0 (yenileme-1.0, 2026-11-18) [Claude#UI Opus 5.5]: web/ai.js, web/malzeme.js ve web/yazi/*.woff2 gömülü uç noktaları eklendi. Sahip: Yusuf; değişiklik yalnız UI ajanı ya da Yusuf'un izniyle.
 use crate::{png, uret};
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
@@ -10,6 +11,19 @@ use std::time::{Duration, Instant};
 
 const SAYFA: &str = include_str!("../web/index.html");
 const LOGO: &str = include_str!("../logo/logo.svg");
+// 1.0 modül yuvaları [Claude#UI Opus 5.5, yenileme-1.0, 2026-11-18]: web/ai.js (AI ajanı) ve web/malzeme.js (Malzeme ajanı) gömülü sunulur;
+// dosya yer tutucu yorumsa sayfa mevcut panelleri gösterir.
+const AI_JS: &str = include_str!("../web/ai.js");
+const MALZEME_JS: &str = include_str!("../web/malzeme.js");
+/// Temaların gömülü yazı tipleri (SIL OFL 1.1; lisanslar web/yazi/OFL-*.txt). İnternetten yükleme yok.
+const YAZILAR: &[(&str, &[u8])] = &[
+    ("spacegrotesk.woff2", include_bytes!("../web/yazi/spacegrotesk.woff2")),
+    ("archivo.woff2", include_bytes!("../web/yazi/archivo.woff2")),
+    ("nunito.woff2", include_bytes!("../web/yazi/nunito.woff2")),
+    ("atkinsonhyperlegible-regular.woff2", include_bytes!("../web/yazi/atkinsonhyperlegible-regular.woff2")),
+    ("atkinsonhyperlegible-bold.woff2", include_bytes!("../web/yazi/atkinsonhyperlegible-bold.woff2")),
+    ("ibmplexmono-regular.woff2", include_bytes!("../web/yazi/ibmplexmono-regular.woff2")),
+];
 /// Açılış animasyonları (web/acilis): ana sayfa her açılışta rastgele birini iframe'de oynatır. Logo tek yerde: logo.js (İkiz Kabartma).
 const ACILIS: &[(&str, &str)] = &[
     ("zaman", include_str!("../web/acilis/zaman.html")),
@@ -220,6 +234,12 @@ fn isle(mut s: TcpStream, o: Arc<Ortak>) {
             None => yanit(&mut s, 404, "text/plain; charset=utf-8", b"yok"),
         },
         ("GET", "/logo.svg") => yanit(&mut s, 200, "image/svg+xml", LOGO.as_bytes()),
+        ("GET", "/ai.js") => yanit(&mut s, 200, "text/javascript; charset=utf-8", AI_JS.as_bytes()),
+        ("GET", "/malzeme.js") => yanit(&mut s, 200, "text/javascript; charset=utf-8", MALZEME_JS.as_bytes()),
+        ("GET", y) if y.starts_with("/yazi/") => match YAZILAR.iter().find(|(a, _)| *a == &y[6..]) {
+            Some((_, b)) => yanit(&mut s, 200, "font/woff2", b),
+            None => yanit(&mut s, 404, "text/plain; charset=utf-8", b"yok"),
+        },
         ("GET", "/yz/dar.ttf") => yanit(&mut s, 200, "font/ttf", YZ_DAR),
         ("GET", "/yz/raf.ttf") => yanit(&mut s, 200, "font/ttf", YZ_RAF),
         ("GET", "/bilgi") => {

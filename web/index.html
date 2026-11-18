@@ -1,4 +1,8 @@
 <!doctype html>
+<!-- Açıklama: TAA Vidyo Yapıcı tek sayfa arayüzü (1.0 yerleşimi: üst çubuk, 5 kip, çekmece, ortada sabit sahne, aktarım satırı, alt eylem çubuğu, 6 tema).
+     Sahip: Yusuf. Yazan: [Claude#UI Opus 5.5, yenileme-1.0, 2026-11-18]; önceki sürümler: Claude Sonnet/Opus ekipleri.
+     Değişiklik kuralı: yalnız UI ajanı ya da Yusuf'un izniyle; mevcut JS id'leri, TORBA ve KALICI-AYAR blokları korunur; silme yok.
+     Bağlayıcı tasarım: tasarim/yenileme/karar-fable-tur2.md (temalar, çekmece) ve karar-fable-tur1.md 2. bölüm (yerleşim, kipler). -->
 <html lang="tr">
 <head>
 <meta charset="utf-8">
@@ -22,394 +26,593 @@
   } catch (e) { /* yoksay */ }
 })();
 /* KALICI-AYAR-BITIS */</script>
-<script>try{var t=localStorage.getItem("taa-tema");if(t==="b")document.documentElement.dataset.tema=t}catch(e){}</script>
+<script>/* tema ve çekmece ilk boyamadan önce: eski 'a' (koyu) -> vurus, 'b' (açık) -> vitrin; bilinmeyen -> vitrin */
+(function () { var T = ['vitrin', 'vurus', 'cephe', 'kadraj', 'manset', 'eslik'], t = null, c = null;
+  try { t = localStorage.getItem('taa-tema'); } catch (e) { /* yok */ }
+  if (t === 'a') t = 'vurus'; else if (t === 'b') t = 'vitrin';
+  document.documentElement.dataset.tema = T.indexOf(t) >= 0 ? t : 'vitrin';
+  var dar = window.innerWidth < 1200;
+  try { c = localStorage.getItem(dar ? 'taa.cekmece.dar' : 'taa.cekmece'); } catch (e) { /* yok */ }
+  document.documentElement.dataset.cekmece = c === 'acik' || c === 'kapali' ? c : (dar ? 'kapali' : 'acik');
+})();</script>
 <style>
-:root{color-scheme:dark;--fh:"Segoe UI Variable","Segoe UI",system-ui,-apple-system,Roboto,sans-serif;--fm:"Segoe UI Variable","Segoe UI",system-ui,-apple-system,Roboto,sans-serif;--bg:#18181B;--panel:#242427;--panel2:#2E2E33;--line:#3F3F46;--tx:#FAFAFA;--mut:#B4B4BD;--ac:#93C5FD;--ac2:#BFDBFE;--onac:#172554;--ok:#6EE7B7;--uy:#FCD34D;--r:6px}
+/* ---------- gömülü yazı tipleri (SIL OFL 1.1, lisanslar web/yazi/OFL-*.txt; internetten yükleme yok) ---------- */
+@font-face{font-family:"TAA Space Grotesk";src:url(/yazi/spacegrotesk.woff2) format("woff2");font-weight:300 700;font-display:swap}
+@font-face{font-family:"TAA Archivo";src:url(/yazi/archivo.woff2) format("woff2");font-weight:100 900;font-stretch:62% 125%;font-display:swap}
+@font-face{font-family:"TAA Nunito";src:url(/yazi/nunito.woff2) format("woff2");font-weight:200 1000;font-display:swap}
+@font-face{font-family:"TAA Atkinson";src:url(/yazi/atkinsonhyperlegible-regular.woff2) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"TAA Atkinson";src:url(/yazi/atkinsonhyperlegible-bold.woff2) format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:"TAA Plex Mono";src:url(/yazi/ibmplexmono-regular.woff2) format("woff2");font-weight:400;font-display:swap}
+
+/* ---------- tema jetonları (karar-fable-tur2.md, birebir; tests/arayuz_ui.rs kontrastı denetler) ---------- */
+html[data-tema="vitrin"]{--bg:#F1F0EC;--panel:#FFFFFF;--panel2:#E6E4DE;--line:#7C776E;--tx:#1D1B1A;--mut:#5A564F;--ac:#9A1B3C;--onac:#FFFFFF;--ok:#1E6B3A;--uy:#8A4B00}
+html[data-tema="vurus"]{--bg:#191826;--panel:#232234;--panel2:#2D2B42;--line:#807C9E;--tx:#F0EEF8;--mut:#B7B2CE;--ac:#C2DC55;--onac:#1A2006;--ok:#7FDCC4;--uy:#F7B466}
+html[data-tema="cephe"]{--bg:#112B34;--panel:#193A45;--panel2:#224854;--line:#7FA5B1;--tx:#F4EEE3;--mut:#B7CAD0;--ac:#FFA58C;--onac:#3A1108;--ok:#8FE0B0;--uy:#FFD166}
+html[data-tema="kadraj"]{--bg:#EAF2FA;--panel:#FFFFFF;--panel2:#D9E7F4;--line:#60758A;--tx:#122C43;--mut:#41566A;--ac:#174BD1;--onac:#FFFFFF;--ok:#24613D;--uy:#795000}
+html[data-tema="manset"]{--bg:#F5DC72;--panel:#FFF9E5;--panel2:#E9CD61;--line:#7A6C2E;--tx:#24221B;--mut:#514927;--ac:#173C58;--onac:#FFFFFF;--ok:#205D3D;--uy:#754800}
+html[data-tema="eslik"]{--bg:#351D2A;--panel:#452A39;--panel2:#57384A;--line:#B08CA2;--tx:#FFF3F9;--mut:#D8BFCD;--ac:#F4C3DA;--onac:#3A1428;--ok:#B8DFC7;--uy:#F4D198}
+
+/* ---------- tema iskeleti: yazı, köşe, yüzey ---------- */
+:root{--fg:"Segoe UI Variable Text","Segoe UI Variable","Segoe UI",system-ui,sans-serif;--fh:"Segoe UI Variable Display","Segoe UI Variable","Segoe UI",system-ui,sans-serif;--fm:"Cascadia Mono",Consolas,ui-monospace,monospace;
+  --r-kart:16px;--r-btn:12px;--r-kip:999px;--ara:12px;--cw:400px;--ayrac:var(--panel2);--golge:0 1px 3px rgb(29 27 26/.10);--pervaz:#15171A;--ac2:var(--ac);color-scheme:light}
+html[data-tema="vurus"]{--fg:Bahnschrift,"Segoe UI",system-ui,sans-serif;--fh:Bahnschrift,"Segoe UI",system-ui,sans-serif;--fm:"TAA Plex Mono","Cascadia Mono",Consolas,monospace;--r-kart:2px;--r-btn:2px;--r-kip:2px;--ara:0px;--golge:none;--ayrac:var(--line);color-scheme:dark}
+html[data-tema="cephe"]{--fg:"TAA Space Grotesk","Segoe UI",system-ui,sans-serif;--fh:"TAA Space Grotesk","Segoe UI",system-ui,sans-serif;--r-kart:10px;--r-btn:10px;--r-kip:10px;--ara:12px;--golge:none;color-scheme:dark}
+html[data-tema="kadraj"]{--fg:"TAA Atkinson","Segoe UI",system-ui,sans-serif;--fh:"TAA Atkinson","Segoe UI",system-ui,sans-serif;--r-kart:4px;--r-btn:4px;--r-kip:4px;--ara:12px;--golge:none;--ayrac:var(--panel2)}
+html[data-tema="manset"]{--fg:"TAA Archivo","Segoe UI",system-ui,sans-serif;--fh:"TAA Archivo","Segoe UI",system-ui,sans-serif;--r-kart:0px;--r-btn:0px;--r-kip:0px;--ara:0px;--golge:none;--ayrac:var(--tx)}
+html[data-tema="eslik"]{--fg:"TAA Nunito","Segoe UI",system-ui,sans-serif;--fh:"TAA Nunito","Segoe UI",system-ui,sans-serif;--r-kart:24px;--r-btn:12px;--r-kip:999px;--ara:12px;--golge:none;--ayrac:transparent;color-scheme:dark}
+@media (min-width:1600px){:root{--cw:480px}}
+
+/* ---------- temel ---------- */
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 "Segoe UI Variable","Segoe UI",system-ui,-apple-system,Roboto,sans-serif}
+html,body{height:100%}
+body{margin:0;overflow:hidden;background:var(--bg);color:var(--tx);font:16px/1.5 var(--fg)}
 button,select,input,textarea{font:inherit;color:inherit}
-header{display:flex;align-items:center;gap:12px;padding:12px 24px;border-bottom:1px solid var(--line)}
-header img,header .marka{width:28px;height:28px}
-header h1{font-size:16px;margin:0;font-weight:700;letter-spacing:.01em}
-header .s{color:var(--mut);font-size:12px}
-header .bosluk{flex:1}
-.link{background:none;border:0;color:var(--mut);cursor:pointer;padding:6px 8px;border-radius:8px}
-.link:hover{color:var(--tx);background:var(--panel)}
-main{display:grid;grid-template-columns:minmax(340px,430px) minmax(0,1fr);gap:24px;max-width:1280px;margin:0 auto;padding:24px;align-items:start}
-.sol{display:flex;flex-direction:column;gap:16px;min-width:0}
-.sag{position:sticky;top:16px;min-width:0}
-.kart{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px}
-.baslik{display:flex;align-items:center;gap:10px;margin:0 0 14px;font-size:17px;font-weight:650}
-.no{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:7px;background:var(--ac);color:var(--onac);font-size:13px;font-weight:800}
-.baslik small{margin-left:auto;font-weight:400;color:var(--mut);font-size:12px}
-textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;resize:vertical}
-textarea:focus,input:focus,select:focus,button:focus-visible,summary:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
-#yazi{min-height:116px;font-size:20px;font-weight:700;line-height:1.35}
-.sira{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
-.btn{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 14px;cursor:pointer}
-.btn:hover{border-color:#3a4258}
-.btn.ana{background:var(--ac);color:var(--onac);border-color:var(--ac);font-weight:700}
-.btn.ana:hover{filter:brightness(1.07)}
-.btn.buyuk{padding:12px 22px;font-size:16px}
-.btn:disabled{opacity:.5;cursor:default}
-.stiller{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
-.stil{padding:10px 2px;text-align:center;border-radius:10px;background:var(--panel2);border:1px solid var(--line);cursor:pointer;font-size:13px}
-.stil.sec,.chip.sec,.pal.sec{border-color:var(--ac);box-shadow:0 0 0 1px var(--ac) inset;color:var(--ac2)}
-.renkler{display:flex;gap:10px;margin-top:14px;align-items:center;flex-wrap:wrap}
-.renkler .etiket{margin:0 4px 0 0}
-.nokta{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0}
-.nokta.sec{border-color:var(--ac);box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--ac)}
-.paletler{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:6px}
-.pal{height:42px;border-radius:9px;border:1px solid var(--line);cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px;position:relative}
-.pal i{position:absolute;right:4px;bottom:4px;width:8px;height:8px;border-radius:50%}
-.chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{padding:5px 11px;border-radius:999px;background:var(--panel2);border:1px solid var(--line);cursor:pointer;font-size:12.5px;white-space:nowrap}
-.chip:hover{border-color:#3a4258}
-.etiket{font-size:12px;color:var(--mut);margin:14px 0 6px}
-.iki{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-select,input[type=text],input[type=search]{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:8px 10px}
-.liste{max-height:190px;overflow:auto;display:flex;flex-wrap:wrap;gap:6px;padding:2px;margin-top:8px}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px;box-shadow:0 0 0 4px var(--bg)}
+textarea:focus,input:focus,select:focus{outline:2px solid var(--ac);outline-offset:2px}
+[hidden]{display:none!important}
+.mut{color:var(--mut);font-size:14px}
 .bos{color:var(--mut)}
-.mut{color:var(--mut);font-size:12.5px}
-.sablonlar{margin-top:12px;display:none}
-.sablonlar.acik{display:block}
-.sablonlar h4{margin:12px 0 6px;font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--mut);font-weight:600}
-.sablonlar h4:first-child{margin-top:0}
-.etiketSablon{display:inline-flex;gap:8px;align-items:center;margin-top:10px;padding:4px 10px;border-radius:999px;background:color-mix(in srgb,var(--ac) 14%,transparent);color:var(--ac2);font-size:12.5px}
-.etiketSablon button{background:none;border:0;color:inherit;cursor:pointer;padding:0 2px}
-/* ayrıntılar */
-details.ayr{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
-details.ayr>summary{list-style:none;cursor:pointer;padding:16px 18px;font-size:17px;font-weight:650;display:flex;align-items:center;gap:10px}
-details.ayr>summary::-webkit-details-marker{display:none}
-details.ayr>summary::after{content:"▾";margin-left:auto;color:var(--mut);transition:transform .15s}
-details.ayr[open]>summary::after{transform:rotate(180deg)}
-details.ayr>summary small{font-weight:400;color:var(--mut);font-size:12px}
-.ayrIc{padding:0 18px 12px}
-.bolum{border-top:1px solid var(--line)}
-.bolum>summary{cursor:pointer;padding:12px 0;color:var(--tx);font-size:14px;display:flex;align-items:center;gap:8px;list-style:none}
-.bolum>summary::-webkit-details-marker{display:none}
-.bolum>summary::after{content:"+";margin-left:auto;color:var(--mut)}
-.bolum[open]>summary::after{content:"–"}
-.bolum>div{padding:0 0 14px}
-#sen{min-height:230px;font:12px/1.5 ui-monospace,Consolas,monospace;margin-top:10px}
-input[type=range]{width:100%;accent-color:var(--ac)}
+h2,h3,h4{font-family:var(--fh)}
+.sira{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.iki{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.etiket{font-size:14px;color:var(--mut);margin:14px 0 6px}
 .kontrol{display:flex;align-items:center;gap:10px}
-/* önizleme */
-.durum{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;background:rgba(74,222,128,.09);color:var(--ok);font-size:13.5px;cursor:pointer}
-.durum.uy{background:rgba(251,191,36,.10);color:var(--uy)}
-.durum b{width:8px;height:8px;border-radius:50%;background:currentColor;flex:none}
-.durum span{flex:1}
-#oneriler{margin-top:8px}
-.oneri{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border-radius:9px;background:var(--panel2);margin-bottom:6px;font-size:13px}
-.oneri.uyari{color:var(--uy)}
+input[type=range]{width:100%;accent-color:var(--ac)}
+input[type=checkbox]{width:20px;height:20px;accent-color:var(--ac);flex:none}
+textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:var(--r-btn);padding:12px;resize:vertical}
+select,input[type=text],input[type=search],input[type=number],input[type=password],input:not([type]){width:100%;min-height:48px;background:var(--bg);border:1px solid var(--line);border-radius:var(--r-btn);padding:10px 12px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:10px 16px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-btn);cursor:pointer;font-weight:500;text-align:center;line-height:1.25}
+.btn:hover{background:var(--panel2)}
+.btn.ana{background:var(--panel);border:2px solid var(--ac);font-weight:650}
+.btn:disabled{opacity:.55;cursor:default}
+.link{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 12px;background:none;border:0;border-radius:var(--r-btn);color:var(--tx);cursor:pointer;font-weight:500}
+.link:hover{background:var(--panel2)}
+.simge{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;min-height:40px;padding:8px 12px;border-radius:var(--r-btn);background:var(--panel2);border:1px solid transparent;cursor:pointer;font-size:14px;white-space:nowrap}
+.chip:hover{border-color:var(--line)}
+.chip.sec,.stil.sec,.pal.sec{border:2px solid var(--ac);color:var(--tx);font-weight:650}
+.chip.sec::before,.stil.sec::before{content:"✓";margin-right:6px;color:var(--tx)}
+.liste{max-height:220px;overflow:auto;display:flex;flex-wrap:wrap;gap:6px;padding:2px;margin-top:8px}
+
+/* ---------- uygulama ızgarası: üst 48 / (sekme) / orta / eylem 72 ---------- */
+#app{height:100vh;display:grid;grid-template-rows:48px auto minmax(0,1fr) auto}
+.ustc{display:flex;align-items:center;gap:6px;min-width:0;padding:0 8px 0 0;background:var(--panel);border-bottom:1px solid var(--ayrac)}
+#cekmeceDugme{display:inline-flex;align-items:center;gap:8px;height:48px;min-width:48px;padding:0 14px 0 13px;background:none;border:0;border-right:1px solid var(--ayrac);color:var(--tx);cursor:pointer;font-weight:650}
+#cekmeceDugme:hover{background:var(--panel2)}
+.marka{width:28px;height:28px;flex:none;--ik-on:var(--ac);--ik-ust:color-mix(in srgb,var(--ac) 65%,#fff);--ik-yan:color-mix(in srgb,var(--ac) 70%,#000);--ik-alt:color-mix(in srgb,var(--ac) 55%,#000)}
+html[data-tema="manset"] .marka{--ik-on:var(--tx);--ik-ust:color-mix(in srgb,var(--tx) 60%,#fff);--ik-yan:color-mix(in srgb,var(--tx) 80%,#000);--ik-alt:#000}
+.ustc h1{margin:0 0 0 4px;font:650 17px/1.2 var(--fh);white-space:nowrap}
+#surum{color:var(--mut);font-size:13px;white-space:nowrap;font-family:var(--fm)}
+.ustc .bosluk{flex:1}
+#slotUst{display:flex;justify-content:center;flex:1}
+#slotSekme{display:block;min-height:0}
+.orta{display:grid;grid-template-columns:var(--cw) minmax(0,1fr);gap:var(--ara);padding:var(--ara);min-height:0;overflow:hidden}
+html[data-tema="vurus"] .orta,html[data-tema="kadraj"] .orta{grid-template-columns:minmax(0,1fr) var(--cw)}
+html[data-tema="vurus"] .cekmece,html[data-tema="kadraj"] .cekmece{order:2}
+html[data-cekmece="kapali"] .orta{grid-template-columns:minmax(0,1fr)!important}
+html[data-cekmece="kapali"] .cekmece{display:none}
+
+/* ---------- çekmece (çalışma paneli) ---------- */
+.cekmece{display:grid;grid-template-columns:minmax(0,1fr);min-height:0;min-width:0;background:var(--panel);border-radius:var(--r-kart);box-shadow:var(--golge);overflow:hidden;position:relative}
+html[data-tema="cephe"] .cekmece{grid-template-columns:76px minmax(0,1fr)}
+#slotRay{display:none}
+html[data-tema="cephe"] #slotRay{display:block;background:var(--bg);border-right:1px solid var(--panel2);overflow-y:auto}
+.panel{display:flex;flex-direction:column;min-height:0;min-width:0;position:relative}
+.phead{display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-height:56px;padding:4px 4px 4px 16px;border-bottom:1px solid var(--ayrac)}
+.phead h2{margin:0;flex:1;font-size:19px;font-weight:650;line-height:1.25}
+#slotPanelBas{display:none;flex-basis:100%}
+html[data-tema="kadraj"] #slotPanelBas{display:block;margin:0 4px 4px -12px}
+.kipIcerik{flex:1;min-height:0;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:0}
+.kip{display:none;flex-direction:column;gap:16px;min-width:0}
+.kip.etkin{display:flex}
+.bolumBas{margin:0;font-size:16px;font-weight:650}
+.yardim{color:var(--mut);font-size:14px;margin:0}
+
+/* kip seçici: tek düğme takımı, temaya göre yuvası değişir */
+.kipler{display:flex;gap:4px}
+.kipBtn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 14px;background:none;border:2px solid transparent;border-radius:var(--r-kip);color:var(--mut);cursor:pointer;font-weight:500;white-space:nowrap}
+.kipBtn:hover{color:var(--tx);background:var(--panel2)}
+.kipBtn[aria-current="true"]{color:var(--tx);font-weight:700}
+/* Vitrin: eylem çubuğunun ortasında yüzen hap çubuk */
+#slotEylem{display:none}
+html[data-tema="vitrin"] #slotEylem{display:flex;justify-content:center;flex:1;min-width:0}
+html[data-tema="vitrin"] #slotEylem .kipler{background:var(--panel2);padding:4px;border-radius:999px}
+html[data-tema="vitrin"] .kipBtn[aria-current="true"]{background:var(--panel);border-color:var(--ac);box-shadow:var(--golge)}
+/* Vuruş: üst çubuğun altında tam genişlik metinli sekme satırı */
+html[data-tema="vurus"] #slotSekme{display:block;background:var(--panel);border-bottom:1px solid var(--line);padding:0 8px}
+html[data-tema="vurus"] .kipBtn{border:0;border-radius:2px;min-height:48px;padding:0 18px}
+html[data-tema="vurus"] .kipBtn::after{content:"";position:absolute;left:10px;right:10px;bottom:0;height:2px;background:var(--ac);transform:scaleX(0);transform-origin:left}
+html[data-tema="vurus"] .kipBtn[aria-current="true"]::after{transform:scaleX(1);transition:transform 140ms cubic-bezier(.2,0,0,1)}
+/* Cephe: çekmecenin içinde 76 px etiketli ray */
+html[data-tema="cephe"] .kipler{flex-direction:column;gap:2px;padding:6px 4px}
+html[data-tema="cephe"] .kipBtn{flex-direction:column;gap:4px;min-height:64px;padding:8px 2px;font-size:13px;white-space:normal;line-height:1.15;text-align:center;border:0}
+html[data-tema="cephe"] .kipBtn[aria-current="true"]{background:var(--panel)}
+html[data-tema="cephe"] .kipBtn[aria-current="true"]::before,html[data-tema="cephe"] .kipBtn[aria-current="true"]::after{content:"";position:absolute;top:18px;bottom:18px;width:3px;background:var(--ac);left:3px}
+html[data-tema="cephe"] .kipBtn[aria-current="true"]::after{left:9px}
+/* Kadraj: panel başlığında 5 bölmeli seçici */
+html[data-tema="kadraj"] .kipler{display:grid;grid-template-columns:repeat(5,1fr);gap:0;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+html[data-tema="kadraj"] .kipBtn{flex-direction:column;gap:2px;min-height:56px;padding:4px 2px;font-size:13px;white-space:normal;line-height:1.15;border:0;border-radius:0;border-right:1px solid var(--panel2)}
+html[data-tema="kadraj"] .kipBtn:last-child{border-right:0}
+html[data-tema="kadraj"] .kipBtn[aria-current="true"]{background:var(--panel2);box-shadow:inset 0 -3px 0 var(--ac)}
+/* Manşet: sol çekmecede dikey akordeon (seçili satır yerinde açılır) */
+html[data-tema="manset"] .kipIcerik > .kipler{display:contents}
+html[data-tema="manset"] .kipBtn{justify-content:flex-start;width:100%;min-height:48px;padding:0 16px;border:0;border-bottom:2px solid var(--tx);border-radius:0;font:600 18px/1.2 var(--fh);color:var(--tx)}
+html[data-tema="manset"] .kipBtn[aria-current="true"]{min-height:56px;font-weight:700;background:var(--panel2)}
+html[data-tema="manset"] .kipBtn[aria-current="true"]::before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:6px;background:var(--tx)}
+html[data-tema="manset"] .kipIcerik{padding:0}
+html[data-tema="manset"] .kip{padding:16px;border-bottom:2px solid var(--tx);overflow:hidden}
+html[data-tema="manset"] .kipBtn[data-i="0"]{order:0}html[data-tema="manset"] .kip[data-i="0"]{order:1}
+html[data-tema="manset"] .kipBtn[data-i="1"]{order:2}html[data-tema="manset"] .kip[data-i="1"]{order:3}
+html[data-tema="manset"] .kipBtn[data-i="2"]{order:4}html[data-tema="manset"] .kip[data-i="2"]{order:5}
+html[data-tema="manset"] .kipBtn[data-i="3"]{order:6}html[data-tema="manset"] .kip[data-i="3"]{order:7}
+html[data-tema="manset"] .kipBtn[data-i="4"]{order:8}html[data-tema="manset"] .kip[data-i="4"]{order:9}
+html[data-tema="manset"] .phead h2{visibility:hidden}
+/* Eşlik: üst çubuğun ortasında hap grubu */
+html[data-tema="eslik"] #slotUst .kipler{background:var(--bg);padding:3px;border-radius:999px;gap:2px}
+html[data-tema="eslik"] .kipBtn{min-height:42px;padding:0 14px}
+html[data-tema="eslik"] .kipBtn[aria-current="true"]{background:var(--panel2);border-color:var(--ac)}
+html[data-tema="eslik"] .ustc{height:48px}
+@media (max-width:1500px){html[data-tema="eslik"] #slotUst .kipBtn span{font-size:14px}html[data-tema="eslik"] #slotUst .kipBtn{padding:0 10px}}
+
+/* ---------- sahne ---------- */
+.sahne{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--panel);border-radius:var(--r-kart);box-shadow:var(--golge);position:relative}
+html[data-tema="kadraj"] .sahne{box-shadow:inset 0 0 0 1px var(--line)}
+html[data-tema="cephe"] .sahne{box-shadow:inset 0 0 0 2px var(--panel2)}
+html[data-tema="manset"] .sahne{box-shadow:inset 2px 0 0 var(--tx)}
+html[data-tema="vurus"] .sahne{background:var(--bg)}
+html[data-tema="eslik"] .sahne{background:var(--panel)}
+.onizle{display:flex;flex-direction:column;min-height:0;flex:1}
+.sarac{display:flex;align-items:center;gap:8px;min-height:56px;padding:4px 12px;overflow-x:auto;scrollbar-width:thin}
+.sarac .bosluk{flex:1}
+.seg{display:inline-flex;flex:none;border:1px solid var(--line);border-radius:var(--r-btn);overflow:hidden;background:var(--panel)}
+.seg button{min-height:46px;padding:0 14px;background:none;border:0;border-right:1px solid var(--panel2);cursor:pointer;font-size:15px;white-space:nowrap}
+.seg button:last-child{border-right:0}
+.seg button.sec{background:var(--panel2);font-weight:700;box-shadow:inset 0 -3px 0 var(--ac)}
+.anahtar{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 12px;border:1px solid var(--line);border-radius:var(--r-btn);cursor:pointer;white-space:nowrap;flex:none;font-size:15px}
+.sahneler{flex:1;min-height:0;display:flex;justify-content:center;align-items:stretch;gap:28px;padding:4px 16px 8px}
+.cerceve{margin:0;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:0;min-width:0}
+.cerceve figcaption{font-size:14px;color:var(--mut);white-space:nowrap}
+.tuval{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:6px}
+.tuval canvas{display:block;height:100%;width:auto;max-width:100%;object-fit:contain;background:#000;outline:6px solid var(--pervaz);border-radius:1px}
+.sahneler.bina{gap:0}
+#binaFig{flex:1;width:100%}
+#binaFig .tuval canvas{background:var(--panel2);outline:0;border:1px solid var(--line)}
+.binaOlcu{width:100%;padding:0 8px}
+.binaOlcu>summary{cursor:pointer;min-height:40px;display:flex;align-items:center;color:var(--mut);font-size:14px}
+.binaAyar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:14px;color:var(--mut);padding:6px 0}
+.binaAyar input[type=number]{width:80px;min-height:40px;padding:4px 8px}
+#sim.uzak{filter:none;opacity:.9}
+.onizle:fullscreen{background:#05060a;padding:16px}
+.onizle:fullscreen .sarac,.onizle:fullscreen figcaption{color:#e6e6e6}
+/* Kadraj imzası: sahnenin dört köşe işareti */
+.kose{display:none;position:absolute;width:18px;height:18px;border:0 solid var(--ac);pointer-events:none}
+html[data-tema="kadraj"] .kose{display:block}
+.kose.k1{top:8px;left:8px;border-width:3px 0 0 3px}.kose.k2{top:8px;right:8px;border-width:3px 3px 0 0}.kose.k3{bottom:8px;left:8px;border-width:0 0 3px 3px}.kose.k4{bottom:8px;right:8px;border-width:0 3px 3px 0}
+html[data-tema="kadraj"] .sahne.oturt .k1{animation:kose1 140ms cubic-bezier(.2,0,0,1)}html[data-tema="kadraj"] .sahne.oturt .k2{animation:kose2 140ms cubic-bezier(.2,0,0,1)}
+html[data-tema="kadraj"] .sahne.oturt .k3{animation:kose3 140ms cubic-bezier(.2,0,0,1)}html[data-tema="kadraj"] .sahne.oturt .k4{animation:kose4 140ms cubic-bezier(.2,0,0,1)}
+@keyframes kose1{from{transform:translate(-8px,-8px)}}@keyframes kose2{from{transform:translate(8px,-8px)}}@keyframes kose3{from{transform:translate(-8px,8px)}}@keyframes kose4{from{transform:translate(8px,8px)}}
+
+/* ---------- aktarım satırı (56 px) ---------- */
+.aktar{display:flex;align-items:center;gap:12px;min-height:56px;padding:4px 12px;border-top:1px solid var(--ayrac);position:relative}
+#oynat{width:48px;min-width:48px;padding:0;font-size:18px}
+#zaman{flex:1;min-width:80px}
+#sure{font-family:var(--fm);font-size:14px;white-space:nowrap;color:var(--mut)}
+#hazir{font-size:13px;color:var(--mut);white-space:nowrap}
+#durum{display:inline-flex;align-items:center;gap:8px;min-height:40px;max-width:44%;padding:6px 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--tx);font-size:14px;cursor:pointer;flex:none}
+html[data-tema="manset"] #durum,html[data-tema="vurus"] #durum,html[data-tema="kadraj"] #durum{border-radius:var(--r-btn)}
+#durum b{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--ok);flex:none}
+#durum b::before{content:"✓";font-size:13px;line-height:1;color:var(--panel);font-weight:800}
+#durum.uy b{background:var(--uy)}#durum.uy b::before{content:"!"}
+#durum span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#oneriler{position:absolute;right:12px;bottom:calc(100% + 6px);width:min(460px,90%);max-height:50vh;overflow:auto;z-index:20;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-kart);padding:8px;box-shadow:0 6px 24px rgb(0 0 0/.18)}
+.oneri{display:flex;gap:8px;align-items:center;padding:8px 10px;border-radius:var(--r-btn);background:var(--panel2);margin-bottom:6px;font-size:14px}
+.oneri:last-child{margin-bottom:0}
+.oneri.uyari{color:var(--tx);box-shadow:inset 3px 0 0 var(--uy)}
 .oneri button{margin-left:auto;flex:none}
-.ust{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0 10px}
-.seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
-.seg button{background:var(--panel2);border:0;padding:5px 11px;cursor:pointer;font-size:13px}
-.seg button.sec{background:var(--ac);color:var(--onac);font-weight:700}
-.ust .bosluk{flex:1}
-.onizle:fullscreen{background:#05060a;padding:20px;overflow:auto}
-.sahneler{display:grid;grid-template-columns:1fr 1fr;gap:16px;justify-items:center;align-items:start}
-.cerceve{margin:0;display:flex;flex-direction:column;align-items:center;gap:6px;width:100%}
-.cerceve figcaption{font-size:12px;color:var(--mut)}
-canvas{width:auto;height:min(64vh,640px);max-width:100%;background:#000;border-radius:6px;border:1px solid #1d2230;display:block}
-#sim.uzak{filter:blur(.7px) brightness(.92)}
-.ilerleme{height:6px;border-radius:99px;background:var(--panel2);overflow:hidden;flex:1;margin-top:0}
-.ilerleme div{height:100%;width:0;background:var(--ac);transition:width .2s}
-.alt{display:flex;align-items:center;gap:12px;margin-top:14px;flex-wrap:wrap}
-#mesaj{font-size:12.5px;color:var(--mut);margin-top:8px;word-break:break-all}
-dialog{background:var(--panel);color:var(--tx);border:1px solid var(--line);border-radius:var(--r);padding:20px;max-width:560px;width:calc(100% - 32px)}
-dialog::backdrop{background:rgba(0,0,0,.65)}
-dialog video{width:100%;max-height:60vh;background:#000;border-radius:8px;margin-top:10px}
-.rehber{display:flex;flex-direction:column;gap:6px;margin-top:10px}
-.rehber button{text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
-.rehber button:hover,.rehber button.sec{border-color:var(--ac)}
-.rehber b{display:block}
-.rehber span{color:var(--mut);font-size:12.5px}
-@media (max-width:1000px){main{grid-template-columns:1fr;padding:14px}.sag{position:static}canvas{height:52vh}}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
-/* açılış katmanı (0.9.5): web/acilis/*.html içinden her açılışta rastgele biri, tam pencere iframe; en geç 4,5 sn */
-#yukleEkrani{position:fixed;inset:0;z-index:9999;background:var(--bg);transition:opacity .2s}
-body:has(#yukleEkrani){overflow:hidden}
-#yukleEkrani.kapan{opacity:0;pointer-events:none}
-#yukleEkrani iframe{display:block;width:100%;height:100%;border:0}
-/* logo: İkiz Kabartma, renkler --ac'den türer (ön=--ac, üst=beyazla %35, yan=siyahla %30, alt yan=siyahla %45) */
-.marka{--ik-on:var(--ac);--ik-ust:color-mix(in srgb,var(--ac) 65%,#fff);--ik-yan:color-mix(in srgb,var(--ac) 70%,#000);--ik-alt:color-mix(in srgb,var(--ac) 55%,#000)}
-/* bina görünümleri (karşıdan / üstten) */
-.cerceve[hidden],.binaAyar[hidden],.binaAyar span[hidden]{display:none}
-.sahneler.bina{grid-template-columns:1fr}
-.seg[hidden]{display:none}
-#binaFig canvas{width:100%;height:auto;max-height:70vh;background:var(--panel2);border:1px solid var(--line);border-radius:6px}
-.binaAyar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:12.5px;color:var(--mut);margin-top:6px}
-.binaAyar input[type=number]{width:70px;padding:4px 6px}
-.binaAyar select{width:auto;padding:4px 6px}
-/* tek tık eylemleri: ana düğme 56 px, diğerleri en az 48 px */
-.alt .btn{min-height:48px}
-.alt .btn.ana{min-height:56px}
-/* Tarif et kartı: düğmeler 48 px, ana eylem 56 px (jeton sözleşmesi) */
-details.tarif>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-height:56px}
-details.tarif>summary::-webkit-details-marker{display:none}
-.tarifBtn{display:inline-flex;align-items:center;min-height:56px;padding:0 24px;font-size:16px;font-weight:700;border-radius:10px;background:var(--ac);color:var(--onac)}
-.tarifIc{margin-top:14px;display:grid;gap:10px}
-.tarifIc .btn,.tarifIc select{min-height:48px}
-.tarifIc .btn.ana{min-height:56px}
-.tarifSahne{border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--panel2);margin:6px 0}
-.tarifUyari{color:var(--uy,#e0a030);margin:4px 0}
-.tarifHata{color:var(--hata,#ff6b6b);margin:4px 0}
-#tarifSonuc ul{margin:4px 0 8px;padding-left:18px}
-#tarifSonuc mark{background:transparent;color:var(--ac);border-bottom:1px dashed var(--ac)}
-#kuralListe div{padding:3px 0;border-bottom:1px solid var(--line)}
-/* ---- Sade tema (0.9.3): koyu-nötr (varsayılan) ve açık-nötr; tek vurgu, düz yüzey, ince çizgi, gölge/gradyan/neon yok; tek aile tipografi (Segoe UI) ---- */
-.baslik,header h1,details.ayr>summary,.etiket,.mut,.sablonlar h4,header .s{font-family:var(--fh)}
-header select{width:auto;padding:4px 8px;font-size:14px}
-[data-tema=b]{color-scheme:light;--onac:#fff;--bg:#F4F4F5;--panel:#fff;--panel2:#F4F4F5;--line:#D4D4D8;--tx:#18181B;--mut:#52525B;--ac:#1D4ED8;--ac2:#1E40AF;--ok:#15803D;--uy:#854D0E;--r:6px}
-[data-tema=b] canvas{border-color:#D4D4D8}
-[data-tema=b] .durum{background:#F0FDF4}
-[data-tema=b] .durum.uy{background:#FEFCE8}
-body{font-size:16px;line-height:1.5}
-main{gap:32px;padding:32px 24px}
-.sol{gap:24px}
-.kart{padding:24px}
-header{padding:12px 24px}
-header img,header .marka{width:32px;height:32px}
-header h1{font-size:18px;font-weight:600;letter-spacing:0}
-.baslik{font-size:18px;font-weight:600;margin-bottom:16px}
-.no{background:var(--panel2);color:var(--mut);border:1px solid var(--line);font-weight:600;border-radius:6px}
-.kart,details.ayr,dialog{border-radius:6px}
-.btn,textarea,select,input[type=text],input[type=search],input[type=number],.stil,.rehber button,.oneri,.durum,.seg,.chip,.etiketSablon,.pal,.link{border-radius:6px}
-.btn,.link{min-height:48px}
-.btn{padding:10px 16px}
-.link{padding:0 12px}
-select,input[type=text],input[type=search]{min-height:48px;padding:10px 12px}
-.btn.ana{font-weight:600}
-.btn:hover{border-color:var(--mut)}
-.btn.ana:hover{filter:none;background:var(--ac2)}
-.btn.buyuk{padding:12px 24px}
-.chip{font-size:14px;padding:8px 12px;min-height:40px;display:inline-flex;align-items:center}
-.stil{font-size:14px;min-height:48px}
-.stil.sec,.chip.sec,.pal.sec{box-shadow:none;border-color:var(--ac);border-width:2px;color:var(--tx)}
-.etiket,.mut,header .s,.baslik small,#mesaj,.oneri,.durum,.binaAyar,.cerceve figcaption,.rehber span{font-size:14px}
-.sablonlar h4{text-transform:none;letter-spacing:0;font-size:14px;font-weight:600}
-.seg button{min-height:40px;font-size:14px}
-.seg button.sec{font-weight:600}
-.nokta.sec{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--ac)}
-.durum b{box-shadow:none}
-.ilerleme div{box-shadow:none}
-#yazi{font-size:20px;font-weight:600}
-.alt .btn{min-height:48px}
-.alt .btn.ana{min-height:56px}
-/* tek ana eylem: yalnız "Videoyu yap" dolu vurgu; Tarif et kartındaki düğmeler vurgu çerçeveli */
-.tarifBtn{background:var(--panel2);color:var(--tx);border:1px solid var(--line);font-weight:600}
-details.tarif[open]>summary .tarifBtn{border-color:var(--ac)}
-.tarifIc .btn.ana,.tarifIc .btn.ana:hover{background:var(--panel2);color:var(--tx);border:1px solid var(--ac);font-weight:600}
-.tarifIc .btn.ana:hover{background:var(--panel)}
-#sasirt.ana,#sasirt.ana:hover{background:var(--panel2);color:var(--tx);border:1px solid var(--ac)}
-/* yapay zekâya yazdır: adımlar; hazır senaryolar galerisi */
-.adimlar{list-style:none;display:flex;gap:8px;flex-wrap:wrap;padding:0;margin:0}
-.adimlar li{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--line);border-radius:6px;font-size:14px;color:var(--mut);background:var(--panel2)}
-.adimlar li b{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;border:1px solid var(--mut);font-size:12px}
+
+/* ---------- eylem çubuğu (72 px, tek dolu düğme) ---------- */
+.eylem{display:flex;align-items:center;gap:12px;min-height:72px;padding:8px 12px;background:var(--panel);border-top:1px solid var(--ayrac);position:relative}
+html[data-tema="vitrin"] .eylem{background:var(--bg);border-top:0}
+.ikinciller{position:relative;display:flex;align-items:center;flex:none}
+.ikIc{display:flex;gap:8px;align-items:center}
+.dahaBtn{display:none}
+@media (max-width:1599px){html[data-tema="vitrin"] .dahaBtn{display:inline-flex}
+  html[data-tema="vitrin"] .ikIc{display:none;position:absolute;left:0;bottom:calc(100% + 8px);flex-direction:column;align-items:stretch;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-kart);padding:8px;box-shadow:0 6px 24px rgb(0 0 0/.16);z-index:30;min-width:220px}
+  html[data-tema="vitrin"] .ikinciller.acik .ikIc{display:flex}}
+.uretGrup{display:flex;align-items:center;gap:10px;margin-left:auto;min-width:0}
+html:not([data-tema="vitrin"]) .uretGrup{flex:1;justify-content:flex-end}
+#mesaj{font-size:14px;color:var(--mut);min-width:0;max-width:420px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere;line-height:1.3}
+#mesaj .btn{min-height:36px;padding:4px 10px;margin-left:6px}
+#uret{min-height:56px;padding:0 28px;font-size:17px;font-weight:700;background:var(--ac);color:var(--onac);border:0;border-radius:var(--r-btn);white-space:nowrap}
+#uret:hover{background:color-mix(in srgb,var(--ac) 88%,var(--tx))}
+html[data-tema="vitrin"] #uret,html[data-tema="eslik"] #uret{border-radius:999px}
+.ilerleme{position:absolute;left:0;right:0;top:-1px;height:4px;background:transparent;overflow:hidden}
+html[data-uretim="1"] .ilerleme{background:var(--panel2)}
+.ilerleme div{height:100%;width:0;background:var(--ac);transition:width .2s linear}
+
+/* ---------- kip içerikleri ---------- */
+#yazi{min-height:150px;font-size:22px;font-weight:650;line-height:1.35}
+.sablonlar{display:none}
+.sablonlar.acik{display:block}
+.sablonlar h4{margin:12px 0 6px;font-size:14px;font-weight:600;color:var(--mut)}
+.sablonlar h4:first-child{margin-top:0}
+.etiketSablon{display:inline-flex;gap:8px;align-items:center;margin-top:4px;padding:4px 4px 4px 12px;border-radius:var(--r-btn);border:1px solid var(--ac);font-size:14px}
+.etiketSablon button{background:none;border:0;color:inherit;cursor:pointer;min-width:36px;min-height:36px}
+.sekmeler{display:flex;gap:0;border-bottom:1px solid var(--line)}
+.sekmeler button{min-height:48px;padding:0 16px;background:none;border:0;border-bottom:3px solid transparent;cursor:pointer;color:var(--mut);font-weight:500;margin-bottom:-1px}
+.sekmeler button[aria-selected="true"]{color:var(--tx);font-weight:700;border-bottom-color:var(--ac)}
+.hazirListe{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.hazirKart{display:flex;flex-direction:column;gap:8px;border:1px solid var(--panel2);border-radius:var(--r-kart);padding:14px;background:var(--panel)}
+html[data-tema="vurus"] .hazirKart,html[data-tema="eslik"] .hazirKart,html[data-tema="cephe"] .hazirKart{background:var(--panel2)}
+.hazirKart>b{font-weight:650}
+.mini{display:flex;gap:4px}
+.miniKare{flex:1;min-height:56px;display:grid;place-items:center;border-radius:2px;font:700 13px "Segoe UI",system-ui,sans-serif;overflow:hidden;text-align:center;padding:2px;outline:3px solid var(--pervaz)}
+.hazirDuzen{display:grid;gap:8px}
+.bosDurum{padding:24px 16px;text-align:center;color:var(--mut);border:1px dashed var(--line);border-radius:var(--r-kart)}
+.bosDurum b{display:block;color:var(--tx);font-size:17px;margin-bottom:4px}
+.stiller{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.stil{display:grid;place-items:center;min-height:52px;padding:6px;text-align:center;border-radius:var(--r-btn);background:var(--panel2);border:1px solid transparent;cursor:pointer;font-size:15px}
+.renkler{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.nokta{width:44px;height:44px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0}
+.nokta.sec{border-color:var(--tx);box-shadow:0 0 0 3px var(--bg),0 0 0 5px var(--ac)}
+.paletler{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
+.pal{height:52px;border-radius:var(--r-btn);border:1px solid var(--line);cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;position:relative}
+.pal i{position:absolute;right:5px;bottom:5px;width:9px;height:9px;border-radius:50%}
+.ornekTaa{display:grid;place-items:center;height:72px;background:#000;border-radius:var(--r-btn);outline:4px solid var(--pervaz);font:900 40px/1 "Segoe UI",sans-serif;letter-spacing:.06em}
+details.bolum{border-top:1px solid var(--ayrac)}
+details.bolum:first-of-type{border-top:0}
+html[data-tema="eslik"] details.bolum{background:var(--panel2);border-radius:12px;border:0;padding:0 14px;margin-bottom:8px}
+details.bolum>summary{cursor:pointer;min-height:52px;display:flex;align-items:center;gap:8px;list-style:none;font-weight:600}
+details.bolum>summary::-webkit-details-marker{display:none}
+details.bolum>summary::after{content:"+";margin-left:auto;color:var(--mut);font-size:20px;width:24px;text-align:center}
+details.bolum[open]>summary::after{content:"–"}
+details.bolum>div{padding:0 0 16px}
+#sen{min-height:240px;font:13px/1.5 var(--fm);margin-top:10px}
+/* yapay zekâ paneli (mevcut, korunuyor; ai.js gelirse yerine geçer) */
+#aiMount.etkin{gap:12px}
+details.tarif>summary{display:none}
+.tarifIc{display:grid;gap:12px}
+.adimlar{list-style:none;display:flex;gap:6px;flex-wrap:wrap;padding:0;margin:0}
+.adimlar li{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid var(--panel2);border-radius:var(--r-btn);font-size:14px;color:var(--mut)}
+.adimlar li b{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;border:1px solid var(--mut);font-size:13px}
 .adimlar li.vurgu{color:var(--tx);border-color:var(--ac)}
 .adimlar li.vurgu b{background:var(--ac);color:var(--onac);border-color:var(--ac)}
-details.kart>summary.hazirBas,details.tarif>summary{list-style:none;cursor:pointer}
-.hazirBas::-webkit-details-marker{display:none}
-.hazirListe{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
-.hazirKart{display:flex;flex-direction:column;gap:8px;border:1px solid var(--line);border-radius:6px;padding:14px;background:var(--panel2)}
-.hazirKart>b{font-weight:600}
-.mini{display:flex;gap:4px}
-.miniKare{flex:1;min-height:56px;display:grid;place-items:center;border-radius:4px;font:700 11px "Segoe UI",system-ui,sans-serif;overflow:hidden;text-align:center;padding:2px;border:1px solid var(--line)}
-.hazirDuzen{display:grid;gap:8px}
-.hazirDuzen input{width:100%;min-height:48px}
-.chip.sec{border-color:var(--ac)}
+.tarifSahne{border:1px solid var(--panel2);border-radius:var(--r-btn);padding:8px 12px;background:var(--panel2);margin:6px 0}
+.tarifUyari{color:var(--uy);margin:4px 0}
+.tarifHata{color:var(--tx);margin:4px 0;box-shadow:inset 3px 0 0 var(--uy);padding-left:10px}
+#tarifSonuc ul{margin:4px 0 8px;padding-left:18px}
+#tarifSonuc mark{background:transparent;color:var(--tx);border-bottom:2px dashed var(--ac)}
+#kuralListe div{padding:4px 0;border-bottom:1px solid var(--panel2)}
+
+/* ---------- iletişim kutuları: Ayarlar (yan sayfa), Rehber ---------- */
+dialog{background:var(--panel);color:var(--tx);border:1px solid var(--line);border-radius:var(--r-kart);padding:20px;max-width:620px;width:calc(100% - 32px)}
+dialog::backdrop{background:rgb(0 0 0/.55)}
+dialog video{width:100%;max-height:60vh;background:#000;border-radius:8px;margin-top:10px}
+.kutuBas{display:flex;align-items:center;gap:10px;margin:-4px 0 12px}
+.kutuBas h2{margin:0;flex:1;font-size:20px}
+#ayarKutu{margin:0 0 0 auto;height:100vh;max-height:100vh;width:min(560px,100vw);max-width:none;border-radius:0;border:0;border-left:1px solid var(--line);padding:16px 20px 24px;overflow:auto}
+#ayarKutu section{padding:16px 0;border-top:1px solid var(--panel2)}
+#ayarKutu section:first-of-type{border-top:0;padding-top:4px}
+#ayarKutu h3{margin:0 0 10px;font-size:17px}
+.temaKartlar{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.temaKart{display:flex;flex-direction:column;gap:8px;padding:10px;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-btn);cursor:pointer;color:var(--tx)}
+.temaKart[aria-pressed="true"]{border:2px solid var(--ac);padding:9px}
+.tkOn{display:grid;grid-template-rows:10px 1fr 12px;gap:4px;height:84px;padding:5px;border-radius:6px;border:1px solid rgb(0 0 0/.12)}
+.tkOn .u{border-radius:2px}.tkOn .g{display:grid;grid-template-columns:1fr 1.4fr;gap:4px}.tkOn .g i{border-radius:2px}.tkOn .b{justify-self:end;width:44%;border-radius:3px}
+.tkAd{display:flex;align-items:baseline;gap:8px}
+.tkAd b{font-size:22px;line-height:1}
+.tkAd span{font-weight:700}
+.tkAlt{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:13px;color:var(--mut)}
+.tkNokta{display:inline-flex;gap:3px}.tkNokta i{width:14px;height:14px;border-radius:50%;border:1px solid rgb(0 0 0/.25)}
+.tkSec{margin-left:auto;font-weight:700;color:var(--tx);font-size:13px}
+.renkSatir{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.renkSatir label{display:inline-flex;align-items:center;gap:8px;min-height:48px}
+.renkSatir input[type=color]{width:48px;height:40px;padding:0;border:1px solid var(--line);border-radius:6px;background:none;cursor:pointer}
+.rehber{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.rehber button{text-align:left;background:var(--panel2);border:1px solid transparent;border-radius:var(--r-btn);padding:10px 12px;cursor:pointer;min-height:48px}
+.rehber button:hover,.rehber button.sec{border-color:var(--ac)}
+.rehber b{display:block}
+.rehber span{color:var(--mut);font-size:14px}
+.logoBuyuk{display:flex;align-items:center;gap:14px}
+.logoBuyuk .marka{width:64px;height:64px}
+
+/* ---------- imza hareketleri (yalnız transform/opacity; hareketi azaltta 120 ms solma) ---------- */
+.perde{display:none;position:absolute;inset:0;pointer-events:none;z-index:5}
+.perde i{position:absolute;top:0;bottom:0;width:50.5%;background:var(--panel2)}
+.perde i:first-child{left:0}.perde i:last-child{right:0}
+html[data-tema="vitrin"] .panel.imza .perde{display:block}
+html[data-tema="vitrin"] .panel.imza .perde i:first-child{animation:perdeSol 200ms cubic-bezier(.2,0,0,1) forwards}
+html[data-tema="vitrin"] .panel.imza .perde i:last-child{animation:perdeSag 200ms cubic-bezier(.2,0,0,1) forwards}
+@keyframes perdeSol{to{transform:translateX(-101%)}}@keyframes perdeSag{to{transform:translateX(101%)}}
+html[data-tema="vurus"] .panel.imza .kip.etkin{animation:belir 140ms linear}
+html[data-tema="cephe"] .panel.imza .kip.etkin{animation:yuksel 180ms cubic-bezier(.2,0,0,1)}
+html[data-tema="kadraj"] .panel.imza .kip.etkin{animation:belir 140ms linear}
+html[data-tema="manset"] .panel.imza .kip.etkin>*{animation:satir 160ms cubic-bezier(.2,0,0,1)}
+html[data-tema="eslik"] .panel.imza .kip.etkin{animation:belir 140ms linear}
+@keyframes belir{from{opacity:0}}@keyframes yuksel{from{opacity:0;transform:translateY(12px)}}@keyframes satir{from{transform:translateY(-24px);opacity:0}}
+#yukleEkrani{position:fixed;inset:0;z-index:9999;background:var(--bg);transition:opacity .2s}
+#yukleEkrani.kapan{opacity:0;pointer-events:none}
+#yukleEkrani iframe{display:block;width:100%;height:100%;border:0}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:0ms!important;animation:none!important}
+  .panel.imza .kip.etkin{animation:belir 120ms linear!important}}
+/* dar pencere (Windows ölçeklemesi): panel yine itilir, üstüne binmez */
+@media (max-width:1199px){:root{--cw:360px}.ustc h1{font-size:15px}#surum{display:none}.ustc .link span{display:none}}
 </style>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="ikiz-kabartma" viewBox="0 0 128 128"><path style="fill:var(--ik-ust,#C9566F)" d="M16 16 H40 L46 10 H22 Z"/><path style="fill:var(--ik-yan,#6E1229)" d="M40 16 L56 64 L62 58 L46 10 Z"/><path style="fill:var(--ik-alt,#560D20)" d="M56 64 L40 112 L46 106 L62 58 Z"/><path style="fill:var(--ik-on,#9A1B3C)" d="M16 16 H40 L56 64 L40 112 H16 L32 64 Z"/><path style="fill:var(--ik-ust,#C9566F)" d="M88 16 H112 L106 10 H82 Z"/><path style="fill:var(--ik-yan,#6E1229)" d="M88 16 L72 64 L66 58 L82 10 Z"/><path style="fill:var(--ik-alt,#560D20)" d="M72 64 L88 112 L82 106 L66 58 Z"/><path style="fill:var(--ik-on,#9A1B3C)" d="M88 16 H112 L96 64 L112 112 H88 L72 64 Z"/></symbol></defs></svg>
 <div id="yukleEkrani" role="status" aria-label="Açılış animasyonu"><iframe id="acilisCerceve" title="Açılış animasyonu" tabindex="-1"></iframe></div>
-<header>
+<div id="app">
+<header class="ustc">
+  <button type="button" id="cekmeceDugme" aria-controls="cekmece" aria-expanded="true" aria-label="Paneli kapat" title="Paneli kapat (Ctrl+B)" aria-keyshortcuts="Control+B"><svg class="simge" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg><span id="cekmeceKip">Yaz</span></button>
   <svg class="marka" viewBox="0 0 128 128" aria-hidden="true"><use href="#ikiz-kabartma"/></svg>
   <h1>TAA Vidyo Yapıcı</h1>
-  <span class="s" id="surum"></span>
+  <span id="surum"></span>
+  <div id="slotUst"></div>
   <span class="bosluk"></span>
-  <label class="mut" title="Vurgu rengi">Vurgu <input type="color" id="renkVurgu" aria-label="Vurgu rengi" style="width:30px;height:24px;padding:0;border:1px solid var(--line);background:none"></label><label class="mut" title="Zemin rengi">Zemin <input type="color" id="renkZemin" aria-label="Zemin rengi" style="width:30px;height:24px;padding:0;border:1px solid var(--line);background:none"></label><button class="link" id="renkSifirla" title="Bu temanın renklerini varsayılana döndür">Varsayılana dön</button>
-  <select id="tema" title="Tema" aria-label="Tema"><option value="a">Koyu (nötr)</option><option value="b">Açık (nötr)</option></select>
-  <button class="link" id="rehberAc">Rehber</button>
-  <button class="link" id="klasor">Klasörü aç</button>
+  <button type="button" class="link" id="yeniVideo" title="Metni ve görünümü temizleyip baştan başlar (geri alınabilir)"><svg class="simge" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Yeni video</span></button>
+  <button type="button" class="link" id="rehberAc"><svg class="simge" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.01"/></svg><span>Rehber</span></button>
+  <button type="button" class="link" id="ayarAc" aria-haspopup="dialog"><svg class="simge" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>Ayarlar</span></button>
 </header>
-<main>
-<section class="sol">
-  <details class="kart tarif" id="tarifKart" open>
-    <summary><span class="tarifBtn">Yapay zekâya yazdır</span><small class="mut">Tarif et: videoyu yazıyla anlatın; yapay zekâ ya da kurallar sahne listesini çıkarsın</small></summary>
-    <div class="tarifIc">
-      <ol class="adimlar" id="adimlar" aria-label="Adımlar">
-        <li><b>1</b> Videoyu yazın</li>
-        <li><b>2</b> İstemi kopyalayın</li>
-        <li><b>3</b> Yapay zekâya yapıştırın</li>
-        <li><b>4</b> Yanıtı buraya yapıştırın</li>
-        <li><b>5</b> Uygulayın</li>
-      </ol>
-      <textarea id="tarifMetin" rows="4" spellcheck="false" placeholder="Örn: Önce &quot;HOŞ GELDİNİZ&quot; altın renkte zıplayarak gelsin, sonra &quot;%30 İNDİRİM&quot; kırmızı ve konfetili olsun. Kapanışta perde."></textarea>
-      <div class="sira">
-        <button class="btn ana" id="tarifCoz" title="İnternetsiz: yerleşik Türkçe kurallarla çözer">Kuraldan çöz</button>
-        <button class="btn ana" id="tarifDogrudan" hidden title="Tarifi ayarlanan yapay zekâ hizmetine gönderir (önce ne gideceği gösterilir)">Doğrudan gönder</button>
-        <button class="btn" id="tarifIstem" title="Yapay zekâya yapıştırılacak istemi panoya kopyalar">İstemi kopyala</button>
-        <span id="tarifSiteler" class="sira" style="margin:0"></span>
-      </div>
-      <p class="mut" style="margin:0">Yapay zekâya yalnız yukarıdaki tarif ve program katalog adları gider. Müşteri adı, telefon, adres gibi kişisel bilgi yazmayın.</p>
-      <div id="panoOneri" class="sira" style="margin:0" hidden><button class="btn ana" id="panoUygula">Panodaki tarifi uygula</button><span class="mut">Panoda geçerli bir sahne listesi bulundu.</span></div>
-      <details class="bolum" id="istemBolum"><summary>Yapay zekâya gidecek istemi göster</summary><div>
-        <p class="mut" style="margin:0 0 8px">Bu metin yapay zekâya yapıştırılır: gerçek katalog adlarınızı, ekran/bina bilgisini (iki dikey ekran 10 x 30 m, logo Ø6 m) ve yazdığınız tarifi içerir.</p>
-        <textarea id="istemMetin" rows="8" readonly spellcheck="false" style="font-size:13px"></textarea>
-        <div class="sira" style="margin:8px 0 0"><button class="btn" id="istemKopya2">Kopyala</button></div>
-      </div></details>
-      <label class="mut" for="tarifYanit">Yapay zekâdan gelen yanıtı buraya yapıştırın</label>
-      <textarea id="tarifYanit" rows="3" spellcheck="false" placeholder="Yanıt { ile başlayan sahne listesi (JSON) olur; kod çiti ve açıklama yazısı olsa da bulunur."></textarea>
-      <div class="sira" style="margin:0"><button class="btn ana" id="tarifUygula">Yanıtı uygula</button></div>
-      <div id="tarifSonuc" aria-live="polite"></div>
-      <details class="bolum" id="llmBolum"><summary>Doğrudan bağlantı (isteğe bağlı) <small class="mut" id="llmDurum">kapalı</small></summary><div class="tarifIc">
-        <p class="mut" style="margin:0">Varsayılan KAPALI. Açarsanız tarif metni ve program katalog adları seçtiğiniz yapay zekâ hizmetine internetten gönderilir (her seferinde ne gideceği size gösterilir). Anahtarınız Windows kullanıcı şifrelemesiyle saklanır, ekranda bir daha gösterilmez, günlüğe yazılmaz. Bağlantı olmazsa kopyala-yapıştır yolu kullanılır.</p>
-        <label class="mut">Hizmet <select id="llmSag" style="width:100%"></select></label>
-        <label class="mut">Model (değiştirilebilir) <input id="llmModel" style="width:100%;min-height:48px" spellcheck="false"></label>
-        <label class="mut" id="llmAdresEt" hidden>Adres (https) <input id="llmAdres" style="width:100%;min-height:48px" spellcheck="false" placeholder="https://.../v1/chat/completions"></label>
-        <label class="mut">Anahtar <input id="llmAnahtar" type="password" autocomplete="off" style="width:100%;min-height:48px" placeholder="(kayıtlıysa boş bırakın)"></label>
-        <label class="mut"><input type="checkbox" id="llmAcik"> Doğrudan bağlantıyı aç</label>
-        <label class="mut"><input type="checkbox" id="llmSorma"> Bir daha sorma (gönderilecek metni göstermeden gönder)</label>
-        <div class="sira" style="margin:0"><button class="btn ana" id="llmKaydet">Kaydet</button><button class="btn" id="llmKaldir" title="Kayıtlı anahtarı kullanılamaz yapar ve bağlantıyı kapatır">Anahtarı kaldır</button></div>
-      </div></details>
-      <details class="bolum" id="kuralBolum"><summary>Kural listesi <small class="mut" id="kuralSay"></small></summary><div>
-        <input id="kuralAra" type="search" placeholder="Kural ara (örn. zıpla, kırmızı, perde)" style="width:100%;min-height:48px">
-        <div id="kuralListe" class="mut" style="max-height:220px;overflow:auto;margin-top:8px"></div>
-      </div></details>
+<nav id="slotSekme" aria-label="Kipler"></nav>
+<main class="orta">
+<aside class="cekmece" id="cekmece" aria-label="Çalışma paneli">
+  <div id="slotRay"></div>
+  <div class="panel" id="panel">
+    <div class="phead">
+      <h2 id="panelBaslik">Ne yazsın?</h2>
+      <button type="button" class="link" id="cekmeceKapat" aria-label="Paneli kapat" title="Paneli kapat (Ctrl+B)"><svg class="simge" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
+      <div id="slotPanelBas"></div>
     </div>
-  </details>
-
-  <details class="kart" id="hazirKart" open>
-    <summary class="hazirBas"><span class="tarifBtn">Hazır senaryolar</span><small class="mut">Metni düzeltin, tek tıkla yükleyin, sonra Videoyu yap</small></summary>
-    <div class="tarifIc">
-      <div class="chips" id="hazirSuz"></div>
-      <div id="hazirListe" class="hazirListe"></div>
-      <div id="hazirMesaj" class="mut" aria-live="polite"></div>
-    </div>
-  </details>
-
-  <div class="kart">
-    <h2 class="baslik"><span class="no">1</span>Ne yazsın?<small>boş satır = yeni mesaj</small></h2>
-    <textarea id="yazi" spellcheck="false" placeholder="PEŞİN FİYATINA&#10;3&#10;TAKSİT">PEŞİN FİYATINA
+    <div class="kipIcerik" id="kipIcerik">
+      <section class="kip etkin" data-kip="yaz" data-i="0" aria-labelledby="panelBaslik">
+        <p class="yardim">Her satır ekranda bir satır olur. Boş satır yeni mesaj başlatır. Yazdıkça sağdaki önizleme güncellenir.</p>
+        <textarea id="yazi" spellcheck="false" aria-label="Ne yazsın?" placeholder="PEŞİN FİYATINA&#10;3&#10;TAKSİT">PEŞİN FİYATINA
 3
 TAKSİT</textarea>
-    <div id="sablonEtiket"></div>
-    <div class="sira">
-      <button class="btn" id="sablonAc">Hazır şablonlar</button>
-      <button class="btn" id="sablonKaydet" title="Şu anki tasarımı şablon olarak sakla">Şablon kaydet</button>
-      <select id="ornek" style="max-width:190px" title="Örnek senaryo"></select>
-    </div>
-    <div class="sablonlar" id="sablonlar"></div>
-  </div>
-
-  <div class="kart">
-    <h2 class="baslik"><span class="no">2</span>Nasıl görünsün?<small><button class="link" id="sifirla" style="padding:2px 6px">Sıfırla</button></small></h2>
-    <div class="stiller" id="stiller"></div>
-    <div class="sira"><button class="btn ana" id="sasirt">Şaşırt beni</button></div>
-    <div class="renkler"><span class="etiket">Renk</span><span id="renkler" class="renkler" style="margin:0"></span></div>
-  </div>
-
-  <details class="ayr" id="ayr">
-    <summary>Ayrıntılar <small>animasyon, yazı, geçiş, çerçeve, çıktı</small></summary>
-    <div class="ayrIc">
-      <details class="bolum"><summary>Animasyon <small class="mut" id="animSay"></small></summary><div>
-        <div class="chips" id="animGrup"></div>
-        <input type="search" id="ara" placeholder="Animasyon ara…" style="margin-top:8px">
-        <div class="liste" id="animListe"></div>
-        <div class="iki">
-          <div><div class="etiket">Giriş</div><select id="giris"></select></div>
-          <div><div class="etiket">Çıkış</div><select id="cikis"></select></div>
+        <div id="sablonEtiket"></div>
+        <div class="sira" style="margin:0">
+          <button type="button" class="btn" id="sablonAc">Hazır şablonlar</button>
+          <button type="button" class="btn" id="sablonKaydet" title="Şu anki tasarımı şablon olarak sakla">Şablon kaydet</button>
+          <select id="ornek" style="flex:1;min-width:160px;width:auto" title="Örnek senaryo" aria-label="Örnek senaryo"></select>
         </div>
-        <div class="etiket">Hareket eğrisi</div>
-        <div class="chips" id="egriler"></div>
-      </div></details>
-      <details class="bolum"><summary>Yazı ve renk</summary><div>
-        <div class="etiket" style="margin-top:0">Yazı stili</div>
-        <div class="chips" id="fontlar"></div>
-        <div class="etiket">Renk paleti</div>
+        <div class="sablonlar" id="sablonlar"></div>
+      </section>
+
+      <section class="kip" data-kip="hazir" data-i="1">
+        <div class="sekmeler" role="tablist" aria-label="Hazır içerik">
+          <button type="button" role="tab" id="hazirSekmeSen" aria-selected="true" aria-controls="hazirKart">Hazır senaryolar</button>
+          <button type="button" role="tab" id="hazirSekmeMal" aria-selected="false" aria-controls="malzemeMount">Malzeme kitaplığı</button>
+        </div>
+        <div id="hazirKart" role="tabpanel" aria-labelledby="hazirSekmeSen">
+          <div class="tarifIc">
+            <p class="yardim">Metni düzeltin, tek tıkla yükleyin; önizlemeyi kontrol edip Videoyu yap'a basın.</p>
+            <div class="chips" id="hazirSuz"></div>
+            <div id="hazirListe" class="hazirListe"></div>
+            <div id="hazirMesaj" class="mut" aria-live="polite"></div>
+          </div>
+        </div>
+        <div id="malzemeMount" role="tabpanel" aria-labelledby="hazirSekmeMal" hidden></div>
+      </section>
+
+      <section class="kip" data-kip="yz" data-i="2" id="aiMount">
+        <details class="tarif" id="tarifKart" open>
+          <summary>Yapay zekâya yazdır</summary>
+          <div class="tarifIc">
+            <p class="yardim">Videoyu yazıyla anlatın; kurallar ya da seçtiğiniz yapay zekâ sahne listesini çıkarsın.</p>
+            <ol class="adimlar" id="adimlar" aria-label="Adımlar">
+              <li><b>1</b> Videoyu yazın</li>
+              <li><b>2</b> İstemi kopyalayın</li>
+              <li><b>3</b> Yapay zekâya yapıştırın</li>
+              <li><b>4</b> Yanıtı yapıştırın</li>
+              <li><b>5</b> Uygulayın</li>
+            </ol>
+            <textarea id="tarifMetin" rows="4" spellcheck="false" aria-label="Videoyu yazıyla anlatın" placeholder="Örn: Önce &quot;HOŞ GELDİNİZ&quot; altın renkte zıplayarak gelsin, sonra &quot;%30 İNDİRİM&quot; kırmızı ve konfetili olsun. Kapanışta perde."></textarea>
+            <div class="sira" style="margin:0">
+              <button type="button" class="btn ana" id="tarifCoz" title="İnternetsiz: yerleşik Türkçe kurallarla çözer">Kuraldan çöz</button>
+              <button type="button" class="btn ana" id="tarifDogrudan" hidden title="Tarifi ayarlanan yapay zekâ hizmetine gönderir (önce ne gideceği gösterilir)">Doğrudan gönder</button>
+              <button type="button" class="btn" id="tarifIstem" title="Yapay zekâya yapıştırılacak istemi panoya kopyalar">İstemi kopyala</button>
+              <span id="tarifSiteler" class="sira" style="margin:0"></span>
+            </div>
+            <p class="mut" style="margin:0">Yapay zekâya yalnız yukarıdaki tarif ve program katalog adları gider. Müşteri adı, telefon, adres gibi kişisel bilgi yazmayın.</p>
+            <div id="panoOneri" class="sira" style="margin:0" hidden><button type="button" class="btn ana" id="panoUygula">Panodaki tarifi uygula</button><span class="mut">Panoda geçerli bir sahne listesi bulundu.</span></div>
+            <label class="mut" for="tarifYanit">Yapay zekâdan gelen yanıtı buraya yapıştırın</label>
+            <textarea id="tarifYanit" rows="3" spellcheck="false" placeholder="Yanıt { ile başlayan sahne listesi (JSON) olur; kod çiti ve açıklama yazısı olsa da bulunur."></textarea>
+            <div class="sira" style="margin:0"><button type="button" class="btn ana" id="tarifUygula">Yanıtı uygula</button></div>
+            <div id="tarifSonuc" aria-live="polite"></div>
+            <div>
+            <details class="bolum" id="istemBolum"><summary>Yapay zekâya gidecek istemi göster</summary><div>
+              <p class="mut" style="margin:0 0 8px">Bu metin yapay zekâya yapıştırılır: gerçek katalog adlarınızı, ekran/bina bilgisini (iki dikey ekran 10 x 30 m, logo Ø6 m) ve yazdığınız tarifi içerir.</p>
+              <textarea id="istemMetin" rows="8" readonly spellcheck="false" style="font-size:13px"></textarea>
+              <div class="sira" style="margin:8px 0 0"><button type="button" class="btn" id="istemKopya2">Kopyala</button></div>
+            </div></details>
+            <details class="bolum" id="llmBolum"><summary>Doğrudan bağlantı (isteğe bağlı) <small class="mut" id="llmDurum">kapalı</small></summary><div class="tarifIc">
+              <p class="mut" style="margin:0">Varsayılan KAPALI. Açarsanız tarif metni ve program katalog adları seçtiğiniz yapay zekâ hizmetine internetten gönderilir (her seferinde ne gideceği size gösterilir). Anahtarınız Windows kullanıcı şifrelemesiyle saklanır, ekranda bir daha gösterilmez, günlüğe yazılmaz. Bağlantı olmazsa kopyala-yapıştır yolu kullanılır.</p>
+              <label class="mut">Hizmet <select id="llmSag"></select></label>
+              <label class="mut">Model (değiştirilebilir) <input id="llmModel" spellcheck="false"></label>
+              <label class="mut" id="llmAdresEt" hidden>Adres (https) <input id="llmAdres" spellcheck="false" placeholder="https://.../v1/chat/completions"></label>
+              <label class="mut">Anahtar <input id="llmAnahtar" type="password" autocomplete="off" placeholder="(kayıtlıysa boş bırakın)"></label>
+              <label class="sira mut" style="margin:0"><input type="checkbox" id="llmAcik"> Doğrudan bağlantıyı aç</label>
+              <label class="sira mut" style="margin:0"><input type="checkbox" id="llmSorma"> Bir daha sorma (gönderilecek metni göstermeden gönder)</label>
+              <div class="sira" style="margin:0"><button type="button" class="btn ana" id="llmKaydet">Kaydet</button><button type="button" class="btn" id="llmKaldir" title="Kayıtlı anahtarı kullanılamaz yapar ve bağlantıyı kapatır">Anahtarı kaldır</button></div>
+            </div></details>
+            <details class="bolum" id="kuralBolum"><summary>Kural listesi <small class="mut" id="kuralSay"></small></summary><div>
+              <input id="kuralAra" type="search" placeholder="Kural ara (örn. zıpla, kırmızı, perde)">
+              <div id="kuralListe" class="mut" style="max-height:240px;overflow:auto;margin-top:8px"></div>
+            </div></details>
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <section class="kip" data-kip="gorunum" data-i="3">
+        <div class="sira" style="margin:0;justify-content:space-between"><h3 class="bolumBas">Stil</h3><button type="button" class="link" id="sifirla" title="Görünüm seçimlerini sıfırla">Sıfırla</button></div>
+        <div class="stiller" id="stiller"></div>
+        <div class="sira" style="margin:0"><button type="button" class="btn ana" id="sasirt">Şaşırt beni</button><span class="mut">Rastgele, okunur bir görünüm dener.</span></div>
+        <h3 class="bolumBas">Renk</h3>
+        <div class="renkler" id="renkler"></div>
+        <h3 class="bolumBas">Renk paleti</h3>
         <div class="paletler" id="paletler"></div>
-        <div class="sira"><span class="mut">Kendi rengin</span><input type="color" id="hex" value="#ffce30" style="width:44px;height:30px;border:0;background:none;padding:0"><button class="btn" id="hexUygula">Uygula</button></div>
-        <div class="etiket">3B derinlik</div>
-        <div class="kontrol"><input type="range" id="derinlik" min="0" max="2.5" step="0.1" value="1"><span id="derinlikV" class="mut">1.0</span></div>
-      </div></details>
-      <details class="bolum"><summary>Açılış ve kapanış</summary><div>
-        <div class="iki">
-          <div><div class="etiket" style="margin-top:0">Açılış</div><select id="acilis"></select></div>
-          <div><div class="etiket" style="margin-top:0">Kapanış</div><select id="kapanis"></select></div>
-        </div>
-      </div></details>
-      <details class="bolum"><summary>Çerçeve, zemin ve efekt</summary><div>
-        <div class="etiket" style="margin-top:0">Çerçeve</div><div class="chips" id="cerceveler"></div>
-        <div class="etiket">Hareketli zemin</div><div class="chips" id="zeminler"></div>
-        <div class="etiket">Efekt ve dekor <span class="mut">(en çok 2 öneriliyor)</span></div><div class="chips" id="efektler"></div>
-      </div></details>
-      <details class="bolum"><summary>Çıktı</summary><div>
-        <div class="iki">
-          <div><div class="etiket" style="margin-top:0">Dosya adı</div><input type="text" id="dosya" value="video"></div>
-          <div><div class="etiket" style="margin-top:0">Biçim</div><select id="kodek"><option value="mp4">MP4 (önerilen)</option><option value="hap">HAP (4'e bölünen ölçü)</option></select></div>
-        </div>
-        <div class="etiket">Panel profili (ekran ölçüsü)</div>
-        <select id="ekran"><option value="950x1800">950×1800 dikey LED (varsayılan)</option><option value="1080x1920">1080×1920 dikey Full HD</option><option value="1080x1080">1080×1080 kare</option><option value="1920x1080">1920×1080 yatay Full HD</option><option value="576x1024">576×1024 küçük dikey</option><option value="1280x720">1280×720 yatay</option></select>
-        <label class="sira mut" style="margin-top:12px"><input type="checkbox" id="dongu"> Dikişsiz döngü (başı ve sonu yumuşak karartır, tekrarda sıçrama olmaz)</label>
-        <label class="sira mut" style="margin-top:12px"><input type="checkbox" id="koruma" checked> Yanıp sönme koruması (ani tam ekran parlamaları yumuşatır)</label>
-      </div></details>
-      <details class="bolum" id="acilisBolum"><summary>Program açılış animasyonları <small class="mut" id="acilisSay"></small></summary><div>
-        <p class="mut" style="margin:0 0 8px">Program her açılışta açık olanlardan birini oynatır; hepsi bir kez oynamadan hiçbiri tekrar gelmez. Tek açıksa hep o oynar, hiçbiri açık değilse program doğrudan açılır. Değişiklik bir sonraki açılışta geçerli olur.</p>
-        <label class="sira mut"><input type="checkbox" id="acilisTam"> Açılış animasyonunu tamamen kapat</label>
-        <div class="sira" style="margin:8px 0"><button type="button" class="btn" id="acilisHepsi">Tümünü aç</button></div>
-        <div id="acilisListe"></div>
-      </div></details>
-      <details class="bolum"><summary>Gelişmiş senaryo metni</summary><div>
-        <div class="sira" style="margin:0 0 8px"><button class="btn istemGit">Yapay zekâya yazdır</button><span class="mut">Senaryoyu elle yazmak yerine tarif edin; yapay zekâ ya da kurallar bu metni üretir.</span></div>
-        <textarea id="sen" spellcheck="false"></textarea>
-      </div></details>
-    </div>
-  </details>
-</section>
+        <div class="sira" style="margin:0"><span class="mut">Kendi rengin</span><input type="color" id="hex" value="#ffce30" aria-label="Kendi rengin" style="width:52px;height:44px;border:1px solid var(--line);border-radius:6px;background:none;padding:0"><button type="button" class="btn" id="hexUygula">Uygula</button></div>
+      </section>
 
-<section class="sag">
-  <div class="kart onizle" id="onizlePanel">
-    <h2 class="baslik" style="margin-bottom:12px"><span class="no">3</span>Hazır<small id="hazir"></small></h2>
-    <div class="durum" id="durum" title="Ayrıntı için tıkla"><b></b><span id="durumMetin">Çözümleniyor…</span></div>
-    <div id="oneriler" hidden></div>
-    <div class="ust">
-      <div class="seg" id="gorunum"><button data-g="duz" class="sec">Düz</button><button data-g="karsi">Bina karşıdan</button></div>
-      <div class="seg" id="isikSeg" hidden title="Cephe ışığı: gündüz ya da akşam"><button data-f="gunduz" class="sec">Gündüz</button><button data-f="aksam">Akşam</button></div>
-      <div class="seg" id="uzaklik"><button data-d="3" class="sec">3 m</button><button data-d="15">15 m</button></div>
-      <label class="mut"><input type="checkbox" id="guvenli"> Güvenli alan</label>
-      <button class="btn istemGit" title="Yapay zekâya yazdırma bölümüne git">Yapay zekâya yazdır</button>
+      <section class="kip" data-kip="ayrinti" data-i="4" id="ayr">
+        <div>
+        <details class="bolum" open><summary>Animasyon <small class="mut" id="animSay"></small></summary><div>
+          <div class="chips" id="animGrup"></div>
+          <input type="search" id="ara" placeholder="Animasyon ara…" aria-label="Animasyon ara" style="margin-top:8px">
+          <div class="liste" id="animListe"></div>
+          <div class="iki">
+            <div><div class="etiket">Giriş</div><select id="giris" aria-label="Giriş"></select></div>
+            <div><div class="etiket">Çıkış</div><select id="cikis" aria-label="Çıkış"></select></div>
+          </div>
+          <div class="etiket">Hareket eğrisi</div>
+          <div class="chips" id="egriler"></div>
+        </div></details>
+        <details class="bolum"><summary>Yazı ve derinlik</summary><div>
+          <div class="etiket" style="margin-top:0">Yazı stili</div>
+          <div class="chips" id="fontlar"></div>
+          <div class="etiket">3B derinlik</div>
+          <div class="kontrol"><input type="range" id="derinlik" min="0" max="2.5" step="0.1" value="1" aria-label="3B derinlik"><span id="derinlikV" class="mut">1.0</span></div>
+        </div></details>
+        <details class="bolum"><summary>Açılış ve kapanış</summary><div>
+          <div class="iki">
+            <div><div class="etiket" style="margin-top:0">Açılış</div><select id="acilis" aria-label="Açılış"></select></div>
+            <div><div class="etiket" style="margin-top:0">Kapanış</div><select id="kapanis" aria-label="Kapanış"></select></div>
+          </div>
+        </div></details>
+        <details class="bolum"><summary>Çerçeve, zemin ve efekt</summary><div>
+          <div class="etiket" style="margin-top:0">Çerçeve</div><div class="chips" id="cerceveler"></div>
+          <div class="etiket">Hareketli zemin</div><div class="chips" id="zeminler"></div>
+          <div class="etiket">Efekt ve dekor <span class="mut">(en çok 2 öneriliyor)</span></div><div class="chips" id="efektler"></div>
+        </div></details>
+        <details class="bolum"><summary>Çıktı</summary><div>
+          <div class="iki">
+            <div><div class="etiket" style="margin-top:0">Dosya adı</div><input type="text" id="dosya" value="video" aria-label="Dosya adı"></div>
+            <div><div class="etiket" style="margin-top:0">Biçim</div><select id="kodek" aria-label="Biçim"><option value="mp4">MP4 (önerilen)</option><option value="hap">HAP (4'e bölünen ölçü)</option></select></div>
+          </div>
+          <div class="etiket">Panel profili (ekran ölçüsü)</div>
+          <select id="ekran" aria-label="Panel profili"><option value="950x1800">950×1800 dikey LED (varsayılan)</option><option value="1080x1920">1080×1920 dikey Full HD</option><option value="1080x1080">1080×1080 kare</option><option value="1920x1080">1920×1080 yatay Full HD</option><option value="576x1024">576×1024 küçük dikey</option><option value="1280x720">1280×720 yatay</option></select>
+          <label class="sira mut" style="margin-top:12px"><input type="checkbox" id="dongu"> Dikişsiz döngü (başı ve sonu yumuşak karartır, tekrarda sıçrama olmaz)</label>
+          <label class="sira mut" style="margin-top:12px"><input type="checkbox" id="koruma" checked> Yanıp sönme koruması (ani tam ekran parlamaları yumuşatır)</label>
+        </div></details>
+        <details class="bolum"><summary>Gelişmiş senaryo metni</summary><div>
+          <div class="sira" style="margin:0 0 8px"><button type="button" class="btn istemGit">Yapay zekâya yazdır</button><span class="mut">Senaryoyu elle yazmak yerine tarif edin.</span></div>
+          <textarea id="sen" spellcheck="false" aria-label="Gelişmiş senaryo metni"></textarea>
+        </div></details>
+        </div>
+      </section>
+    </div>
+    <div class="perde" aria-hidden="true"><i></i><i></i></div>
+  </div>
+</aside>
+
+<section class="sahne" id="sahne" aria-label="Sahne">
+  <span class="kose k1"></span><span class="kose k2"></span><span class="kose k3"></span><span class="kose k4"></span>
+  <div class="onizle" id="onizlePanel">
+    <div class="sarac" role="toolbar" aria-label="Sahne araçları">
+      <div class="seg" id="gorunum" role="group" aria-label="Görünüm"><button type="button" data-g="duz" class="sec">Düz</button><button type="button" data-g="karsi">Bina karşıdan</button></div>
+      <div class="seg" id="isikSeg" hidden role="group" aria-label="Cephe ışığı" title="Cephe ışığı: gündüz ya da akşam"><button type="button" data-f="gunduz" class="sec">Gündüz</button><button type="button" data-f="aksam">Akşam</button></div>
+      <div class="seg" id="uzaklik" role="group" aria-label="İzleme uzaklığı"><button type="button" data-d="3" class="sec">3 m</button><button type="button" data-d="15">15 m</button></div>
+      <label class="anahtar"><input type="checkbox" id="guvenli"> Güvenli alan</label>
       <span class="bosluk"></span>
-      <button class="btn" id="tamEkran" title="Tam ekran">⛶</button>
+      <button type="button" class="btn" id="tamEkran" title="Tam ekran" aria-label="Tam ekran"><svg class="simge" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span>Tam ekran</span></button>
     </div>
     <div class="sahneler">
-      <figure class="cerceve" id="tasarimFig"><canvas id="tasarim"></canvas><figcaption>Tasarım</figcaption></figure>
-      <figure class="cerceve" id="simFig"><canvas id="sim"></canvas><figcaption id="simBaslik">Ekranda nasıl görünür · 3 m</figcaption></figure>
-      <figure class="cerceve" id="binaFig" hidden><canvas id="bina"></canvas><figcaption id="binaBaslik"></figcaption><div class="binaAyar" id="binaAyar" hidden></div></figure>
+      <figure class="cerceve" id="tasarimFig"><div class="tuval"><canvas id="tasarim"></canvas></div><figcaption>Tasarım</figcaption></figure>
+      <figure class="cerceve" id="simFig"><div class="tuval"><canvas id="sim"></canvas></div><figcaption id="simBaslik">Ekranda nasıl görünür · 3 m</figcaption></figure>
+      <figure class="cerceve" id="binaFig" hidden><div class="tuval"><canvas id="bina"></canvas></div><figcaption id="binaBaslik"></figcaption><details class="binaOlcu"><summary>Bina ölçüleri (metre)</summary><div class="binaAyar" id="binaAyar" hidden></div></details></figure>
     </div>
-    <div class="kontrol" style="margin-top:12px">
-      <button class="btn" id="oynat">⏸</button>
-      <input type="range" id="zaman" min="0" max="1000" value="0">
-      <span class="mut" id="sure" style="white-space:nowrap">0.0 / 0.0 sn</span>
-    </div>
-    <div class="alt">
-      <button class="btn ana buyuk" id="uret">Videoyu yap</button>
-      <button class="btn" id="oynatSon" hidden title="En son yapılan videoyu açar">Son videoyu oynat</button>
-      <button class="btn" id="klasor2" title="Videoların klasörünü açar">Klasörü aç</button>
-      <button class="btn" id="yeniVideo" title="Metni ve görünümü temizleyip baştan başlar">Yeni video</button>
-      <button class="btn" id="iptal" hidden>İptal</button>
-      <div class="ilerleme"><div id="bar"></div></div>
-    </div>
-    <div id="mesaj"></div>
+  </div>
+  <div class="aktar">
+    <button type="button" class="btn" id="oynat" aria-label="Oynat / duraklat" title="Oynat / duraklat">⏸</button>
+    <input type="range" id="zaman" min="0" max="1000" value="0" aria-label="Zaman çubuğu">
+    <span id="sure">0.0 / 0.0 sn</span>
+    <span id="hazir"></span>
+    <div id="durum" role="button" tabindex="0" title="Ayrıntı için tıklayın"><b aria-hidden="true"></b><span id="durumMetin">Çözümleniyor…</span></div>
+    <div id="oneriler" hidden></div>
   </div>
   <video id="kaynak" muted loop playsinline hidden></video>
 </section>
 </main>
+<footer class="eylem">
+  <div class="ilerleme" role="progressbar" aria-label="Video üretim ilerlemesi" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="bar"></div></div>
+  <div class="ikinciller" id="ikinciller">
+    <button type="button" class="btn dahaBtn" id="dahaBtn" aria-expanded="false" aria-controls="ikIc">Diğer ▴</button>
+    <div class="ikIc" id="ikIc">
+      <button type="button" class="btn" id="oynatSon" hidden title="En son yapılan videoyu açar">Son videoyu oynat</button>
+      <button type="button" class="btn" id="klasor2" title="Videoların klasörünü açar">Klasörü aç</button>
+    </div>
+  </div>
+  <div id="slotEylem"></div>
+  <div class="uretGrup">
+    <div id="mesaj" aria-live="polite"></div>
+    <button type="button" class="btn" id="iptal" hidden>İptal</button>
+    <button type="button" class="btn ana buyuk" id="uret" title="Videoyu yap (Ctrl+Enter)">Videoyu yap</button>
+  </div>
+</footer>
+</div>
 
-<dialog id="rehberKutu">
-  <div class="sira" style="margin:0"><b style="font-size:17px">Rehber</b><span class="bosluk" style="flex:1"></span><button class="link" id="rehberKapat">Kapat</button></div>
+<dialog id="ayarKutu" aria-labelledby="ayarBaslik">
+  <div class="kutuBas"><h2 id="ayarBaslik">Ayarlar</h2><button type="button" class="link" id="ayarKapat">Kapat</button></div>
+  <section aria-labelledby="temaBaslik">
+    <h3 id="temaBaslik">Tema</h3>
+    <div class="temaKartlar" id="temaKartlar" role="group" aria-label="Tema seçimi"></div>
+  </section>
+  <section aria-labelledby="renkBaslik">
+    <h3 id="renkBaslik">Bu temanın renkleri</h3>
+    <div class="renkSatir">
+      <label class="mut">Vurgu <input type="color" id="renkVurgu" aria-label="Vurgu rengi"></label>
+      <label class="mut">Zemin <input type="color" id="renkZemin" aria-label="Zemin rengi"></label>
+      <button type="button" class="btn" id="renkSifirla" title="Bu temanın renklerini varsayılana döndür">Varsayılana dön</button>
+    </div>
+    <p class="mut" style="margin:8px 0 0">Okunurluk düşerse yazı ve düğme yazısı kendiliğinden siyaha ya da beyaza çekilir.</p>
+  </section>
+  <section aria-labelledby="panelAyarBaslik">
+    <h3 id="panelAyarBaslik">Çalışma paneli</h3>
+    <p class="mut" style="margin:0">Paneli üst çubuğun en solundaki düğmeyle ya da <b>Ctrl+B</b> ile açıp kapatın. Kipler: Alt+1 Yaz, Alt+2 Hazır, Alt+3 Yapay zekâ, Alt+4 Görünüm, Alt+5 Ayrıntılar. Videoyu yap: Ctrl+Enter.</p>
+  </section>
+  <section>
+    <details class="bolum" id="acilisBolum"><summary>Program açılış animasyonları <small class="mut" id="acilisSay"></small></summary><div>
+      <p class="mut" style="margin:0 0 8px">Program her açılışta açık olanlardan birini oynatır; hepsi bir kez oynamadan hiçbiri tekrar gelmez. Tek açıksa hep o oynar, hiçbiri açık değilse program doğrudan açılır. Değişiklik bir sonraki açılışta geçerli olur.</p>
+      <label class="sira mut"><input type="checkbox" id="acilisTam"> Açılış animasyonunu tamamen kapat</label>
+      <div class="sira" style="margin:8px 0"><button type="button" class="btn" id="acilisHepsi">Tümünü aç</button></div>
+      <div id="acilisListe"></div>
+    </div></details>
+  </section>
+  <section aria-labelledby="dosyaBaslik">
+    <h3 id="dosyaBaslik">Videolar</h3>
+    <button type="button" class="btn" id="klasor">Video klasörünü aç</button>
+  </section>
+  <section class="logoBuyuk">
+    <svg class="marka" viewBox="0 0 128 128" aria-hidden="true"><use href="#ikiz-kabartma"/></svg>
+    <div><b>TAA Vidyo Yapıcı</b> <span class="mut" id="surum2"></span><br><span class="mut">Yazı tipleri: Space Grotesk, Archivo, Nunito, Atkinson Hyperlegible, IBM Plex Mono (SIL OFL 1.1, programla birlikte gömülü).</span></div>
+  </section>
+</dialog>
+
+<dialog id="rehberKutu" aria-labelledby="rehberBaslik">
+  <div class="kutuBas"><h2 id="rehberBaslik">Rehber</h2><button type="button" class="link" id="rehberKapat">Kapat</button></div>
   <div class="rehber" id="rehberListe"></div>
   <video id="rehberVideo" controls playsinline hidden></video>
   <div class="mut" id="rehberMesaj" style="margin-top:8px"></div>
@@ -511,34 +714,7 @@ const acilisDepo = { get: k => localStorage.getItem(k), set: (k, v) => localStor
   document.getElementById('acilisHepsi').onclick = () => { ayar = { tam: false, kapali: [] }; kaydet(); };
   ciz();
 })();
-(() => { const s = document.getElementById('tema'); let t = 'a'; try { t = localStorage.getItem('taa-tema') || 'a'; } catch (e) {} if (!['a','b'].includes(t)) t = 'a'; s.value = t; s.addEventListener('change', () => { const v = s.value; if (v === 'a') delete document.documentElement.dataset.tema; else document.documentElement.dataset.tema = v; try { localStorage.setItem('taa-tema', v); } catch (e) {} }); })();
-// Tema renkleri: vurgu ve zemin, tema başına kalıcı; "Varsayılana dön" ile sıfırlanır.
-(() => {
-  const k = () => 'taa-renk-' + (document.documentElement.dataset.tema || 'a');
-  const oku = () => { try { return JSON.parse(localStorage.getItem(k()) || '{}') || {}; } catch (e) { return {}; } };
-  const yaz = (o) => { try { if (Object.keys(o).length) localStorage.setItem(k(), JSON.stringify(o)); else localStorage.removeItem(k()); } catch (e) { /* kalıcılık yok */ } };
-  const hex = (v) => /^#[0-9a-f]{6}$/i.test(v) ? v.toLowerCase() : null;
-  const parlak = (h) => { const n = parseInt(h.slice(1), 16); return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255; };
-  const kok = document.documentElement.style;
-  const uygula = () => {
-    ['--ac', '--ac2', '--onac', '--bg'].forEach((p) => kok.removeProperty(p));
-    const o = oku(); const a = hex(o.ac || ''), z = hex(o.bg || '');
-    if (a) { kok.setProperty('--ac', a); kok.setProperty('--ac2', a); kok.setProperty('--onac', parlak(a) > 0.6 ? '#111111' : '#ffffff'); }
-    if (z) kok.setProperty('--bg', z);
-    const cs = getComputedStyle(document.documentElement);
-    const ra = document.getElementById('renkVurgu'), rz = document.getElementById('renkZemin');
-    if (ra) ra.value = hex(o.ac || '') || hex(rgb(cs.getPropertyValue('--ac').trim())) || '#93c5fd';
-    if (rz) rz.value = hex(o.bg || '') || hex(rgb(cs.getPropertyValue('--bg').trim())) || '#0c0e13';
-  };
-  const rgb = (s) => { if (/^#[0-9a-f]{6}$/i.test(s)) return s; const m = /^#([0-9a-f])([0-9a-f])([0-9a-f])$/i.exec(s); return m ? '#' + m[1] + m[1] + m[2] + m[2] + m[3] + m[3] : s; };
-  const ra = document.getElementById('renkVurgu'), rz = document.getElementById('renkZemin'), sf = document.getElementById('renkSifirla'), ts = document.getElementById('tema');
-  if (!ra || !rz || !sf || !ts) return;
-  ra.addEventListener('input', () => { const o = oku(); o.ac = ra.value; yaz(o); uygula(); });
-  rz.addEventListener('input', () => { const o = oku(); o.bg = rz.value; yaz(o); uygula(); });
-  sf.addEventListener('click', () => { yaz({}); uygula(); });
-  ts.addEventListener('change', () => setTimeout(uygula, 0));
-  uygula();
-})();
+// (0.9 tema seçici ve tema renkleri 1.0'da aşağıdaki 'temalar' bölümüne taşındı)
 const $ = s => document.querySelector(s);
 const api = (yol, govde, ek) => fetch(yol, {method: govde === undefined ? 'GET' : 'POST', headers: {'X-LED': '1'}, body: govde, ...(ek || {})});
 let bilgi = null, stil = 'yumusak', tohum = 1, ozel = {}, elleDuzenlendi = false, sablon = null;
@@ -644,7 +820,7 @@ $('#sablonKaydet').onclick = sablonKaydet;
 async function baslat() {
   bilgi = await (await api('/bilgi')).json();
   window.acilisKapat && window.acilisKapat();
-  $('#surum').textContent = 'v' + bilgi.surum + (bilgi.ffmpeg ? '' : ' · ffmpeg bulunamadı');
+  $('#surum').textContent = 'v' + bilgi.surum + (bilgi.ffmpeg ? '' : ' · ffmpeg bulunamadı'); $('#surum2').textContent = $('#surum').textContent;
   $('#stiller').innerHTML = bilgi.stiller.map(s => `<div class="stil" data-ad="${s.ad}" title="${s.acik}">${s.ad[0].toUpperCase() + s.ad.slice(1)}</div>`).join('');
   const renk = ad => bilgi.paletler.find(p => p.ad === ad);
   $('#renkler').innerHTML = OZET_RENK.map(renk).filter(Boolean).map(p => `<button class="nokta" data-ad="${p.ad}" title="${p.acik}" style="background:rgb(${p.yuz})"></button>`).join('');
@@ -678,7 +854,7 @@ document.addEventListener('click', e => {
     ozelYaz('efekt', [...s].join(',') || 'yok');
   }
   else if (t.closest('#animListe')) { const g = t.dataset.ad; ozel.giris = g; ozel.cikis = bilgi.cikislar.some(c => c.ad === g) ? g : 'sondur'; sen.value = uygulaOzel(sen.value); degisti(); }
-  else if (t.dataset.g) { animFiltre = t.dataset.g; document.querySelectorAll('#animGrup .chip').forEach(c => c.classList.toggle('sec', c === t)); animCiz(); }
+  else if (t.dataset.g && t.closest('#animGrup')) { animFiltre = t.dataset.g; document.querySelectorAll('#animGrup .chip').forEach(c => c.classList.toggle('sec', c === t)); animCiz(); }
 });
 $('#giris').onchange = e => ozelYaz('giris', e.target.value);
 $('#cikis').onchange = e => ozelYaz('cikis', e.target.value);
@@ -892,21 +1068,28 @@ $('#tamEkran').onclick = () => { const p = $('#onizlePanel'); document.fullscree
 requestAnimationFrame(dongu);
 
 /* ---- video üretimi ---- */
-let izle = null;
+let izle = null, uretiliyor = false;
+function mesajYaz(m, geri) { const k = $('#mesaj'); k.textContent = m; k.title = m; if (geri) { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.textContent = 'Geri al'; b.onclick = () => { geri(); k.textContent = 'Geri alındı.'; }; k.appendChild(b); } }
 $('#uret').onclick = async () => {
-  const r = await api(`/uret?kodek=${$('#kodek').value}&dosya=${q($('#dosya').value)}`, sen.value);
-  if (!r.ok) { $('#mesaj').textContent = await r.text(); return; }
-  $('#uret').disabled = true; $('#iptal').hidden = false; $('#mesaj').textContent = 'üretiliyor…';
+  if (uretiliyor) return;
+  let r; try { r = await api(`/uret?kodek=${$('#kodek').value}&dosya=${q($('#dosya').value)}`, sen.value); } catch (e) { mesajYaz('Program sunucusuna ulaşılamadı.'); return; }
+  if (!r.ok) { mesajYaz(await r.text()); return; }
+  uretiliyor = true; document.documentElement.dataset.uretim = '1';
+  $('#uret').disabled = true; $('#iptal').hidden = false; $('#bar').style.width = '0'; mesajYaz('Video hazırlanıyor…');
   izle = setInterval(async () => {
-    const d = await (await api('/durum')).json();
-    $('#bar').style.width = d.toplam ? (d.kare / d.toplam * 100) + '%' : '0';
-    if (!d.calisiyor) { clearInterval(izle); $('#uret').disabled = false; $('#iptal').hidden = true; $('#mesaj').textContent = d.hata ? 'Hata: ' + d.mesaj : `Tamam: ${d.mesaj} → ${d.dosya}`; if (!d.hata) $('#oynatSon').hidden = false; }
+    let d; try { d = await (await api('/durum')).json(); } catch (e) { return; }
+    const y = d.toplam ? Math.min(100, Math.round(d.kare / d.toplam * 100)) : 0;
+    $('#bar').style.width = y + '%'; document.querySelector('.ilerleme').setAttribute('aria-valuenow', String(y));
+    if (d.calisiyor) { mesajYaz(d.toplam ? `Video yapılıyor: kare ${d.kare} / ${d.toplam} (%${y})` : 'Video hazırlanıyor…'); return; }
+    clearInterval(izle); uretiliyor = false; delete document.documentElement.dataset.uretim;
+    $('#uret').disabled = false; $('#iptal').hidden = true; $('#bar').style.width = '0';
+    mesajYaz(d.hata ? 'Hata: ' + d.mesaj : `Tamam: ${d.mesaj} → ${d.dosya}`); if (!d.hata) $('#oynatSon').hidden = false;
   }, 500);
 };
 $('#iptal').onclick = () => api('/iptal', '');
 $('#klasor2').onclick = () => api('/klasor', '');
 $('#oynatSon').onclick = async () => { const r = await api('/oynat-son', ''); if (!r.ok) $('#mesaj').textContent = 'Oynatılacak video bulunamadı.'; };
-$('#yeniVideo').onclick = () => { $('#sifirla').click(); yazi.value = ''; yazi.dispatchEvent(new Event('input', {bubbles: true})); yazi.focus(); };
+$('#yeniVideo').onclick = () => { const once = {yazi: yazi.value, sen: sen.value, sablon, stil, ozel: Object.assign({}, ozel)}; $('#sifirla').click(); sablondanCik(); yazi.value = ''; yazi.dispatchEvent(new Event('input', {bubbles: true})); kipSec('yaz', {odak: '#yazi'}); mesajYaz('Yeni video başlatıldı.', () => { sablon = once.sablon; sablonEtiketi(); stil = once.stil; ozel = once.ozel; yazi.value = once.yazi; sen.value = once.sen; elleDuzenlendi = true; degisti(); }); };
 (async () => { try { const d = await (await api('/durum')).json(); if (d.dosya && !d.hata) $('#oynatSon').hidden = false; } catch (e) { /* durum yok */ } })();
 $('#klasor').onclick = () => api('/klasor', '');
 
@@ -978,7 +1161,7 @@ async function tarifGoster(j, kaynak) {
   }
   k.innerHTML = `<p><b>Önizleme güncellendi</b> — ${j.sahneler.length} sahne, toplam ${j.sure} sn${j.acilis !== 'yok' ? ', açılış: ' + esc(j.acilis) : ''}${j.kapanis !== 'yok' ? ', kapanış: ' + esc(j.kapanis) : ''}${j.gorunum === 'bina' ? ', görünüm: bina' : ''}</p>${sah}` +
     liste('Şunu anladım:', j.anladim) + liste('Değiştirilenler:', j.notlar, 'tarifUyari') + ogret +
-    '<div class="sira"><button class="btn" id="tarifGeri">Önceki senaryoya dön</button></div><p class="mut">Beğendiyseniz sağdaki “Videoyu yap”a basın; onayınız olmadan video üretilmez.</p>';
+    '<div class="sira"><button class="btn" id="tarifGeri">Önceki senaryoya dön</button></div><p class="mut">Beğendiyseniz alttaki “Videoyu yap”a basın; onayınız olmadan video üretilmez.</p>';
   $('#tarifGeri').onclick = () => { if (tarifOnceki !== null) { sen.value = tarifOnceki; elleDuzenlendi = true; degisti(); tarifMesaj('Önceki senaryoya dönüldü.'); } };
   if ($('#ogret')) {
     const kat = await tarifKatalogAl();
@@ -1069,7 +1252,7 @@ $('#tarifDogrudan').onclick = async () => {
 let panoIz = '', panoMetin = '';
 const kisaIz = t => t.length + ':' + [...t].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7);
 async function panoBak() {
-  if (!$('#tarifKart').open || !document.hasFocus()) return;
+  if (!$('#tarifKart').open || $('#tarifKart').hidden || aktifKip !== 'yz' || !document.hasFocus()) return;
   let t = ''; try { t = await navigator.clipboard.readText(); } catch (e) { return; }
   if (!t || t.length > 64000 || !t.includes('{') || !t.includes('sahneler')) return;
   const iz = kisaIz(t); if (iz === panoIz) return; panoIz = iz;
@@ -1084,7 +1267,7 @@ $('#tarifKart').addEventListener('toggle', panoBak);
 llmYukle();
 
 // ───────── Yapay zekâya yazdır: bulunabilirlik, istem göster, her ekrandan erişim ─────────
-function tarifAc() { const k = $('#tarifKart'); k.open = true; k.scrollIntoView({behavior: 'smooth', block: 'start'}); setTimeout(() => $('#tarifMetin').focus(), 250); }
+function tarifAc() { kipSec('yz', {kullanici: true, odak: '#tarifMetin'}); }
 async function istemGoster() {
   const m = $('#tarifMetin').value.trim();
   $('#istemMetin').value = await (await api('/tarif/istem', m || 'Konu: (buraya videonuzun konusunu ya da tarifini yazın)')).text();
@@ -1135,8 +1318,7 @@ async function hazirYukle(id) {
   const j = await (await api('/tarif/uygula', JSON.stringify(t))).json();
   if (!j.ok) { $('#hazirMesaj').textContent = 'Yüklenemedi: ' + (j.hatalar || []).join(' '); return; }
   tarifOnizle(j);
-  $('#hazirMesaj').textContent = `“${x.ad}” yüklendi: ${j.sahneler.length} sahne, ${j.sure} sn. Önizlemeyi kontrol edin, sonra sağdaki “Videoyu yap”a basın (onayınız olmadan video üretilmez).` + (j.notlar.length ? ' Değişen: ' + j.notlar.join(' ') : '');
-  document.querySelector('.sag').scrollIntoView({behavior: 'smooth', block: 'start'});
+  $('#hazirMesaj').textContent = `“${x.ad}” yüklendi: ${j.sahneler.length} sahne, ${j.sure} sn. Önizlemeyi kontrol edin, sonra alttaki “Videoyu yap”a basın (onayınız olmadan video üretilmez).` + (j.notlar.length ? ' Değişen: ' + j.notlar.join(' ') : '');
 }
 $('#hazirSuz').onclick = e => { const k = e.target.dataset.k; if (!k) return; hazirSuz = k; hazirSuzCiz(); hazirListeCiz(); };
 $('#hazirListe').onclick = e => { const a = e.target.closest('[data-ac]'), y = e.target.closest('[data-yukle]'); if (a) hazirDuzenAc(a.dataset.ac); else if (y) hazirYukle(y.dataset.yukle); };
@@ -1144,7 +1326,242 @@ $('#hazirListe').onclick = e => { const a = e.target.closest('[data-ac]'), y = e
 
 tarifSiteleri();
 setInterval(() => api('/nabiz', ''), 20000); api('/nabiz', '');
+
+// ───────── 1.0 arayüz: kipler, çekmece, temalar, Ayarlar, modül yuvaları (yazan: [Claude#UI Opus 5.5, yenileme-1.0, 2026-11-18]) ─────────
+// Bağlayıcı: karar-fable-tur2.md §2 (çekmece), §4-5 (temalar); karar-fable-tur1.md §2 (5 kip, yerleşim).
+const SVG = {
+  kalem: '<path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/>',
+  izgara: '<rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/>',
+  balon: '<path d="M5 5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-8l-4 3v-3H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/><path d="M8 10h8M8 13h5"/>',
+  palet: '<path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.6-.8 1.6-1.6 0-.9-.6-1.3-.6-2.1 0-.9.7-1.5 1.6-1.5H17a4 4 0 0 0 4-4c0-4.9-4-8.8-9-8.8z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10" cy="7" r="1.2"/><circle cx="14.5" cy="7" r="1.2"/>',
+  surgu: '<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>'
+};
+const simgeSvg = ad => `<svg class="simge" viewBox="0 0 24 24" aria-hidden="true">${SVG[ad]}</svg>`;
+// Kip adı, sırası, simgesi ve kısayolu altı temada AYNI (karar-fable-tur1 §2.2).
+const KIPLER = [
+  {ad: 'yaz', baslik: 'Yaz', panel: 'Ne yazsın?', simge: 'kalem', tus: 'Alt+1'},
+  {ad: 'hazir', baslik: 'Hazır', panel: 'Hazır', simge: 'izgara', tus: 'Alt+2'},
+  {ad: 'yz', baslik: 'Yapay zekâ', panel: 'Yapay zekâya yazdır', simge: 'balon', tus: 'Alt+3'},
+  {ad: 'gorunum', baslik: 'Görünüm', panel: 'Nasıl görünsün?', simge: 'palet', tus: 'Alt+4'},
+  {ad: 'ayrinti', baslik: 'Ayrıntılar', panel: 'Ayrıntılar', simge: 'surgu', tus: 'Alt+5'}
+];
+// Altı tema (karar-fable-tur2): renk = [bg, panel, tx, ac]; yuva = kip seçicinin yeri; sag = çekmece sağda.
+const TEMALAR = [
+  {ad: 'vitrin', baslik: 'Vitrin', acik: 'Açık · porselen ve vişne', renk: ['#F1F0EC', '#FFFFFF', '#1D1B1A', '#9A1B3C'], yazi: '"Segoe UI Variable Display","Segoe UI",sans-serif', yuva: 'slotEylem', sag: false},
+  {ad: 'vurus', baslik: 'Vuruş', acik: 'Koyu · patlıcan ve ıhlamur', renk: ['#191826', '#232234', '#F0EEF8', '#C2DC55'], yazi: 'Bahnschrift,"Segoe UI",sans-serif', yuva: 'slotSekme', sag: true},
+  {ad: 'cephe', baslik: 'Cephe', acik: 'Renkli koyu · petrol ve mercan', renk: ['#112B34', '#193A45', '#F4EEE3', '#FFA58C'], yazi: '"TAA Space Grotesk","Segoe UI",sans-serif', yuva: 'slotRay', sag: false},
+  {ad: 'kadraj', baslik: 'Kadraj', acik: 'Açık · buz mavisi ve kobalt', renk: ['#EAF2FA', '#FFFFFF', '#122C43', '#174BD1'], yazi: '"TAA Atkinson","Segoe UI",sans-serif', yuva: 'slotPanelBas', sag: true},
+  {ad: 'manset', baslik: 'Manşet', acik: 'Açık renkli · sarı ve lacivert', renk: ['#F5DC72', '#FFF9E5', '#24221B', '#173C58'], yazi: '"TAA Archivo","Segoe UI",sans-serif', yuva: 'kipIcerik', sag: false},
+  {ad: 'eslik', baslik: 'Eşlik', acik: 'Koyu renkli · erik ve pudra', renk: ['#351D2A', '#452A39', '#FFF3F9', '#F4C3DA'], yazi: '"TAA Nunito","Segoe UI",sans-serif', yuva: 'slotUst', sag: false}
+];
+var aktifKip = 'yaz';
+const kok = document.documentElement;
+const temaBul = ad => TEMALAR.find(t => t.ad === ad) || TEMALAR[0];
+const azHareketMi = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* kip seçici: tek takım düğme, temaya göre yuvaya taşınır */
+const kipNav = document.createElement('div');
+kipNav.className = 'kipler'; kipNav.setAttribute('role', 'tablist'); kipNav.setAttribute('aria-label', 'Kipler'); kipNav.id = 'kipler';
+kipNav.innerHTML = KIPLER.map((k, i) => `<button type="button" class="kipBtn" role="tab" data-kip="${k.ad}" data-i="${i}" aria-keyshortcuts="${k.tus}" aria-controls="kipIcerik" title="${k.baslik} (${k.tus})">${simgeSvg(k.simge)}<span>${k.baslik}</span></button>`).join('');
+kipNav.addEventListener('click', e => { const b = e.target.closest('.kipBtn'); if (b) kipSec(b.dataset.kip, {kullanici: true}); });
+function kipYuvala() { const y = document.getElementById(temaBul(kok.dataset.tema).yuva); if (!y) return; if (y.id === 'kipIcerik') y.prepend(kipNav); else y.appendChild(kipNav); }
+
+function imzaOynat() {
+  const p = $('#panel'); p.classList.remove('imza'); void p.offsetWidth; p.classList.add('imza');
+  const s = $('#sahne'); s.classList.remove('oturt'); void s.offsetWidth; s.classList.add('oturt');
+  clearTimeout(imzaOynat.t); imzaOynat.t = setTimeout(() => { p.classList.remove('imza'); s.classList.remove('oturt'); }, 320);
+}
+function kipSec(ad, o) {
+  o = o || {};
+  const k = KIPLER.find(x => x.ad === ad); if (!k) return;
+  const degisti = ad !== aktifKip; aktifKip = ad;
+  document.querySelectorAll('.kip').forEach(s => s.classList.toggle('etkin', s.dataset.kip === ad));
+  kipNav.querySelectorAll('.kipBtn').forEach(b => { const e = b.dataset.kip === ad; b.setAttribute('aria-current', e ? 'true' : 'false'); b.setAttribute('aria-selected', e ? 'true' : 'false'); });
+  $('#panelBaslik').textContent = k.panel; $('#cekmeceKip').textContent = k.baslik;
+  if (!cekmeceAcik) cekmeceDegis(true); // kapalı çekmece, bir kipe basınca o kipte açılır
+  if (degisti && !o.ilk) imzaOynat();
+  if (ad === 'hazir' && $('#hazirSekmeMal').getAttribute('aria-selected') === 'true') malzemeBagla();
+  if (ad === 'yz' && typeof panoBak === 'function') panoBak();
+  if (o.odak) setTimeout(() => { const el = document.querySelector(o.odak); if (el && el.offsetParent) el.focus(); }, 60);
+}
+
+/* çekmece: Ctrl+B, kapalıyken 0 px, 180 ms translateX, hareketi azaltta 120 ms solma (tur2 §2) */
+const cekEl = $('#cekmece'), sahneEl = $('#sahne'), cekBtn = $('#cekmeceDugme');
+const darMi = () => window.innerWidth < 1200;
+const cekAnahtar = () => darMi() ? 'taa.cekmece.dar' : 'taa.cekmece';
+let cekmeceAcik = kok.dataset.cekmece !== 'kapali', cekMesgul = false;
+function cekmeceEtiket() {
+  cekBtn.setAttribute('aria-expanded', cekmeceAcik ? 'true' : 'false');
+  const ad = cekmeceAcik ? 'Paneli kapat' : 'Paneli aç';
+  cekBtn.setAttribute('aria-label', ad + ' (' + (KIPLER.find(k => k.ad === aktifKip) || KIPLER[0]).baslik + ')'); cekBtn.title = ad + ' (Ctrl+B)';
+}
+function cekmeceDegis(acik, o) {
+  o = o || {};
+  if (acik === cekmeceAcik || cekMesgul) return;
+  const sag = temaBul(kok.dataset.tema).sag;
+  const gap = parseFloat(getComputedStyle($('.orta')).columnGap) || 0;
+  const bitir = () => { [cekEl, sahneEl].forEach(e => { e.style.transition = ''; e.style.transform = ''; e.style.opacity = ''; }); cekMesgul = false; window.dispatchEvent(new Event('resize')); };
+  if (o.kaydet !== false) { try { localStorage.setItem(cekAnahtar(), acik ? 'acik' : 'kapali'); } catch (e) { /* kalıcılık yok */ } }
+  const az = azHareketMi();
+  if (!acik) {
+    if (cekEl.contains(document.activeElement)) cekBtn.focus(); // odak paneldeyse açma düğmesine döner
+    const W = cekEl.getBoundingClientRect().width;
+    cekMesgul = true;
+    const kapat = () => { cekmeceAcik = false; kok.dataset.cekmece = 'kapali'; cekmeceEtiket(); bitir(); };
+    if (az) { cekEl.style.transition = 'opacity 120ms linear'; cekEl.style.opacity = '0'; setTimeout(kapat, 120); return; }
+    cekEl.style.transition = sahneEl.style.transition = 'transform 180ms cubic-bezier(.2,0,0,1)';
+    cekEl.style.transform = `translateX(${sag ? 100 : -100}%)`;
+    sahneEl.style.transform = `translateX(${sag ? (W + gap) / 2 : -(W + gap) / 2}px)`;
+    setTimeout(kapat, 185);
+  } else {
+    cekmeceAcik = true; kok.dataset.cekmece = 'acik'; cekmeceEtiket();
+    const W = cekEl.getBoundingClientRect().width;
+    if (o.animasyon === false) return;
+    cekMesgul = true;
+    if (az) { cekEl.style.opacity = '0'; void cekEl.offsetWidth; cekEl.style.transition = 'opacity 120ms linear'; cekEl.style.opacity = '1'; setTimeout(bitir, 125); return; }
+    cekEl.style.transform = `translateX(${sag ? 100 : -100}%)`;
+    sahneEl.style.transform = `translateX(${sag ? (W + gap) / 2 : -(W + gap) / 2}px)`;
+    void cekEl.offsetWidth;
+    cekEl.style.transition = sahneEl.style.transition = 'transform 180ms cubic-bezier(.2,0,0,1)';
+    cekEl.style.transform = ''; sahneEl.style.transform = '';
+    setTimeout(bitir, 190);
+  }
+}
+cekBtn.addEventListener('click', () => cekmeceDegis(!cekmeceAcik));
+$('#cekmeceKapat').addEventListener('click', () => cekmeceDegis(false));
+// Pencere 1200 px sınırını geçince ilgili anahtarın kaydı uygulanır (animasyonsuz).
+let sonDar = darMi();
+window.addEventListener('resize', debounce(() => {
+  if (darMi() === sonDar || cekMesgul) return; sonDar = darMi();
+  let v = null; try { v = localStorage.getItem(cekAnahtar()); } catch (e) { /* yok */ }
+  const ist = v === 'acik' ? true : v === 'kapali' ? false : !darMi();
+  if (ist !== cekmeceAcik) { cekmeceAcik = ist; kok.dataset.cekmece = ist ? 'acik' : 'kapali'; cekmeceEtiket(); }
+}, 150));
+
+/* klavye: Ctrl+B çekmece, Alt+1..5 kip (kapalıysa o kipte açar) */
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey && !e.altKey && !e.shiftKey && !e.metaKey && (e.key === 'b' || e.key === 'B' || e.code === 'KeyB')) { e.preventDefault(); cekmeceDegis(!cekmeceAcik); return; }
+  if (e.altKey && !e.ctrlKey && !e.metaKey) {
+    const m = /^Digit([1-5])$/.exec(e.code) || /^([1-5])$/.exec(e.key);
+    if (m) { e.preventDefault(); kipSec(KIPLER[+m[1] - 1].ad, {kullanici: true}); }
+  }
+});
+
+/* temalar ve tema başına renk (taa-renk-<tema>); özel renk okunurluğu bozarsa yazı siyah/beyaza çekilir */
+const hexMi = v => /^#[0-9a-f]{6}$/i.test(v || '') ? v.toLowerCase() : null;
+function parlaklikHex(h) { const n = parseInt(h.slice(1), 16), c = [n >> 16, (n >> 8) & 255, n & 255].map(v => { v /= 255; return v <= .04045 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }); return .2126 * c[0] + .7152 * c[1] + .0722 * c[2]; }
+function kontrastHex(a, b) { const x = parlaklikHex(a), y = parlaklikHex(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); }
+const enIyiYazi = zemin => kontrastHex('#000000', zemin) >= kontrastHex('#ffffff', zemin) ? '#000000' : '#ffffff';
+const renkAnahtar = () => 'taa-renk-' + kok.dataset.tema;
+function renkOkuKayit() { try { return JSON.parse(localStorage.getItem(renkAnahtar()) || '{}') || {}; } catch (e) { return {}; } }
+function renkYazKayit(o) { try { if (Object.keys(o).length) localStorage.setItem(renkAnahtar(), JSON.stringify(o)); else localStorage.removeItem(renkAnahtar()); } catch (e) { /* kalıcılık yok */ } }
+function cssHex(ad) { const v = getComputedStyle(kok).getPropertyValue(ad).trim(); return hexMi(v) || '#000000'; }
+function renkUygula() {
+  const st = kok.style; ['--ac', '--onac', '--bg', '--tx', '--mut'].forEach(p => st.removeProperty(p));
+  const o = renkOkuKayit(), a = hexMi(o.ac), z = hexMi(o.bg);
+  if (a) st.setProperty('--ac', a);
+  if (z) st.setProperty('--bg', z);
+  const ac = cssHex('--ac'), bg = cssHex('--bg'), onac = cssHex('--onac'), tx = cssHex('--tx'), mut = cssHex('--mut');
+  if (a && kontrastHex(onac, ac) < 4.5) st.setProperty('--onac', enIyiYazi(ac));
+  if (z && kontrastHex(tx, bg) < 4.5) st.setProperty('--tx', enIyiYazi(bg));
+  if (z && kontrastHex(mut, bg) < 4.5) st.setProperty('--mut', enIyiYazi(bg));
+  $('#renkVurgu').value = ac; $('#renkZemin').value = bg;
+}
+$('#renkVurgu').addEventListener('input', e => { const o = renkOkuKayit(); o.ac = e.target.value; renkYazKayit(o); renkUygula(); });
+$('#renkZemin').addEventListener('input', e => { const o = renkOkuKayit(); o.bg = e.target.value; renkYazKayit(o); renkUygula(); });
+$('#renkSifirla').addEventListener('click', () => { renkYazKayit({}); renkUygula(); });
+function temaKartlariCiz() {
+  const ak = kok.dataset.tema;
+  $('#temaKartlar').innerHTML = TEMALAR.map(t => { const [bg, pn, tx, ac] = t.renk, s = t.ad === ak;
+    return `<button type="button" class="temaKart" data-tema-sec="${t.ad}" aria-pressed="${s}" aria-label="${t.baslik} teması${s ? ' (seçili)' : ''}">
+      <span class="tkOn" style="background:${bg}" aria-hidden="true"><span class="u" style="background:${pn}"></span><span class="g"><i style="background:${pn}"></i><i style="background:#15171A"></i></span><span class="b" style="background:${ac}"></span></span>
+      <span class="tkAd"><b style="font-family:${t.yazi.replace(/"/g, '&quot;')}">Aa</b><span>${t.baslik}</span></span>
+      <span style="font-family:${t.yazi.replace(/"/g, '&quot;')}">İğne, ölçü, ŞİMDİ</span>
+      <span class="tkAlt"><span class="tkNokta">${t.renk.map(r => `<i style="background:${r}"></i>`).join('')}</span>${t.acik}${s ? '<span class="tkSec">✓ Seçili</span>' : ''}</span></button>`; }).join('');
+}
+$('#temaKartlar').addEventListener('click', e => { const b = e.target.closest('[data-tema-sec]'); if (b) temaUygula(b.dataset.temaSec, true); });
+function temaUygula(ad, kaydet) {
+  ad = temaBul(ad).ad; kok.dataset.tema = ad;
+  if (kaydet) { try { localStorage.setItem('taa-tema', ad); } catch (e) { /* kalıcılık yok */ } }
+  kipYuvala(); renkUygula(); temaKartlariCiz(); cekmeceEtiket();
+  window.dispatchEvent(new CustomEvent('taa-tema', {detail: {tema: ad}}));
+}
+// göç: eski 'a'/'b' değerleri ve tema başına renk kayıtları (eski kayıtlar silinmez)
+(() => {
+  let t = null; try { t = localStorage.getItem('taa-tema'); } catch (e) { /* yok */ }
+  const gocRenk = (eski, yeni) => { try { const v = localStorage.getItem(eski); if (v && !localStorage.getItem(yeni)) localStorage.setItem(yeni, v); } catch (e) { /* yok */ } };
+  gocRenk('taa-renk-a', 'taa-renk-vurus'); gocRenk('taa-renk-b', 'taa-renk-vitrin');
+  temaUygula(kok.dataset.tema, t === 'a' || t === 'b');
+})();
+
+/* Ayarlar ve Rehber kutuları */
+const ayarKutu = $('#ayarKutu');
+$('#ayarAc').onclick = () => { temaKartlariCiz(); ayarKutu.showModal(); };
+$('#ayarKapat').onclick = () => ayarKutu.close();
+ayarKutu.addEventListener('click', e => { if (e.target === ayarKutu) ayarKutu.close(); });
+
+/* eylem çubuğu: Vitrin dar ekranda ikincil eylemler "Diğer" menüsünde */
+$('#dahaBtn').onclick = () => { const k = $('#ikinciller'), a = k.classList.toggle('acik'); $('#dahaBtn').setAttribute('aria-expanded', a ? 'true' : 'false'); };
+document.addEventListener('click', e => { const k = $('#ikinciller'); if (k.classList.contains('acik') && !k.contains(e.target)) { k.classList.remove('acik'); $('#dahaBtn').setAttribute('aria-expanded', 'false'); } });
+$('#durum').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('#durum').click(); } });
+
+/* Hazır kipi: iki sekme; Malzeme kitaplığı web/malzeme.js gelirse ona bağlanır */
+function hazirSekme(mal) {
+  $('#hazirSekmeSen').setAttribute('aria-selected', mal ? 'false' : 'true'); $('#hazirSekmeMal').setAttribute('aria-selected', mal ? 'true' : 'false');
+  $('#hazirKart').hidden = mal; $('#malzemeMount').hidden = !mal;
+  if (mal) malzemeBagla();
+}
+$('#hazirSekmeSen').onclick = () => hazirSekme(false);
+$('#hazirSekmeMal').onclick = () => hazirSekme(true);
+let malzemeBagli = false;
+function malzemeBagla() {
+  if (malzemeBagli) return; malzemeBagli = true;
+  const el = $('#malzemeMount');
+  if (window.TaaMalzeme && typeof window.TaaMalzeme.mount === 'function') {
+    try { el.textContent = ''; window.TaaMalzeme.mount(el, window.TaaApp); el.dataset.kaynak = 'malzeme.js'; return; } catch (e) { console.error('malzeme.js bağlanamadı', e); }
+  }
+  el.innerHTML = '<div class="bosDurum"><b>Malzeme kitaplığı henüz yüklü değil</b>Bu sürümde kitaplık dosyası bulunamadı. Hazır senaryolar sekmesindeki kartları kullanabilirsiniz.</div>';
+}
+/* Yapay zekâ kipi: web/ai.js gelirse yeni panel, gelmezse mevcut panel */
+function aiBagla() {
+  const el = $('#aiMount'), eski = $('#tarifKart');
+  if (!window.TaaAI || typeof window.TaaAI.mount !== 'function' || $('#aiYeni')) return;
+  const yeni = document.createElement('div'); yeni.id = 'aiYeni'; el.appendChild(yeni); eski.hidden = true;
+  try { window.TaaAI.mount(yeni, window.TaaApp); el.dataset.kaynak = 'ai.js'; }
+  catch (e) { console.error('ai.js bağlanamadı, mevcut panel gösteriliyor', e); yeni.remove(); eski.hidden = false; }
+}
+
+/* window.TaaApp: AI ve Malzeme modüllerinin kullandığı sözleşme (ayrıntı: tasarim/yenileme raporu) */
+window.TaaApp = Object.freeze({
+  surum: '1.0',
+  senaryoMetni: () => sen.value,
+  senaryoyaEkle(metin) {
+    metin = String(metin == null ? '' : metin).replace(/\r\n?/g, '\n').trim(); if (!metin) return false;
+    sablondanCik(); const m = sen.value.replace(/\s+$/, '');
+    sen.value = (m ? m + '\n\n' : '') + metin + '\n'; elleDuzenlendi = true; degisti(); return true;
+  },
+  senaryoDegistir(metin) {
+    metin = String(metin == null ? '' : metin).replace(/\r\n?/g, '\n');
+    tarifOnceki = sen.value; sablondanCik(); sen.value = metin; elleDuzenlendi = true; ozel = {}; degisti(); return true;
+  },
+  onizle(metin) { if (typeof metin === 'string') return window.TaaApp.senaryoDegistir(metin); degisti(); return true; },
+  uret() { if (uretiliyor) return false; $('#uret').click(); return true; },
+  durum: () => ({kip: aktifKip, tema: kok.dataset.tema, cekmece: cekmeceAcik ? 'acik' : 'kapali', uretiliyor, onizleme: $('#hazir').textContent, okunabilirlik: $('#durumMetin').textContent, mesaj: $('#mesaj').textContent, surum: bilgi ? bilgi.surum : null, ffmpeg: bilgi ? !!bilgi.ffmpeg : null, gorunum}),
+  tema: () => kok.dataset.tema,
+  kipAc(ad) { kipSec(ad, {kullanici: true}); },
+  bilgi: () => bilgi,
+  api: (yol, govde) => api(yol, govde),
+  mesaj(m) { mesajYaz(String(m)); }
+});
+
+/* ilk durum: Yaz kipi, metin kutusu odakta */
+kipSec('yaz', {ilk: true}); cekmeceEtiket();
+setTimeout(() => { if (cekmeceAcik && !document.querySelector('dialog[open]')) yazi.focus(); }, 300);
+window.addEventListener('load', aiBagla);
+
 baslat();
 </script>
+<script src="/ai.js"></script>
+<script src="/malzeme.js"></script>
 </body>
 </html>

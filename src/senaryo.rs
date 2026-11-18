@@ -1,4 +1,6 @@
 //! Senaryo motoru: metin dosyasından (sahne sahne) video üretir.
+//! Ek (yenileme-1.0, [Claude#Malzeme Opus 5.5, 2026-11-18]): `malzeme <id> ...` sahne satırı (malzeme.rs, malzeme_ciz.rs); eski senaryolar aynen çalışır.
+//! Sahip: Yusuf. Yalnız yazan yapay zekâ ya da Yusuf'un izniyle değişir; silme yok.
 use crate::anim::{self, Maske, Poz};
 use crate::{efekt, tv, *};
 use ab_glyph::FontRef;
@@ -8,7 +10,7 @@ pub enum Gecis { Tv, Perde, Kapi, Iris, Slayt, Fade, Neon, Sil, Jaluzi, Mozaik, 
 pub const GECISLER: [(&str, &str); 19] = [("yok", "Geçiş yok"), ("tv", "Tüplü TV"), ("perde", "Üstten ve alttan perde"), ("kapi", "Ortadan açılan kapı"), ("iris", "Daire iris"), ("slayt", "Üstten slayt kapağı"), ("fade", "Yumuşak karartma"), ("neon", "Neon yanması (tek sefer, yumuşak)"), ("sil", "Soldan sağa silme"), ("jaluzi", "Yatay jaluzi şeritleri"), ("mozaik", "Kare mozaik dağılması"), ("dalga", "Dalgalı kenarla yukarıdan iner"), ("cubuk", "Dikey çubuklar sırayla iner"), ("elmas", "Elmas (eşkenar dörtgen) iris"), ("kare", "Dikdörtgen iris"), ("saat", "Saat yelkovanı gibi dönerek kapanır"), ("capraz", "Çapraz yumuşak silme"), ("damali", "Dama tahtası kapanma"), ("yanlar", "İki yandan ortaya kapanır")];
 
 #[derive(Clone, Debug)]
-pub struct Sahne { pub metin: String, pub renk: String, pub giris: String, pub cikis: String, pub sure: f32, pub harf: f32, pub efekt: Vec<String>, pub font: String, pub derinlik: f32, pub egri: String }
+pub struct Sahne { pub metin: String, pub renk: String, pub giris: String, pub cikis: String, pub sure: f32, pub harf: f32, pub efekt: Vec<String>, pub font: String, pub derinlik: f32, pub egri: String, pub malzeme: Option<crate::malzeme::MalzemeAyar> }
 
 #[derive(Clone, Debug)]
 pub struct Senaryo { pub w: u32, pub h: u32, pub fiziksel: Option<(f32, f32)>, pub fps: u32, pub acilis: Gecis, pub kapanis: Gecis, pub koruma: bool, pub sahneler: Vec<Sahne> }
@@ -43,7 +45,7 @@ pub fn ayristir(metin: &str) -> Result<Senaryo, String> {
         if let Some(r) = satir.strip_prefix("sahne") {
             let a = r.find('"').ok_or_else(|| hata("sahne metni tırnak içinde olmalı"))?;
             let b = r[a + 1..].find('"').ok_or_else(|| hata("kapanış tırnağı yok"))? + a + 1;
-            let mut sh = Sahne { metin: dinamik_metin(&r[a + 1..b]), renk: "beyaz".into(), giris: "donerek".into(), cikis: "yok".into(), sure: 4.5, harf: 330.0, efekt: vec!["parlama".into()], font: String::new(), derinlik: 1.0, egri: String::new() };
+            let mut sh = Sahne { metin: dinamik_metin(&r[a + 1..b]), renk: "beyaz".into(), giris: "donerek".into(), cikis: "yok".into(), sure: 4.5, harf: 330.0, efekt: vec!["parlama".into()], font: String::new(), derinlik: 1.0, egri: String::new(), malzeme: None };
             for kv in r[b + 1..].split_whitespace() {
                 let (k, v) = kv.split_once('=').ok_or_else(|| hata(&format!("anahtar=değer bekleniyor: {kv}")))?;
                 match k {
@@ -62,6 +64,10 @@ pub fn ayristir(metin: &str) -> Result<Senaryo, String> {
             if sh.sure < 1.5 { return Err(hata("sure en az 1.5 sn")); }
             if sh.metin.starts_with('@') && cizim::ADLAR.iter().all(|a| *a != sh.metin[1..].trim().to_lowercase()) { return Err(hata(&format!("bilinmeyen çizim: {} ({:?})", sh.metin, cizim::ADLAR))); }
             s.sahneler.push(sh);
+            continue;
+        }
+        if let Some(r) = satir.strip_prefix("malzeme ") {
+            s.sahneler.push(crate::malzeme::satir_coz(r).map_err(|e| hata(&e))?);
             continue;
         }
         let mut p = satir.split_whitespace();
@@ -250,7 +256,7 @@ fn gun_no(y: i64, m: i64, d: i64) -> i64 {
     let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
     era * 146097 + doe - 719468
 }
-fn tarih_ayir(z: i64) -> (i64, i64, i64) {
+pub fn tarih_ayir(z: i64) -> (i64, i64, i64) {
     let z = z + 719468;
     let era = z.div_euclid(146097);
     let doe = z - era * 146097;
@@ -262,7 +268,7 @@ fn tarih_ayir(z: i64) -> (i64, i64, i64) {
     let m = if mp < 10 { mp + 3 } else { mp - 9 };
     (if m <= 2 { y + 1 } else { y }, m, d)
 }
-fn bugun_gun_no() -> i64 {
+pub fn bugun_gun_no() -> i64 {
     let sn = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs() as i64).unwrap_or(0);
     (sn + 3 * 3600).div_euclid(86400) // Türkiye saati (UTC+3)
 }
@@ -509,7 +515,10 @@ pub fn hazirla(font: &FontRef, s: &Senaryo) -> Vec<Hazir> {
     s.sahneler.iter().map(|sh| {
         let pl = crate::stil::paletli(&sh.renk).unwrap();
         let sf = crate::stil::font(&sh.font);
-        let (maskeler, d, boylar) = yerlesim(sf.as_ref().unwrap_or(font), s.w, s.sanal_h(), sh);
+        let (maskeler, d, boylar) = match &sh.malzeme {
+            Some(m) => (crate::malzeme_ciz::maskeler(sf.as_ref().unwrap_or(font), s.w, s.sanal_h(), &m.id, &sh.metin), s.w as f32 * 0.014 * sh.derinlik, vec![]),
+            None => yerlesim(sf.as_ref().unwrap_or(font), s.w, s.sanal_h(), sh),
+        };
         Hazir { maskeler, d: d * sh.derinlik, yuz: pl.yuz, yan: pl.yan, zemin: if tvli { Renk(18, 20, 24) } else { pl.zemin }, vurgu: pl.vurgu, boylar }
     }).collect()
 }
@@ -537,7 +546,8 @@ pub fn kare_uret(s: &Senaryo, hz: &[Hazir], t: f32, no: u32) -> Vec<u8> {
     if sh.efekt.iter().any(|e| e == "kayan-yildiz") { efekt::kayan_yildizlar(&mut k, w, h, t, z.vurgu, idx as u32 + 17); }
     for e in &sh.efekt { crate::dekor::ciz(e, &mut k, w, h, t, z.vurgu, idx as u32 + 5); }
     if sh.efekt.iter().any(|e| e == "kivilcim") { efekt::kivilcimlar(&mut k, w, h, t, 40, z.vurgu, idx as u32 + 3); }
-    for (li, m) in z.maskeler.iter().enumerate() {
+    if let Some(m) = &sh.malzeme { crate::malzeme_ciz::ciz(m, &sh.metin, z, &mut k, w, h, yerel, sh.sure); }
+    for (li, m) in z.maskeler.iter().enumerate().filter(|_| sh.malzeme.is_none()) {
         let ti = yerel - li as f32 * 0.15;
         if giris == "toplan" && (0.0..1.4).contains(&ti) { anim::dagilma(&mut k, m, z.yuz, 1.0 - ti / 1.4, (idx * 10 + li) as u32); continue; }
         if sh.cikis == "dagil" && yerel > sh.sure - 1.2 { anim::dagilma(&mut k, m, z.yuz, ((yerel - (sh.sure - 1.2)) / 1.2).clamp(0.0, 1.0), (idx * 10 + li) as u32 + 50); continue; }

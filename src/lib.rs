@@ -15,6 +15,8 @@ pub mod uret;
 pub mod tarif;
 pub mod tarif_http;
 pub mod malzeme_http;
+pub mod malzeme;
+pub mod malzeme_ciz;
 pub mod llm;
 pub mod ayar;
 pub mod arayuz;
