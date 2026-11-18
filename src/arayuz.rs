@@ -209,6 +209,11 @@ fn isle(mut s: TcpStream, o: Arc<Ortak>) {
     let metin = "text/plain; charset=utf-8";
     match (yontem.as_str(), yolu.as_str()) {
         ("GET", "/") => yanit(&mut s, 200, "text/html; charset=utf-8", SAYFA.as_bytes()),
+        ("GET", "/ayar") => yanit(&mut s, 200, "application/json; charset=utf-8", crate::ayar::json_yaz(&crate::ayar::oku(&crate::ayar::varsayilan_yol())).as_bytes()),
+        ("POST", "/ayar") => match crate::ayar::istek_coz(&yazi) {
+            Some((k, v)) => match crate::ayar::degistir(&crate::ayar::varsayilan_yol(), &k, v.as_deref()) { Ok(()) => yanit(&mut s, 200, metin, b"ok"), Err(e) => yanit(&mut s, 400, metin, e.as_bytes()) },
+            None => yanit(&mut s, 400, metin, b"gecersiz istek"),
+        },
         ("GET", "/acilis/logo.js") => yanit(&mut s, 200, "text/javascript; charset=utf-8", ACILIS_LOGO_JS.as_bytes()),
         ("GET", y) if y.starts_with("/acilis/") && y.ends_with(".html") => match ACILIS.iter().find(|(a, _)| *a == &y[8..y.len() - 5]) {
             Some((_, m)) => yanit(&mut s, 200, "text/html; charset=utf-8", m.as_bytes()),
@@ -343,7 +348,7 @@ pub fn calistir(pencere_ac: bool, port: u16) -> ! {
     // Tek örnek: yalnız 127.0.0.1'deki sabit kilit portu; doluysa başka örnek çalışıyordur.
     let _kilit = if pencere_ac { match TcpListener::bind(("127.0.0.1", 47893)) { Ok(k) => Some(k), Err(_) => { hata_goster("TAA Vidyo Yapıcı zaten açık."); std::process::exit(0) } } } else { None };
     // Port dolu/çakışıyorsa en çok 5 kez yeniden dener; sonra sistemin verdiği boş portla (0) açar. Yalnız 127.0.0.1.
-    let dinle = { let mut son = None; let mut p = port; for _ in 0..6 { match TcpListener::bind(("127.0.0.1", p)) { Ok(d) => { son = Some(d); break } Err(e) => { eprintln!("uyarı: port {p} açılamadı ({e}), yeniden deneniyor"); p = 0; std::thread::sleep(Duration::from_millis(150)); } } } match son { Some(d) => d, None => { eprintln!("HATA: arayüz portu açılamadı"); std::process::exit(1) } } };
+    let dinle = { let mut son = None; if port == 0 { for pt in 47894u16..=47913 { if let Ok(d) = TcpListener::bind(("127.0.0.1", pt)) { son = Some(d); break } } } /* sabit tercih: localStorage ve çerezler çoğu zaman korunur */ let mut p = port; for _ in 0..(if son.is_some() { 0 } else { 6 }) { match TcpListener::bind(("127.0.0.1", p)) { Ok(d) => { son = Some(d); break } Err(e) => { eprintln!("uyarı: port {p} açılamadı ({e}), yeniden deneniyor"); p = 0; std::thread::sleep(Duration::from_millis(150)); } } } match son { Some(d) => d, None => { eprintln!("HATA: arayüz portu açılamadı"); std::process::exit(1) } } };
     let port = dinle.local_addr().unwrap().port();
     let jeton = rastgele_jeton();
     let adres = format!("http://127.0.0.1:{port}/?t={jeton}");
@@ -441,7 +446,7 @@ mod t {
     #[test]
     fn acilis_torbasi_node_testi() {
         // Karıştırılmış torba mantığı (web/index.html TORBA bloğu) tests/torba_test.js ile denenir; node yoksa atlanır.
-        assert!(SAYFA.contains("// TORBA-BASLA") && SAYFA.contains("// TORBA-BITIS") && SAYFA.contains("id=\"acilisTam\"") && SAYFA.contains("id=\"acilisListe\""));
+        assert!(SAYFA.contains("// TORBA-BASLA") && SAYFA.contains("// TORBA-BITIS") && SAYFA.contains("KALICI-AYAR-BASLA") && SAYFA.contains("'/ayar'") && SAYFA.contains("id=\"acilisTam\"") && SAYFA.contains("id=\"acilisListe\""));
         let betik = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/torba_test.js");
         match std::process::Command::new("node").arg(betik).output() {
             Ok(o) => assert!(o.status.success(), "torba_test.js başarısız: {}{}", String::from_utf8_lossy(&o.stdout), String::from_utf8_lossy(&o.stderr)),

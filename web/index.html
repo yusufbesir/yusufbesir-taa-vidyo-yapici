@@ -5,6 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TAA Vidyo Yapıcı</title>
 <link rel="icon" href="/logo.svg" type="image/svg+xml">
+<script>/* KALICI-AYAR-BASLA: sunucudaki ayar.json'u localStorage'a yükler, 'taa-' anahtarlarındaki değişiklikleri sunucuya yazar (port her açılışta değişse de ayarlar kaybolmaz; sunucu yoksa localStorage olduğu gibi kalır) */
+(function () {
+  try { var x = new XMLHttpRequest(); x.open('GET', '/ayar', false); x.send();
+    if (x.status === 200) { var o = JSON.parse(x.responseText); if (!o || typeof o !== 'object' || Array.isArray(o)) throw 0;
+      try { for (var i = localStorage.length - 1; i >= 0; i--) { var ek = localStorage.key(i); if (ek && ek.indexOf('taa-') === 0 && !(ek in o)) localStorage.removeItem(ek); } } catch (e) { /* kalıcılık yok */ } /* sunucu esastır: dosyada olmayan 'taa-' anahtarları yerelde de silinir */
+      for (var k in o) { if (k.indexOf('taa-') === 0 && typeof o[k] === 'string') { try { localStorage.setItem(k, o[k]); } catch (e) { /* kalıcılık yok */ } } } } } catch (e) { /* sunucu ayarı okunamadı: localStorage */ }
+  var kuyruk = [], mesgul = false;
+  function gonder() { if (mesgul || !kuyruk.length) return; mesgul = true; var m = kuyruk.shift(), r = new XMLHttpRequest();
+    r.open('POST', '/ayar'); r.setRequestHeader('x-led', '1'); r.onloadend = function () { mesgul = false; gonder(); };
+    try { r.send(JSON.stringify(m)); } catch (e) { mesgul = false; } }
+  function yaz(k, v) { k = String(k); if (k.indexOf('taa-') === 0) { kuyruk.push({ k: k, v: v }); gonder(); } }
+  try { var P = Storage.prototype, s = P.setItem, d = P.removeItem;
+    P.setItem = function (k, v) { s.call(this, k, v); try { if (this === window.localStorage) yaz(k, String(v)); } catch (e) { /* yoksay */ } };
+    P.removeItem = function (k) { d.call(this, k); try { if (this === window.localStorage) yaz(k, null); } catch (e) { /* yoksay */ } };
+  } catch (e) { /* yoksay */ }
+})();
+/* KALICI-AYAR-BITIS */</script>
 <script>try{var t=localStorage.getItem("taa-tema");if(t==="b")document.documentElement.dataset.tema=t}catch(e){}</script>
 <style>
 :root{color-scheme:dark;--fh:"Segoe UI Variable","Segoe UI",system-ui,-apple-system,Roboto,sans-serif;--fm:"Segoe UI Variable","Segoe UI",system-ui,-apple-system,Roboto,sans-serif;--bg:#18181B;--panel:#242427;--panel2:#2E2E33;--line:#3F3F46;--tx:#FAFAFA;--mut:#B4B4BD;--ac:#93C5FD;--ac2:#BFDBFE;--onac:#172554;--ok:#6EE7B7;--uy:#FCD34D;--r:6px}

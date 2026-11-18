@@ -73,4 +73,59 @@ for (const kotu of ['{', 'null', '[]', JSON.stringify({ imza: L.join(','), kalan
   for (let i = 0; i < 20; i++) assert(L.includes(M.acilisSec(L, yazmaBozuk, rnd)));
   assert.strictEqual(M.acilisAyarYaz(bozuk, { tam: false, kapali: [] }), false);
 }
-console.log('torba_test: tamam');
+
+
+// 9) kalıcı ayar katmanı (KALICI-AYAR bloğu): sunucudaki ayarı localStorage'a yükler, 'taa-' değişikliklerini sırayla sunucuya yazar
+const ka = html.indexOf('/* KALICI-AYAR-BASLA'), kb = html.indexOf('/* KALICI-AYAR-BITIS */');
+assert(ka > 0 && kb > ka, 'kalıcı ayar bloğu bulunamadı');
+const katman = html.slice(html.indexOf('(function', ka), kb);
+function ortamKur({ durum = 200, govde = '{}', gettFirlat = false, lsYazFirlat = false, onceki = {} } = {}) {
+  const gunluk = [];
+  class XHR {
+    open(m, u, as) { this.m = m; this.u = u; this.as = as; this.basliklar = {}; }
+    setRequestHeader(k, v) { this.basliklar[k] = v; }
+    send(b) {
+      if (this.m === 'GET') { if (gettFirlat) throw new Error('sunucu yok'); this.status = durum; this.responseText = govde; return; }
+      gunluk.push({ u: this.u, b: JSON.parse(b), led: this.basliklar['x-led'] });
+      Promise.resolve().then(() => this.onloadend && this.onloadend());
+    }
+  }
+  class Storage { constructor(yazFirlat) { this.m = new Map(); this.yazFirlat = yazFirlat; }
+    get length() { return this.m.size; } key(i) { return [...this.m.keys()][i] ?? null; }
+    getItem(k) { return this.m.has(k) ? this.m.get(k) : null; }
+    setItem(k, v) { if (this.yazFirlat) throw new Error('dolu'); this.m.set(k, String(v)); }
+    removeItem(k) { this.m.delete(k); } }
+  const localStorage = new Storage(lsYazFirlat), sessionStorage = new Storage(false);
+  Object.entries(onceki).forEach(([k, v]) => localStorage.m.set(k, v));
+  const window = { localStorage };
+  new Function('XMLHttpRequest', 'Storage', 'localStorage', 'window', katman)(XHR, Storage, localStorage, window);
+  return { localStorage, sessionStorage, gunluk };
+}
+const bekle = () => new Promise(r => setTimeout(r, 5));
+(async () => {
+  // yükleme: yalnız geçerli 'taa-' anahtarları, geri yazma yok
+  let o = ortamKur({ govde: JSON.stringify({ 'taa-a': '1', 'taa-acilis-ayar': '{"tam":false,"kapali":["led"]}', yabanci: 'x', 'taa-n': 5 }) });
+  assert.strictEqual(o.localStorage.getItem('taa-a'), '1');
+  assert.strictEqual(o.localStorage.getItem('taa-acilis-ayar'), '{"tam":false,"kapali":["led"]}');
+  assert.strictEqual(o.localStorage.getItem('yabanci'), null); assert.strictEqual(o.localStorage.getItem('taa-n'), null);
+  assert.strictEqual(o.gunluk.length, 0, 'yükleme sunucuya geri yazmamalı');
+  // yazma ve silme: sırayla, x-led başlığıyla; 'taa-' dışı ve sessionStorage yok sayılır
+  o.localStorage.setItem('taa-c', 3); o.localStorage.setItem('taa-c', 4); o.localStorage.removeItem('taa-c'); o.localStorage.setItem('baska', 'x'); o.sessionStorage.setItem('taa-s', 'x');
+  await bekle(); await bekle(); await bekle();
+  assert.deepStrictEqual(o.gunluk.map(g => g.b), [{ k: 'taa-c', v: '3' }, { k: 'taa-c', v: '4' }, { k: 'taa-c', v: null }], 'sıra bozuldu');
+  assert(o.gunluk.every(g => g.u === '/ayar' && g.led === '1'));
+  assert.strictEqual(o.localStorage.getItem('taa-c'), null, 'yerel silme çalışmalı');
+  // sunucu esastır: dosyada olmayan eski 'taa-' anahtarları yerelde silinir, 'taa-' dışı dokunulmaz; sunucu okunamazsa yerel korunur
+  o = ortamKur({ govde: '{"taa-a":"1"}', onceki: { 'taa-eski': 'x', 'taa-a': '0', baska: 'y' } });
+  assert.strictEqual(o.localStorage.getItem('taa-eski'), null); assert.strictEqual(o.localStorage.getItem('taa-a'), '1'); assert.strictEqual(o.localStorage.getItem('baska'), 'y');
+  o = ortamKur({ govde: '{}', onceki: { 'taa-eski': 'x' } }); assert.strictEqual(o.localStorage.getItem('taa-eski'), null, 'boş sunucu = ayarlar sıfır');
+  for (const cfg of [{ durum: 500 }, { govde: '{bozuk' }, { gettFirlat: true }, { govde: '[1]' }]) { const e = ortamKur({ ...cfg, onceki: { 'taa-yerel': 'k' } }); assert.strictEqual(e.localStorage.getItem('taa-yerel'), 'k', 'sunucu hatasında yerel korunmalı: ' + JSON.stringify(cfg)); }
+  assert.strictEqual(o.gunluk.length, 0, 'yükleme sunucuya yazmamalı');
+  // sunucu hataları: çökmez, yerel depo olduğu gibi çalışır
+  for (const cfg of [{ durum: 500 }, { govde: '{bozuk' }, { gettFirlat: true }, { govde: '[1]' }, { lsYazFirlat: true, govde: '{"taa-a":"1"}' }]) {
+    const e = ortamKur(cfg);
+    if (!cfg.lsYazFirlat) { e.localStorage.setItem('taa-x', '1'); assert.strictEqual(e.localStorage.getItem('taa-x'), '1'); }
+    else assert.throws(() => e.localStorage.setItem('taa-x', '1')); // sayfa kodu kendi try/catch'ini kullanır; katman hatayı yutmaz
+  }
+  console.log('torba_test: tamam');
+})().catch(e => { console.error(e); process.exit(1); });
