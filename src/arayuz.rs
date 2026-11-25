@@ -15,6 +15,23 @@ const GIRIS_BASLAT: &str = include_str!("../web/taa-giris-baslat.js");
 /// Sunucudaki program yetkisi adı (program.toml `ad`).
 pub const PROGRAM: &str = "taa-vidyo-yapici";
 
+/// Geçerli oturum bu kadar süre önbellekte kalır (her POST'ta taa-kimlik çalışmasın).
+const OTURUM_ONBELLEK: Duration = Duration::from_secs(60);
+/// Oturumsuz da çalışan POST uçları: giriş, nabız (sekme açık), iş iptali, kapatma.
+const OTURUMSUZ: [&str; 3] = ["/nabiz", "/iptal", "/kapat"];
+
+/// Fable V1/T2: giriş yalnız sayfa katmanı olmasın; işlem uçları sunucuda da geçerli ortak oturum ister.
+/// taa-kimlik kurulu değilse (geçiş dönemi) eski davranış: izin verilir.
+fn oturum_gecerli(o: &Ortak) -> bool {
+    if let Some((t, true)) = *o.oturum.lock().unwrap() {
+        if t.elapsed() < OTURUM_ONBELLEK { return true; }
+    }
+    let b = crate::taa_giris::yanitla(crate::taa_giris::kimlik_yolu, PROGRAM, "baslangic", b"").unwrap_or_default();
+    let gecerli = b["arac"] == false || b["oturum"].is_object();
+    *o.oturum.lock().unwrap() = Some((Instant::now(), gecerli));
+    gecerli
+}
+
 fn sayfa() -> &'static str {
     static S: std::sync::OnceLock<String> = std::sync::OnceLock::new();
     S.get_or_init(|| SAYFA.replacen("</body>", &format!("<script>{GIRIS_EKRANI}</script>\n<script>{GIRIS_BASLAT}</script>\n</body>"), 1))
@@ -42,6 +59,8 @@ pub const ORNEKLER: [(&str, &str); 11] = [
 struct Durum { calisiyor: bool, kare: u32, toplam: u32, dosya: String, mesaj: String, hata: bool }
 
 struct Ortak {
+    /// Son ortak giriş denetimi (zaman, geçerli mi); geçerli sonuç OTURUM_ONBELLEK boyunca yeniden sorulmaz.
+    oturum: Mutex<Option<(Instant, bool)>>,
     durum: Mutex<Durum>,
     iptal: AtomicBool,
     onizleme: Mutex<()>,
@@ -108,7 +127,7 @@ fn url_coz(s: &str) -> String {
 }
 
 fn yanit(s: &mut TcpStream, kod: u16, tur: &str, govde: &[u8]) {
-    let ad = match kod { 200 => "OK", 400 => "Bad Request", 403 => "Forbidden", 404 => "Not Found", 409 => "Conflict", _ => "Error" };
+    let ad = match kod { 200 => "OK", 400 => "Bad Request", 401 => "Unauthorized", 403 => "Forbidden", 404 => "Not Found", 409 => "Conflict", _ => "Error" };
     let b = format!("HTTP/1.1 {kod} {ad}\r\nContent-Type: {tur}\r\nContent-Length: {}\r\nCache-Control: no-store\r\nConnection: close\r\n\r\n", govde.len());
     let _ = s.write_all(b.as_bytes());
     let _ = s.write_all(govde);
@@ -176,6 +195,13 @@ fn isle(mut s: TcpStream, o: Arc<Ortak>) {
     let yolu = yol.split('?').next().unwrap_or("/").to_string();
     if yontem == "POST" && !bas.iter().any(|(a, v)| a == "x-led" && v == "1") { return yanit(&mut s, 403, "text/plain; charset=utf-8", b"yasak"); }
     let metin = "text/plain; charset=utf-8";
+    if yontem == "POST" {
+        if yolu.starts_with("/api/giris/") {
+            *o.oturum.lock().unwrap() = None; // giriş/çıkış: sonraki işlem yeniden denetlenir
+        } else if !OTURUMSUZ.contains(&yolu.as_str()) && !oturum_gecerli(&o) {
+            return yanit(&mut s, 401, "application/json; charset=utf-8", r#"{"hata":"oturum_gerekli","ileti":"Oturum yok ya da süresi doldu. Giriş yapın."}"#.as_bytes());
+        }
+    }
     match (yontem.as_str(), yolu.as_str()) {
         ("GET", "/") => yanit(&mut s, 200, "text/html; charset=utf-8", sayfa().as_bytes()),
         // TAA ortak giriş: POST zaten yalnız 127.0.0.1 + X-LED başlığıyla gelir (yukarıdaki denetim).
@@ -310,7 +336,7 @@ pub fn calistir(tarayici_ac: bool, port: u16) -> ! {
     let port = dinle.local_addr().unwrap().port();
     let adres = format!("http://127.0.0.1:{port}/");
     println!("TAA Vidyo Yapıcı arayüzü: {adres}");
-    let o = Arc::new(Ortak { durum: Mutex::new(Durum::default()), iptal: AtomicBool::new(false), onizleme: Mutex::new(()), klip: Mutex::new(()), son_nabiz: Mutex::new(Instant::now()), port });
+    let o = Arc::new(Ortak { oturum: Mutex::new(None), durum: Mutex::new(Durum::default()), iptal: AtomicBool::new(false), onizleme: Mutex::new(()), klip: Mutex::new(()), son_nabiz: Mutex::new(Instant::now()), port });
     if tarayici_ac {
         #[cfg(windows)]
         { use std::os::windows::process::CommandExt; let _ = std::process::Command::new("cmd").args(["/c", "start", "", &adres]).creation_flags(0x0800_0000).spawn(); }
