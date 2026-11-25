@@ -1,0 +1,270 @@
+   Compiling taa-vidyo-yapici v1.0.1 (D:\Programlar\TAA Vidyo Yapıcı)
+warning: variable does not need to be mutable
+   --> src\arayuz.rs:676:13
+    |
+676 |         let mut k = o.oturum.lock().unwrap();
+    |             ----^
+    |             |
+    |             help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: `taa-vidyo-yapici` (lib test) generated 1 warning (run `cargo fix --lib -p taa-vidyo-yapici --tests` to apply 1 suggestion)
+    Finished `release` profile [optimized] target(s) in 1m 48s
+     Running unittests src\lib.rs (target\release\deps\taa_vidyo_yapici-3c578a9c436175e5.exe)
+
+running 132 tests
+test anim::t::poz_gecis_uclari ... ok
+test animasyon::t::anahtar_kare_ara_deger ... ok
+test animasyon::t::hata_mesajlari ... ok
+test arayuz::t::nesil_degisince_onbellege_yazilmaz ... ok
+test arayuz::t::dosya_adi_guvenli ... ok
+test animasyon::t::gomulu_dosyalar_gecerli_ve_oturur ... ok
+test arayuz::t::jeton_rastgele_ve_dogrulanir ... ok
+test arayuz::t::acilislar_gomulu_ve_sayfa_listesiyle_uyumlu ... ok
+test animasyon::t::yerlesikler_sonda_yerine_oturur ... ok
+test arayuz::t::sorgu_okur ... ok
+test arayuz::t::bina_onizleme_varsayilanlari_kilitli ... ok
+test arayuz::t::ortak_giris_sayfaya_gomulu ... ok
+test arayuz::t::url_cozme ... ok
+test ayar::t::anahtar_kurallari ... ok
+test ayar::t::bozuk_girdiler_reddedilir ... ok
+test ayar::t::istek_cozme ... ok
+test ayar::t::json_gidis_donus_ve_kacisler ... ok
+test arayuz::t::kapi_arac_yok_ve_bozuk ... ok
+test donustur::t::ayar_dogrulama ... ok
+test donustur::t::argumanlar_kabuksuz_dizi ... ok
+test donustur::t::etkin_sure_hesabi ... ok
+test donustur::t::palet_png_256_girdi ... ok
+test arayuz::t::son_video_yolu_yalniz_cikti_klasorunden ... ok
+test donustur::t::posterize_255_asmaz ... ok
+test donustur::t::sure_ayiklama ... ok
+test donustur::t::giriste_protokol_ve_bicim_zorlanir ... ok
+test donustur_http::t::base64_dogru ... ok
+test donustur_http::t::json_cozumleme ... ok
+test donustur::t::zincirler_950x1800_ve_temiz ... ok
+test efekt::t::cerceve_ve_piriltilar_cizer ... ok
+test efekt::t::parcacik_ve_kivilcim_cizer ... ok
+test donustur_http::t::bozuk_istekler_400 ... ok
+test llm::testler::cevap_ayristirma ... ok
+test arayuz::t::ornekler_ayristirilir ... ok
+test llm::testler::hata_mesajlari_turkce_ve_kodlu ... ok
+test efekt::t::yeni_efektler_cizer ... ok
+test llm::testler::istek_gizli_yerde_tasinir ... ok
+test llm::testler::sahte_500_sonra_basari ... ok
+test donustur::t::yol_guvenligi ... ok
+test llm::testler::sahte_basarili_yanit ... ok
+test llm::testler::sahte_bozuk_bos_uzun ... ok
+test llm::testler::sahte_iptal ... ok
+test llm::testler::sahte_kalici_hatalar_yeniden_denenmez ... ok
+test llm::testler::sahte_zaman_asimi_iki_kez_yeniden_dener ... ok
+test llm::testler::toplam_butce_asilmaz ... ok
+test malzeme::t::katalog_kurallari ... ok
+test malzeme::t::satir_ve_hatalar ... ok
+test llm::testler::varsayilan_kapali ... ok
+test llm::testler::ayar_dogrulama_ve_kayit ... ok
+test cizim::t::cicek_merkezi_bos ... ok
+test malzeme_ek::t::donemli_gurultu_sarar ... ok
+test malzeme_ek::t::dw_tam_tur ... ok
+test malzeme::t::uretici_temizler_ve_dogrular ... ok
+test malzeme_ek::t::uzun_golge_capraz_kopyalar ... ok
+test malzeme_http::t::base64_dogru ... ok
+test malzeme_kis::t::gurultu_aralikta_ve_surekli ... ok
+test malzeme::t::json_ayristirma ... ok
+test malzeme_kis::t::kar_dongu_guvenli ... ok
+test malzeme_sahne::t::don_aci_once_bekler ... ok
+test malzeme_parca::t::kalp_yatay_simetrik ... ok
+test malzeme_http::t::uclar ... ok
+test oto::t::malzeme_sahnesine_harf_onerisi_yok ... ok
+test malzeme_sahne::t::vinyet_kenari_koyulastirir_merkezi_korur ... ok
+test oynatici_http::t::json_cozucu ... ok
+test oynatici_http::t::proje_gidis_donus ... ok
+test oynatici_http::t::zaman_bicimi ... ok
+test oynatici_medya::t::ad_tablosu ... ok
+test oynatici_medya::t::aralik_tablosu ... ok
+test png::t::crc_bilinen_deger ... ok
+test png::t::imza_ve_boyut ... ok
+test png::t::kucult_ortalama ... ok
+test anim::t::kare3d_yazi_ve_yan_yuz ... ok
+test llm::testler::dpapi_gidis_donus ... ok
+test malzeme_parca::t::her_tur_patlar_ve_deterministik ... ok
+test senaryo::t::ayristirir ... ok
+test donustur::t::uzak_masaustu_alt_klasorleri_dislanir ... ok
+test senaryo::t::fiziksel_olcu_ve_kucultme ... ok
+test senaryo::t::hata_mesajlari ... ok
+test stil::t::fontlar_turkce_harfleri_cizer ... ok
+test stil::t::paletler_kontrastli ... ok
+test t::iyi_ayar_uyarisiz ... ok
+test oto::t::otomatik_senaryo_gecerli ... ok
+test t::kontrast_siyah_beyaz ... ok
+test t::koyu_renk_uyarir ... ok
+test taa_giris::testler::arac_yoksa_eski_davranis ... ok
+test taa_giris::testler::bos_ya_da_eksik_program_listesi_kapali ... ok
+test taa_giris::testler::durumlar_js_kopru_ile_ayni ... ok
+test taa_giris::testler::kullanici_kurali_taa_kimlik_ile_ayni ... ok
+test taa_giris::testler::surum_adi_yol_kacisina_izin_vermez ... ok
+test llm::testler::anahtar_gizli_klasorde_ve_goc ... ok
+test cizim::t::hepsi_cizilir ... ok
+test t::kare_boyutu_ve_yazi ... ok
+test tarif::testler::bozuk_json_ve_sema ... ok
+test tarif::testler::bilinmeyen_ad_en_yakina_eslenir ... ok
+test tarif::testler::gomulu_kurallar_gecerli_ve_yeterli ... ok
+test arayuz::t::acilis_torbasi_node_testi ... ok
+test donustur_http::t::turler_ve_durum_json ... ok
+test senaryo::t::yeni_gecis_ve_efektler_cizilir ... ok
+test tarif::testler::json_bulma_kod_citi_ve_aciklama ... ok
+test tarif::testler::json_temel ... ok
+test oto::t::denetim_kucuk_yaziyi_yakalar ... ok
+test tarif::testler::mesafe_ve_en_yakin ... ok
+test tarif::testler::kural_ekle_dogrular ... ok
+test tarif::testler::harf_hatasi_toleransi ... ok
+test tarif::testler::istem_gercek_katalogdan ... ok
+test tarif::testler::otomatik_kurallar_katalogu_kapsar ... ok
+test tarif_http::testler::adres_denetimi ... ok
+test tarif_http::testler::site_ekleme_ve_acma_yalniz_listeden ... ok
+test tarif::testler::ornek_yanit_temiz_gecer ... ok
+test tarif::testler::senaryo_metni_enjeksiyon_yapmaz ... ok
+test ayar::t::bozuk_dosya_guvenli_varsayilan_ve_kurtarma ... ok
+test tv::t::kapali_cizgi_beyaz ... ok
+test tv::t::tup_ortayi_boyar_koseyi_keser ... ok
+test tv::t::zaman_cizelgesi_uclari ... ok
+test uret::t::dinamik_metin_cozulur ... ok
+test uret::t::egri_ve_koruma_senaryoda ... ok
+test uret::t::koruma_flas_siniri ... ok
+test tarif_http::testler::uclar_json_dondurur ... ok
+test llm::testler::ureq_tasiyici_yerel_sunucu ... ok
+test ayar::t::dosya_okuma_yazma_ve_silme ... ok
+test tarif::testler::asiri_uzun_tarif_cokmez ... ok
+test tarif::testler::sinirlar ... ok
+test senaryo::t::kare_uretir_tum_gecisler ... ok
+test tarif::testler::bes_tarif_yanit_cifti ... ok
+test tarif::testler::enjeksiyon_denemeleri_temizlenir ... ok
+test ayar::t::adet_siniri_ve_eszamanli_yazma ... ok
+test tarif_http::testler::zincir_yz_kapaliyken_kural_ya_da_sablon ... ok
+test tarif::testler::hazir_senaryolar_gecerli_ve_okunur ... ok
+test tarif_http::testler::zincir_yapay_zeka_ve_dusus ... ok
+test sablon::t::rehber_gecerli ... ok
+test malzeme_parca::t::patlamalar_kadraj_icinde ... ok
+test sablon::t::sablonlar_gecerli ... ok
+
+test result: ok. 132 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 20.99s
+
+     Running unittests src\main.rs (target\release\deps\taa_vidyo_yapici-4aedacd8be446716.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\arayuz_ui.rs (target\release\deps\arayuz_ui-091a37cec1524afb.exe)
+
+running 20 tests
+test ana_sayfa_guvenlik_basliklari ... ok
+test cekmece_kurali_sayfada ... ok
+test durum_hapi_ilerleme_ve_hareket ... ok
+test alti_tema_var_ve_varsayilan_vitrin ... ok
+test dokunma_hedefleri_en_az_48 ... ok
+test bes_kip_ad_sira_kisayol ... ok
+test gecici_onizleme_sozlesmesi ... ok
+test isik_duz_gorunumde_devre_disi ... ok
+test innerhtml_yalniz_kacisli_veri ... ok
+test gomulu_yazilar_ve_lisanslar ... ok
+test jetonlar_karar_dosyasiyla_birebir ... ok
+test jeton_kontrastlari_esigi_gecer ... ok
+test onizleme_kutusu_olcumu ... ok
+test modul_yuvalari_ve_taaapp ... ok
+test senaryo_degisti_bildirimi ... ok
+test oynatici_ve_donusturucu_yuvalari ... ok
+test surum_ve_turkce_metinler ... ok
+test varsayilan_duz_ve_kisa_ekran_sutunu ... ok
+test ust_cubuk_ve_eylem_cubugu ... ok
+test mevcut_islev_idleri_korunur ... ok
+
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests\donustur_testleri.rs (target\release\deps\donustur_testleri-99a39f0ffd652205.exe)
+
+running 8 tests
+test http_kaynak_guvenligi ... ok
+test donustur_js_node_testi ... ok
+test ilerlemeli_is_baslat_durum_iptal ... ok
+test onizleme_tek_ve_zaman_asimli ... ok
+test eszamanli_donusum_arka_iptalinden_etkilenmez ... ok
+test m3u8_icerikli_mp4_okunmaz ... ok
+test ornek_donusumler_uretilir ... ok
+test her_tur_gercek_onizleme_950x1800 ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 27.13s
+
+     Running tests\kat_dok.rs (target\release\deps\kat_dok-a6583b6e3428c7ba.exe)
+
+running 1 test
+test dok ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\malzeme_testleri.rs (target\release\deps\malzeme_testleri-1f7a231602eea0aa.exe)
+
+running 11 tests
+test kontak_sayfasi ... ignored
+test bozuk_istekler_400 ... ok
+test eski_senaryolar_bozulmadi ... ok
+test her_malzeme_gecerli_senaryo_uretir ... ok
+test kucuk_png_gecerli ... ok
+test malzeme_js_node_testi ... ok
+test dalga3_kare_butcesi ... ok
+test dalga3_flas_ve_parlaklik ... ok
+test kare_suresi_olcumu ... ok
+test her_malzeme_render_edilir_ve_deterministik ... ok
+test parametre_sinirlari ... ok
+
+test result: ok. 10 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 47.44s
+
+     Running tests\oynatici.rs (target\release\deps\oynatici-ad68e4b39818fd40.exe)
+
+running 9 tests
+test elle_sunucu ... ignored
+test uclar_ve_sayfa_sozlesmesi ... ok
+test proje_dogrulama ... ok
+test medya_listesi ... ok
+test medya_ad_cozme_ve_yol_gecisi ... ok
+test kalicilik_ve_bozuk_dosya ... ok
+test range_yanitlari ... ok
+test motor_node_testi ... ok
+test surum_komut_ve_uzun_yoklama ... ok
+
+test result: ok. 8 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.37s
+
+     Running tests\tarif_dene.rs (target\release\deps\tarif_dene-2885e200c03388fc.exe)
+
+running 11 tests
+test istem_dosyalari_yaz ... ignored
+test istem_yanitlarini_degerlendir ... ignored
+test tani_yazdir ... ignored
+test yerel_yol_olcum ... ignored
+test istem_surum2 ... ok
+test isletme_adi_ayari ... ok
+test altin_ornekler_senaryoya_donusur ... ok
+test altin_ornekler ... ok
+test malzeme_talepleri ... ok
+test yerel_yol_dogrulugu ... ok
+test gercek_magaza_talepleri ... ok
+
+test result: ok. 7 passed; 0 failed; 4 ignored; 0 measured; 0 filtered out; finished in 31.21s
+
+   Doc-tests taa_vidyo_yapici
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+CIKIS=0
+ai_test.js: tüm denetimler geçti
+ai_test=0
+torba_test: tamam
+torba_test=0
+malzeme_test.js: tamam
+malzeme_test=0
+donustur_test.js: tamam
+donustur_test=0
+oynatici_test.js: 13 test geçti
+oynatici_test=0

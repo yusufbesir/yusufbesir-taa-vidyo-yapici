@@ -12,6 +12,55 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 const SAYFA: &str = include_str!("../web/index.html");
+/// TAA ortak giriş ekranı (taa-paket araclar/js/taa-giris-ekrani.js kopyası) ve açılış betiği; sayfaya gömülür.
+const GIRIS_EKRANI: &str = include_str!("../web/taa/taa-giris-ekrani.js");
+const GIRIS_BASLAT: &str = include_str!("../web/taa-giris-baslat.js");
+/// Sunucudaki program yetkisi adı (program.toml `ad`).
+pub const PROGRAM: &str = "taa-vidyo-yapici";
+
+/// Geçerli oturum bu kadar süre önbellekte kalır (her POST'ta taa-kimlik çalışmasın).
+const OTURUM_ONBELLEK: Duration = Duration::from_secs(60);
+/// Oturumsuz da çalışan POST uçları: giriş, nabız (sekme açık), iş iptali, kapatma.
+const OTURUMSUZ: [&str; 3] = ["/nabiz", "/iptal", "/kapat"];
+
+/// Son ortak giriş denetiminin önbelleği. `nesil` her giriş/çıkış isteğinde artar; denetim sürerken
+/// nesil değiştiyse (Fable V3: çıkış sürerken gelen istek) sonuç önbelleğe yazılmaz.
+#[derive(Default)]
+struct OturumOnbellek { nesil: u64, son: Option<(Instant, bool)> }
+
+/// Fable V1/T2: giriş yalnız sayfa katmanı olmasın; işlem uçları sunucuda da geçerli ortak oturum ister.
+/// taa-kimlik kurulu değilse (geçiş dönemi) eski davranış: izin verilir. Köprü yanıt vermezse ret.
+fn oturum_gecerli(o: &Ortak) -> bool {
+    let nesil = {
+        let k = o.oturum.lock().unwrap();
+        if let Some((t, true)) = k.son {
+            if t.elapsed() < OTURUM_ONBELLEK { return true; }
+        }
+        k.nesil
+    };
+    let b = crate::taa_giris::yanitla(o.kimlik, PROGRAM, "baslangic", b"").unwrap_or_default();
+    let gecerli = b["arac"] == false || b["oturum"].is_object();
+    let mut k = o.oturum.lock().unwrap();
+    if k.nesil == nesil { k.son = Some((Instant::now(), gecerli)); }
+    gecerli
+}
+
+/// Giriş/çıkış isteği önbelleği geçersiz kılar (işlemden önce ve sonra çağrılır).
+fn oturum_unut(o: &Ortak) {
+    let mut k = o.oturum.lock().unwrap();
+    k.nesil = k.nesil.wrapping_add(1);
+    k.son = None;
+}
+
+/// POST kapısı: oturum gerekiyorsa ve yoksa `true` (401 dönülür).
+fn oturum_gerekli(o: &Ortak, yolu: &str) -> bool {
+    !yolu.starts_with("/api/giris/") && !OTURUMSUZ.contains(&yolu) && !oturum_gecerli(o)
+}
+
+fn sayfa() -> &'static str {
+    static S: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+    S.get_or_init(|| SAYFA.replacen("</body>", &format!("<script>{GIRIS_EKRANI}</script>\n<script>{GIRIS_BASLAT}</script>\n</body>"), 1))
+}
 const LOGO: &str = include_str!("../logo/logo.svg");
 // 1.0 modül yuvaları [Claude#UI Opus 5.5, yenileme-1.0, 2026-11-18]: web/ai.js (AI ajanı) ve web/malzeme.js (Malzeme ajanı) gömülü sunulur;
 // dosya yer tutucu yorumsa sayfa mevcut panelleri gösterir.
@@ -73,6 +122,10 @@ pub const ORNEKLER: [(&str, &str); 11] = [
 struct Durum { calisiyor: bool, kare: u32, toplam: u32, dosya: String, mesaj: String, hata: bool }
 
 struct Ortak {
+    /// Son ortak giriş denetimi; geçerli sonuç OTURUM_ONBELLEK boyunca yeniden sorulmaz.
+    oturum: Mutex<OturumOnbellek>,
+    /// taa-kimlik aracını bulan işlev (testte sahte araç).
+    kimlik: crate::taa_giris::KimlikBulucu,
     durum: Mutex<Durum>,
     iptal: AtomicBool,
     onizleme: Mutex<()>,
@@ -230,20 +283,36 @@ fn isle(mut s: TcpStream, o: Arc<Ortak>) {
     let cerez = bas.iter().find(|(a, _)| a == "cookie").map(|(_, v)| v.as_str()).unwrap_or("");
     let yetkili = cerez_jeton_var(cerez, &o.jeton);
     if yontem == "GET" && yol.split('?').next() == Some("/") && sorgu(&yol, "t").as_deref() == Some(o.jeton.as_str()) {
-        return yanit_cerezli(&mut s, "text/html; charset=utf-8", SAYFA.as_bytes(), &o.jeton);
+        return yanit_cerezli(&mut s, "text/html; charset=utf-8", sayfa().as_bytes(), &o.jeton);
     }
     if !yetkili { return yanit(&mut s, 401, "text/plain; charset=utf-8", b"oturum gerekli"); }
     let yazi = String::from_utf8_lossy(&govde).into_owned();
     let yolu = yol.split('?').next().unwrap_or("/").to_string();
     if yontem == "POST" && !bas.iter().any(|(a, v)| a == "x-led" && v == "1") { return yanit(&mut s, 403, "text/plain; charset=utf-8", b"yasak"); }
     let metin = "text/plain; charset=utf-8";
+    if yontem == "POST" {
+        if oturum_gerekli(&o, &yolu) {
+            return yanit(&mut s, 401, "application/json; charset=utf-8", r#"{"hata":"oturum_gerekli","ileti":"Oturum yok ya da süresi doldu. Giriş yapın."}"#.as_bytes());
+        }
+    }
     // Oynatıcı (ISTEK-oynatici.md 1): /cikis, /oynatici, /oynatici.*, /oynatici/... akışa kendisi yazar (Range, CSP); yetki denetiminden SONRA
     if crate::oynatici_http::bu_yol_mu(&yolu) {
         let uretim = || o.durum.lock().map(|d| d.calisiyor).unwrap_or(false);
         return crate::oynatici_http::isle_akis(&mut s, &yontem, &yol, &bas, &govde, &uretim);
     }
     match (yontem.as_str(), yolu.as_str()) {
-        ("GET", "/") => yanit_sayfa(&mut s, SAYFA.as_bytes()),
+        ("GET", "/") => yanit_sayfa(&mut s, sayfa().as_bytes()),
+        // TAA ortak giriş: POST zaten yalnız 127.0.0.1 + X-LED başlığıyla gelir (yukarıdaki denetim).
+        ("POST", y) if y.starts_with("/api/giris/") => {
+            // Giriş/çıkış: önbellek işlemden önce ve sonra unutulur, sonraki işlem yeniden denetlenir.
+            oturum_unut(&o);
+            let v = crate::taa_giris::yanitla(o.kimlik, PROGRAM, &y[11..], &govde);
+            oturum_unut(&o);
+            match v {
+                Some(v) => yanit(&mut s, 200, "application/json; charset=utf-8", v.to_string().as_bytes()),
+                None => yanit(&mut s, 404, metin, b"yok"),
+            }
+        }
         ("GET", "/ayar") => yanit(&mut s, 200, "application/json; charset=utf-8", crate::ayar::json_yaz(&crate::ayar::oku(&crate::ayar::varsayilan_yol())).as_bytes()),
         ("POST", "/ayar") => match crate::ayar::istek_coz(&yazi) {
             Some((k, v)) => match crate::ayar::degistir(&crate::ayar::varsayilan_yol(), &k, v.as_deref()) { Ok(()) => yanit(&mut s, 200, metin, b"ok"), Err(e) => yanit(&mut s, 400, metin, e.as_bytes()) },
@@ -404,7 +473,7 @@ pub fn calistir(pencere_ac: bool, port: u16) -> ! {
     let jeton = rastgele_jeton();
     let adres = format!("http://127.0.0.1:{port}/?t={jeton}");
     println!("TAA Vidyo Yapıcı arayüzü: {adres}");
-    let o = Arc::new(Ortak { durum: Mutex::new(Durum::default()), iptal: AtomicBool::new(false), onizleme: Mutex::new(()), klip: Mutex::new(()), son_nabiz: Mutex::new(Instant::now()), port, jeton });
+    let o = Arc::new(Ortak { oturum: Mutex::new(OturumOnbellek::default()), kimlik: crate::taa_giris::kimlik_yolu, durum: Mutex::new(Durum::default()), iptal: AtomicBool::new(false), onizleme: Mutex::new(()), klip: Mutex::new(()), son_nabiz: Mutex::new(Instant::now()), port, jeton });
     let o_hizmet = o.clone();
     std::thread::spawn(move || {
         for ak in dinle.incoming().flatten() { let o = o_hizmet.clone(); std::thread::spawn(move || isle(ak, o)); }
@@ -532,6 +601,82 @@ mod t {
     fn url_cozme() { assert_eq!(url_coz("a%20b+c%C3%BC"), "a b cü"); assert_eq!(url_coz("%"), "%"); assert_eq!(url_coz("%4"), "%4"); }
     #[test]
     fn ornekler_ayristirilir() { for (a, m) in ORNEKLER { crate::senaryo::ayristir(m).unwrap_or_else(|e| panic!("{a}: {e}")); } }
+    #[test]
+    fn ortak_giris_sayfaya_gomulu() {
+        let s = sayfa();
+        assert!(s.contains("TaaGirisEkrani") && s.contains("'/api/giris/'"));
+        assert_eq!(s.matches("</body>").count(), 1);
+        assert!(s.find("TaaGirisEkrani").unwrap() < s.find("</body>").unwrap());
+    }
+    fn ortak(kimlik: crate::taa_giris::KimlikBulucu) -> Ortak {
+        Ortak { oturum: Mutex::new(OturumOnbellek::default()), kimlik, durum: Mutex::new(Durum::default()), iptal: AtomicBool::new(false), onizleme: Mutex::new(()), klip: Mutex::new(()), son_nabiz: Mutex::new(Instant::now()), port: 0, jeton: "test".into() }
+    }
+    fn arac_yok() -> Option<std::path::PathBuf> { None }
+    fn bozuk_arac() -> Option<std::path::PathBuf> { Some(std::env::temp_dir().join("taa-kimlik-olmayan-arac-vidyo")) }
+    #[cfg(unix)]
+    fn sahte_dizin() -> std::path::PathBuf { std::env::temp_dir().join(format!("vidyo-kapi-sahte-{}", std::process::id())) }
+    #[cfg(unix)]
+    fn sahte_arac() -> Option<std::path::PathBuf> { Some(sahte_dizin().join("taa-kimlik")) }
+
+    /// Fable V5: sunucu kapısı. Araç yoksa izin, köprü yanıt vermezse ret, giriş uçları ve OTURUMSUZ hep açık.
+    #[test]
+    fn kapi_arac_yok_ve_bozuk() {
+        let o = ortak(arac_yok);
+        assert!(!oturum_gerekli(&o, "/uret"), "araç yoksa eski davranış");
+        let o = ortak(bozuk_arac);
+        assert!(oturum_gerekli(&o, "/uret"), "köprü yanıt vermezse ret");
+        for y in ["/nabiz", "/iptal", "/kapat", "/api/giris/giris", "/api/giris/cikis"] {
+            assert!(!oturum_gerekli(&o, y), "{y} oturumsuz açık");
+        }
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn kapi_giris_ve_cikis_sahte_aracla() {
+        use std::os::unix::fs::PermissionsExt;
+        let dz = sahte_dizin();
+        let _ = std::fs::remove_dir_all(&dz);
+        std::fs::create_dir_all(&dz).unwrap();
+        let betik = r#"#!/bin/sh
+D="$(dirname "$0")"
+IFS= read -r GIRDI
+case "$1" in
+  durum) if [ -f "$D/oturum" ]; then cat "$D/oturum"; exit 0; fi
+    echo '{"hata":"kayıtlı oturum yok"}' >&2; exit 5 ;;
+  cikis) rm -f "$D/oturum"; echo '{"durum":"cikis"}'; exit 0 ;;
+esac
+exit 1
+"#;
+        let yol = dz.join("taa-kimlik");
+        std::fs::write(&yol, betik).unwrap();
+        std::fs::set_permissions(&yol, std::fs::Permissions::from_mode(0o700)).unwrap();
+        let o = ortak(sahte_arac);
+        assert!(oturum_gerekli(&o, "/uret"), "oturumsuz POST reddedilir");
+        assert!(!oturum_gerekli(&o, "/nabiz"));
+        std::fs::write(dz.join("oturum"), r#"{"kullanici":"yusuf","sube_id":1,"roller":["yonetici"],"izinler":[],"programlar":["taa-vidyo-yapici"]}"#).unwrap();
+        // Önceki ret önbellekte "geçersiz" kalır ama geçersiz sonuç önbellekten okunmaz: yeniden sorulur.
+        assert!(!oturum_gerekli(&o, "/uret"), "oturum varsa izin");
+        // Çıkış: önbellek unutulur, sonraki POST reddedilir (60 sn beklemeden).
+        oturum_unut(&o);
+        let _ = crate::taa_giris::yanitla(o.kimlik, PROGRAM, "cikis", b"{}");
+        oturum_unut(&o);
+        assert!(oturum_gerekli(&o, "/uret"), "çıkış sonrası ret");
+        // Programı kapalı kişi: oturum var ama bu program listede yok → ret.
+        std::fs::write(dz.join("oturum"), r#"{"kullanici":"ayse","sube_id":1,"roller":["personel"],"izinler":[],"programlar":["tutaa"]}"#).unwrap();
+        assert!(oturum_gerekli(&o, "/uret"), "program kapalıysa ret");
+        let _ = std::fs::remove_dir_all(&dz);
+    }
+
+    /// Fable V3: denetim sürerken giriş/çıkış olduysa sonuç önbelleğe yazılmaz.
+    #[test]
+    fn nesil_degisince_onbellege_yazilmaz() {
+        let o = ortak(arac_yok);
+        let n = o.oturum.lock().unwrap().nesil;
+        oturum_unut(&o);
+        let mut k = o.oturum.lock().unwrap();
+        assert_ne!(k.nesil, n);
+        assert!(k.son.is_none());
+    }
     #[test]
     fn sorgu_okur() { assert_eq!(sorgu("/x?t=2.5&dosya=a%20b", "dosya").as_deref(), Some("a b")); }
 }

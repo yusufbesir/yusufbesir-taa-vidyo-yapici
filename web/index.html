@@ -58,7 +58,7 @@ html[data-tema="eslik"]{--bg:#351D2A;--panel:#452A39;--panel2:#57384A;--line:#B0
 
 /* ---------- tema iskeleti: yazı, köşe, yüzey ---------- */
 :root{--fg:"Segoe UI Variable Text","Segoe UI Variable","Segoe UI",system-ui,sans-serif;--fh:"Segoe UI Variable Display","Segoe UI Variable","Segoe UI",system-ui,sans-serif;--fm:"Cascadia Mono",Consolas,ui-monospace,monospace;
-  --r-kart:16px;--r-btn:12px;--r-kip:999px;--ara:12px;--cw:400px;--ayrac:var(--panel2);--golge:0 1px 3px rgb(29 27 26/.10);--pervaz:#15171A;--ac2:var(--ac);color-scheme:light}
+  --r-kart:16px;--r-btn:12px;--r-kip:999px;--r:var(--r-kart);--ara:12px;--cw:400px;--ayrac:var(--panel2);--golge:0 1px 3px rgb(29 27 26/.10);--pervaz:#15171A;--ac2:var(--ac);color-scheme:light}
 html[data-tema="vurus"]{--fg:Bahnschrift,"Segoe UI",system-ui,sans-serif;--fh:Bahnschrift,"Segoe UI",system-ui,sans-serif;--fm:"TAA Plex Mono","Cascadia Mono",Consolas,monospace;--r-kart:2px;--r-btn:2px;--r-kip:2px;--ara:0px;--golge:none;--ayrac:var(--line);color-scheme:dark}
 html[data-tema="cephe"]{--fg:"TAA Space Grotesk","Segoe UI",system-ui,sans-serif;--fh:"TAA Space Grotesk","Segoe UI",system-ui,sans-serif;--r-kart:10px;--r-btn:10px;--r-kip:10px;--ara:12px;--golge:none;color-scheme:dark}
 html[data-tema="kadraj"]{--fg:"TAA Atkinson","Segoe UI",system-ui,sans-serif;--fh:"TAA Atkinson","Segoe UI",system-ui,sans-serif;--r-kart:4px;--r-btn:4px;--r-kip:4px;--ara:12px;--golge:none;--ayrac:var(--panel2)}
@@ -758,7 +758,9 @@ const acilisDepo = { get: k => localStorage.getItem(k), set: (k, v) => localStor
 })();
 // (0.9 tema seçici ve tema renkleri 1.0'da aşağıdaki 'temalar' bölümüne taşındı)
 const $ = s => document.querySelector(s);
-const api = (yol, govde, ek) => fetch(yol, {method: govde === undefined ? 'GET' : 'POST', headers: {'X-LED': '1'}, body: govde, ...(ek || {})});
+// Oturum bittiyse sunucu 401 döner: TAA ortak giriş ekranı hemen açılır (main: Fable V4; birleştirme 1.0.1).
+const api = (yol, govde, ek) => fetch(yol, {method: govde === undefined ? 'GET' : 'POST', headers: {'X-LED': '1'}, body: govde, ...(ek || {})})
+  .then(r => { if (r.status === 401 && window.taaGirisAc) window.taaGirisAc(); return r; });
 let bilgi = null, stil = 'yumusak', tohum = 1, ozel = {}, elleDuzenlendi = false, sablon = null;
 const q = encodeURIComponent;
 const sen = $('#sen'), yazi = $('#yazi');

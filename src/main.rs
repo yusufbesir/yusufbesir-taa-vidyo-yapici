@@ -48,6 +48,7 @@ fn yerlesim(font: &FontRef, w: u32, h: u32, s: &str, en_cok_px: f32) -> (Vec<ani
 }
 
 fn main() {
+    taa_hata::kur_varsayilan("taa-video", env!("CARGO_PKG_VERSION"));
     let a: Vec<String> = std::env::args().collect();
     if a.len() == 1 || a.iter().any(|x| x == "--arayuz") {
         // Çift tıklayınca gömülü pencere (WebView2) açılır, konsol gizlenir; --port N ve --tarayici-yok (pencere yok) test içindir.
