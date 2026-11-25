@@ -21,6 +21,16 @@ pub const SABLONLAR: &[(&str, &str)] = &[
     ("tadilat", include_str!("../sablonlar/tadilat.txt")),
     ("yeni-sezon", include_str!("../sablonlar/yeni-sezon.txt")),
     ("yilbasi", include_str!("../sablonlar/yilbasi.txt")),
+    ("yaz-indirimi", include_str!("../sablonlar/yaz-indirimi.txt")),
+    ("kis-sezonu", include_str!("../sablonlar/kis-sezonu.txt")),
+    ("takim-elbise", include_str!("../sablonlar/takim-elbise.txt")),
+    ("ucretsiz-tadilat", include_str!("../sablonlar/ucretsiz-tadilat.txt")),
+    ("yeni-geldi", include_str!("../sablonlar/yeni-geldi.txt")),
+    ("hafta-sonu", include_str!("../sablonlar/hafta-sonu.txt")),
+    ("ikinci-urun", include_str!("../sablonlar/ikinci-urun.txt")),
+    ("taksit-12", include_str!("../sablonlar/taksit-12.txt")),
+    ("gelinlik", include_str!("../sablonlar/gelinlik.txt")),
+    ("okul-donemi", include_str!("../sablonlar/okul-donemi.txt")),
 ];
 
 pub const REHBER: &[(&str, &str)] = &[

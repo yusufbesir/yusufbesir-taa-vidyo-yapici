@@ -10,6 +10,8 @@ use std::time::{Duration, Instant};
 
 const SAYFA: &str = include_str!("../web/index.html");
 const LOGO: &str = include_str!("../logo/logo.svg");
+const YZ_DAR: &[u8] = include_bytes!("../fonts/BarlowCondensed-Black.ttf");
+const YZ_RAF: &[u8] = include_bytes!("../fonts/Audiowide-Regular.ttf");
 pub const SURUM: &str = env!("CARGO_PKG_VERSION");
 
 pub const ORNEKLER: [(&str, &str); 11] = [
@@ -131,6 +133,24 @@ fn oku(s: &mut TcpStream) -> Option<(String, String, Vec<(String, String)>, Vec<
     Some((yontem, yol, basliklar, govde))
 }
 
+/// Kayıtlı dosya adı çıktı klasöründeyse ve biçimi videoysa tam yolunu döndürür (yoksa None).
+fn son_video_yolu(dosya: &str) -> Option<PathBuf> {
+    if dosya.is_empty() { return None; }
+    let p = PathBuf::from(dosya);
+    let ad = p.file_name()?.to_string_lossy().to_lowercase();
+    if !(ad.ends_with(".mp4") || ad.ends_with(".mov")) { return None; }
+    let tam = if p.is_absolute() { p } else { cikti_klasoru().join(p) };
+    let kok = cikti_klasoru();
+    if tam.parent().map(|x| x == kok.as_path()).unwrap_or(false) && tam.is_file() { Some(tam) } else { None }
+}
+#[cfg(windows)]
+fn son_video_ac(p: &std::path::Path) {
+    use std::os::windows::process::CommandExt;
+    let _ = std::process::Command::new("cmd").args(["/c", "start", "", &p.display().to_string()]).creation_flags(0x0800_0000).spawn();
+}
+#[cfg(not(windows))]
+fn son_video_ac(p: &std::path::Path) { let _ = std::process::Command::new("xdg-open").arg(p).spawn(); }
+
 fn klasor_ac(k: &std::path::Path) {
     #[cfg(windows)]
     { use std::os::windows::process::CommandExt; let _ = std::process::Command::new("explorer").arg(k).creation_flags(0x0800_0000).spawn(); }
@@ -149,6 +169,8 @@ fn isle(mut s: TcpStream, o: Arc<Ortak>) {
     match (yontem.as_str(), yolu.as_str()) {
         ("GET", "/") => yanit(&mut s, 200, "text/html; charset=utf-8", SAYFA.as_bytes()),
         ("GET", "/logo.svg") => yanit(&mut s, 200, "image/svg+xml", LOGO.as_bytes()),
+        ("GET", "/yz/dar.ttf") => yanit(&mut s, 200, "font/ttf", YZ_DAR),
+        ("GET", "/yz/raf.ttf") => yanit(&mut s, 200, "font/ttf", YZ_RAF),
         ("GET", "/bilgi") => {
             crate::animasyon::yukle();
             let ff = crate::ffmpeg::bul().map(|p| p.display().to_string()).unwrap_or_default();
@@ -253,6 +275,14 @@ fn isle(mut s: TcpStream, o: Arc<Ortak>) {
             }
         }
         ("POST", "/iptal") => { o.iptal.store(true, Ordering::Relaxed); yanit(&mut s, 200, metin, b"ok") }
+        // Son üretilen videoyu varsayılan video oynatıcıda açar (tarayıcıda değil). Yol yalnız sunucunun kendi kaydından ve çıktı klasöründen gelir.
+        ("POST", "/oynat-son") => {
+            let dosya = o.durum.lock().unwrap().dosya.clone();
+            match son_video_yolu(&dosya) {
+                Some(p) => { son_video_ac(&p); yanit(&mut s, 200, metin, b"ok") }
+                None => yanit(&mut s, 404, metin, b"video yok"),
+            }
+        }
         ("POST", "/klasor") => { klasor_ac(&cikti_klasoru()); yanit(&mut s, 200, metin, b"ok") }
         ("POST", "/kapat") => { yanit(&mut s, 200, metin, b"ok"); std::process::exit(0) }
         _ => yanit(&mut s, 404, metin, b"yok"),
@@ -289,6 +319,21 @@ pub fn calistir(tarayici_ac: bool, port: u16) -> ! {
 #[cfg(test)]
 mod t {
     use super::*;
+    #[test]
+    fn bina_onizleme_varsayilanlari_kilitli() {
+        // Yusuf'un bildirdiği bina ölçüleri (11-15/16): değişiklik bilinçli olmalı, bu test onu yakalar.
+        assert!(SAYFA.contains("const BINA_VARSAYILAN = {gen: 31, yuk: 35, ew: 10, eh: 30, ealt: 3, logo: 6, logoy: 18, orta: 8, kat: 5.5, yuz: 'alt'};"));
+        assert!(SAYFA.contains("taa-bina4") && SAYFA.contains("taa-gorunum"));
+        assert!(SAYFA.contains("data-g=\"karsi\"") && SAYFA.contains("data-g=\"ust\"") && SAYFA.contains("id=\"binaFig\""));
+        assert!(SAYFA.contains("UYARI: ekran üstü"));
+    }
+    #[test]
+    fn son_video_yolu_yalniz_cikti_klasorunden() {
+        assert!(son_video_yolu("").is_none());
+        assert!(son_video_yolu("C:\\Windows\\system32\\cmd.exe").is_none());
+        assert!(son_video_yolu("olmayan.mp4").is_none());
+        assert!(son_video_yolu("..\\..\\kötü.mp4").is_none());
+    }
     #[test]
     fn dosya_adi_guvenli() {
         assert_eq!(dosya_adi("..\\..\\kötü/ad", "mp4"), "kötü_ad.mp4");
