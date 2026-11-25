@@ -5,4 +5,5 @@ edition = "2021"
 
 [dependencies]
 ab_glyph = "0.2"
+serde_json = "1"   # TAA ortak giriş (src/taa_giris.rs); taa-hata ile zaten kilit dosyasında
 taa-hata = { git = "https://github.com/yusufbesir/taa-paket", rev = "306a0627c5601624851740b2821e53cad34506bf" }

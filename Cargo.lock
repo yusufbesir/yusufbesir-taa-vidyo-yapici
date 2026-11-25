@@ -258,6 +258,7 @@ name = "taa-vidyo-yapici"
 version = "0.7.2"
 dependencies = [
  "ab_glyph",
+ "serde_json",
  "taa-hata",
 ]
 
