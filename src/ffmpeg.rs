@@ -25,7 +25,7 @@ pub fn bul() -> Option<PathBuf> {
     }
     if cfg!(windows) {
         for kok in [r"D:\Programlar\Araçlar Ve İndirilenler", r"C:\Programlar\Araçlar Ve İndirilenler"] {
-            if let Some(p) = klasorde_ara(Path::new(kok), 3) { return Some(p); }
+            if let Some(p) = klasorde_ara(Path::new(kok), 6) { return Some(p); }
         }
     }
     let yol = std::env::var_os("PATH")?;
