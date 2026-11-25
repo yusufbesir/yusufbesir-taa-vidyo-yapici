@@ -322,7 +322,9 @@ setTimeout(() => window.acilisKapat(), 6000);
   uygula();
 })();
 const $ = s => document.querySelector(s);
-const api = (yol, govde, ek) => fetch(yol, {method: govde === undefined ? 'GET' : 'POST', headers: {'X-LED': '1'}, body: govde, ...(ek || {})});
+// Oturum bittiyse sunucu 401 döner: ortak giriş ekranı hemen açılır (Fable V4).
+const api = (yol, govde, ek) => fetch(yol, {method: govde === undefined ? 'GET' : 'POST', headers: {'X-LED': '1'}, body: govde, ...(ek || {})})
+  .then(r => { if (r.status === 401 && window.taaGirisAc) window.taaGirisAc(); return r; });
 let bilgi = null, stil = 'yumusak', tohum = 1, ozel = {}, elleDuzenlendi = false, sablon = null;
 const q = encodeURIComponent;
 const sen = $('#sen'), yazi = $('#yazi');

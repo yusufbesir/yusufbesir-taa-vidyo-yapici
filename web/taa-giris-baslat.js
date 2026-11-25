@@ -74,6 +74,9 @@
     window.TaaGirisEkrani.ac(document.body, { programAdi: 'TAA Vidyo Yapıcı', api: api, girildi: girildi });
   }
 
+  // Sayfa bir işlemde 401 oturum_gerekli alırsa giriş ekranını buradan açar.
+  window.taaGirisAc = girisAc;
+
   function denetle() {
     return api.baslangic().then(function (b) {
       if (!b || !b.arac) return;          // taa-kimlik kurulu değil: eski davranış
