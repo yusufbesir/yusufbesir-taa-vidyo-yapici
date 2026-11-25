@@ -1,6 +1,7 @@
 //! "Tarif et" doğrudan LLM bağlantısı (isteğe bağlı, varsayılan KAPALI). Sahip: Yusuf; yazan [Claude#ebd691, 2026-11-16].
 //! Yenileme [Claude#AI Opus 5.5, yenileme-1.0, 2026-11-18]: Tasiyici arayüzü (sahte sunucuyla test), net zaman aşımı, en çok 2 yeniden deneme (üstel bekleme),
 //! iptal, yanıt boyutu sınırı, sade Türkçe hata kodları (sır sızdırmaz). Yalnız yazan yapay zekâ ya da Yusuf'un izniyle değişir; silme yok.
+//! Dalga 3 [Claude#AI Opus 5.5, yenileme-1.0, 2026-11-25]: toplam yapay zekâ bütçesi 35 sn (TOPLAM_BUTCE; denemeler kalan süreyle sınırlı).
 //! Güvenlik: anahtar Windows DPAPI (kullanıcı kapsamı) ile şifrelenir, düz dosyaya/günlüğe/arayüze yazılmaz, arayüze geri gösterilmez.
 //! Yalnız tarif metni ve katalog adları gönderilir; adresler sabit sağlayıcı adresleri ya da kullanıcının https adresidir; yönlendirme izlenmez.
 use crate::tarif::*;
@@ -139,10 +140,18 @@ pub fn cevap_metni(saglayici: &str, govde: &str) -> Result<String, String> {
 #[derive(Debug, Clone, PartialEq)]
 pub enum TasimaHata { ZamanAsimi, Baglanti, CokUzun, Diger }
 /// HTTP gönderici. Bağlantı kurulduysa (durum kodu, gövde) döner; 4xx/5xx de Ok'tur (sınıflama çağırandadır).
-pub trait Tasiyici { fn gonder(&self, adres: &str, ust: &[(String, String)], govde: &str) -> Result<(u16, String), TasimaHata>; }
-/// Gerçek taşıyıcı: bağlantı 10 sn, toplam 45 sn zaman aşımı; yönlendirme izlenmez; gövde en çok MAX_CEVAP bayt.
+pub trait Tasiyici {
+    fn gonder(&self, adres: &str, ust: &[(String, String)], govde: &str) -> Result<(u16, String), TasimaHata>;
+    /// En çok `sure` içinde biten gönderim (toplam bütçe). Varsayılan: sınırsız `gonder` (sahte taşıyıcılar için).
+    fn gonder_sureli(&self, adres: &str, ust: &[(String, String)], govde: &str, _sure: Duration) -> Result<(u16, String), TasimaHata> { self.gonder(adres, ust, govde) }
+}
+/// Bir "Hazırla" isteğinde yapay zekâya ayrılan toplam süre (bağlantı + yeniden denemeler + beklemeler). Sonra yerel kurallara geçilir.
+pub const TOPLAM_BUTCE: Duration = Duration::from_secs(35);
+/// Kalan bütçe bundan azsa yeni deneme başlatılmaz.
+const EN_AZ_DENEME: Duration = Duration::from_secs(5);
+/// Gerçek taşıyıcı: bağlantı 10 sn, deneme başına en çok 30 sn (ve kalan toplam bütçe); yönlendirme izlenmez; gövde en çok MAX_CEVAP bayt.
 pub struct UreqTasiyici { pub baglanti: Duration, pub toplam: Duration }
-impl Default for UreqTasiyici { fn default() -> Self { UreqTasiyici { baglanti: Duration::from_secs(10), toplam: Duration::from_secs(45) } } }
+impl Default for UreqTasiyici { fn default() -> Self { UreqTasiyici { baglanti: Duration::from_secs(10), toplam: Duration::from_secs(30) } } }
 fn zaman_asimi_mi(e: &(dyn std::error::Error + 'static)) -> bool {
     let mut k: Option<&(dyn std::error::Error + 'static)> = Some(e);
     while let Some(x) = k {
@@ -159,8 +168,10 @@ fn govde_oku(r: ureq::Response) -> Result<String, TasimaHata> {
     Ok(String::from_utf8_lossy(&b).into_owned())
 }
 impl Tasiyici for UreqTasiyici {
-    fn gonder(&self, adres: &str, ust: &[(String, String)], govde: &str) -> Result<(u16, String), TasimaHata> {
-        let ajan = ureq::AgentBuilder::new().redirects(0).timeout_connect(self.baglanti).timeout(self.toplam).build();
+    fn gonder(&self, adres: &str, ust: &[(String, String)], govde: &str) -> Result<(u16, String), TasimaHata> { self.gonder_sureli(adres, ust, govde, self.toplam) }
+    fn gonder_sureli(&self, adres: &str, ust: &[(String, String)], govde: &str, sure: Duration) -> Result<(u16, String), TasimaHata> {
+        let toplam = self.toplam.min(sure).max(Duration::from_millis(100));
+        let ajan = ureq::AgentBuilder::new().redirects(0).timeout_connect(self.baglanti.min(toplam)).timeout(toplam).build();
         let mut r = ajan.post(adres);
         for (h, v) in ust { r = r.set(h, v); }
         match r.send_string(govde) {
@@ -206,8 +217,8 @@ impl LlmHata {
 pub const EN_COK_YENIDEN: u32 = 2;
 
 /// Tek istek: durum koduna göre sınıflar, yanıttan model metnini çıkarır.
-fn bir_kez(t: &dyn Tasiyici, saglayici: &str, adres: &str, ust: &[(String, String)], govde: &str) -> Result<String, LlmHata> {
-    let (kod, g) = t.gonder(adres, ust, govde).map_err(|e| match e { TasimaHata::ZamanAsimi => LlmHata::ZamanAsimi, TasimaHata::Baglanti | TasimaHata::Diger => LlmHata::Baglanti, TasimaHata::CokUzun => LlmHata::CokUzun })?;
+fn bir_kez(t: &dyn Tasiyici, saglayici: &str, adres: &str, ust: &[(String, String)], govde: &str, sure: Duration) -> Result<String, LlmHata> {
+    let (kod, g) = t.gonder_sureli(adres, ust, govde, sure).map_err(|e| match e { TasimaHata::ZamanAsimi => LlmHata::ZamanAsimi, TasimaHata::Baglanti | TasimaHata::Diger => LlmHata::Baglanti, TasimaHata::CokUzun => LlmHata::CokUzun })?;
     match kod {
         200..=299 => {}
         401 | 403 => return Err(LlmHata::AnahtarGecersiz),
@@ -232,13 +243,24 @@ fn iptalli_bekle(sure: Duration, iptal: &AtomicBool, bekle: &dyn Fn(Duration)) -
     !iptal.load(Ordering::Relaxed)
 }
 /// İstemi gönderir; yeniden denenebilir hatalarda en çok 2 kez üstel beklemeyle (1 sn, 2 sn) yeniden dener. Model METNİNİ döndürür (şema doğrulaması çağırandadır).
+/// 2026-11-25: her deneme kalan TOPLAM_BUTCE ile sınırlıdır; kalan süre EN_AZ_DENEME'den azsa yeniden denenmez (son hata döner).
 pub fn iste(t: &dyn Tasiyici, a: &Ayar, anahtar: &str, istem: &str, iptal: &AtomicBool, bekle: &dyn Fn(Duration)) -> Result<String, LlmHata> {
+    iste_butceli(t, a, anahtar, istem, iptal, bekle, TOPLAM_BUTCE)
+}
+pub fn iste_butceli(t: &dyn Tasiyici, a: &Ayar, anahtar: &str, istem: &str, iptal: &AtomicBool, bekle: &dyn Fn(Duration), butce: Duration) -> Result<String, LlmHata> {
     let (adres, ust, govde) = istek_hazirla(a, istem, anahtar).map_err(LlmHata::Ayar)?;
+    let basla = std::time::Instant::now();
     let mut son = LlmHata::Baglanti;
     for deneme in 0..=EN_COK_YENIDEN {
         if iptal.load(Ordering::Relaxed) { return Err(LlmHata::Iptal); }
-        if deneme > 0 && !iptalli_bekle(Duration::from_secs(1 << (deneme - 1)), iptal, bekle) { return Err(LlmHata::Iptal); }
-        match bir_kez(t, &a.saglayici, &adres, &ust, &govde) {
+        if deneme > 0 {
+            let bekleme = Duration::from_secs(1 << (deneme - 1));
+            if basla.elapsed() + bekleme + EN_AZ_DENEME > butce { return Err(son); }
+            if !iptalli_bekle(bekleme, iptal, bekle) { return Err(LlmHata::Iptal); }
+        }
+        let kalan = butce.saturating_sub(basla.elapsed());
+        if kalan.is_zero() { return Err(son); }
+        match bir_kez(t, &a.saglayici, &adres, &ust, &govde, kalan) {
             Ok(m) => return Ok(m),
             Err(e) if e.yeniden_denenir() => son = e,
             Err(e) => return Err(e),
@@ -331,6 +353,16 @@ mod testler {
         let s = Sahte::yeni(vec![Err(TasimaHata::ZamanAsimi), Err(TasimaHata::ZamanAsimi), Err(TasimaHata::ZamanAsimi), Ok((200, oai("{}")))]);
         assert_eq!(calistir(&s).unwrap_err(), LlmHata::ZamanAsimi);
         assert_eq!(*s.sayac.borrow(), 1 + EN_COK_YENIDEN, "en çok 2 yeniden deneme");
+    }
+    #[test]
+    fn toplam_butce_asilmaz() {
+        // 2026-11-25: kalan bütçe (bekleme + en az deneme süresi) yetmiyorsa yeniden denenmez
+        let s = Sahte::yeni(vec![Err(TasimaHata::ZamanAsimi), Err(TasimaHata::ZamanAsimi), Ok((200, oai("{}")))]);
+        let r = iste_butceli(&s, &ayar(), "k", "istem", &AtomicBool::new(false), &|_| {}, Duration::from_secs(5));
+        assert_eq!(r.unwrap_err(), LlmHata::ZamanAsimi);
+        assert_eq!(*s.sayac.borrow(), 1, "5 sn bütçede yeniden deneme yok");
+        assert!(TOPLAM_BUTCE <= Duration::from_secs(35));
+        assert!(UreqTasiyici::default().toplam <= TOPLAM_BUTCE);
     }
     #[test]
     fn sahte_500_sonra_basari() {

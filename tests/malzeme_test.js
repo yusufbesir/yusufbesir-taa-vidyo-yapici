@@ -45,6 +45,15 @@ assert.strictEqual(g.metin, 'A B C D E çok uzun b'); assert.ok(!('fazla' in g))
 assert.strictEqual(I.sinirla('2.345', { min: 0, max: 10 }), 2.35);
 assert.strictEqual(I.sinirla(Infinity, { min: 0, max: 10, varsayilan: 4 }), 4);
 
+// Dalga 3 (Fable KRİTİK): önizleme senaryoyu değiştiren app.onizle'yi kullanmaz; geri al yalnız senaryo değişmediyse
+assert.strictEqual(I.onizlemeYolu({ geciciOnizle() {}, onizle() {} }), 'gecici');
+assert.strictEqual(I.onizlemeYolu({ onizle() {} }), 'kucuk', 'yalnız onizle varsa senaryoya dokunulmaz, küçük resim');
+assert.strictEqual(I.onizlemeYolu(null), 'kucuk');
+assert.strictEqual(I.geriAlKarari({ once: 'A', sonra: 'AB' }, 'AB'), 'geri');
+assert.strictEqual(I.geriAlKarari({ once: 'A', sonra: 'AB' }, 'ABC'), 'degisti');
+assert.strictEqual(I.geriAlKarari(null, 'x'), 'yok');
+assert.ok(!/app\.onizle\(/.test(require('fs').readFileSync(path.join(__dirname, '..', 'web', 'malzeme.js'), 'utf8')), 'malzeme.js app.onizle çağırmamalı');
+
 // Bekletici (debounce): yalnız son çağrı çalışır; iptal edilebilir
 let say = 0, son = null;
 const b = I.bekletici(x => { say++; son = x; }, 20);

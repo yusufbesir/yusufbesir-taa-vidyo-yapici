@@ -2,6 +2,7 @@
 // Sunucu uçları: GET /malzeme/liste, POST /malzeme/uret, POST /malzeme/kucuk, GET /malzeme/kucuk/<id>. Ayrıntı: docs/MALZEME.md.
 // Tema: yalnız CSS değişkenleri (--bg --panel --panel2 --line --tx --mut --ac --onac --ok --uy). Dış bağımlılık yok.
 // Sahip: Yusuf. Yazan: [Claude#Malzeme Opus 5.5, yenileme-1.0, 2026-11-18]. Yalnız yazan yapay zekâ ya da Yusuf'un izniyle değişir; silme yok.
+// Dalga 3 [Claude#Malzeme Opus 5.5, yenileme-1.0, 2026-11-25]: kart/önizleme senaryoya DOKUNMAZ (TaaApp.geciciOnizle), "Videoya ekle" tek kez + Geri al, çerçeveli vurgu, tema köşeleri.
 (function (kok) {
   'use strict';
 
@@ -51,6 +52,13 @@
     });
     return g;
   }
+  // Önizleme yolu (Fable KRİTİK bulgusu): kullanıcının senaryosu ASLA değiştirilmez. TaaApp.geciciOnizle varsa o, yoksa yalnız küçük resim.
+  function onizlemeYolu(app) { return app && typeof app.geciciOnizle === 'function' ? 'gecici' : 'kucuk'; }
+  // Geri al kararı: kayit = {once, sonra}; simdi = şu anki senaryo. Ekleme sonrası senaryo başka yerden değiştiyse geri alınmaz.
+  function geriAlKarari(kayit, simdi) {
+    if (!kayit) return 'yok';
+    return simdi === kayit.sonra ? 'geri' : 'degisti';
+  }
   function bekletici(fn, ms) {
     var z = null;
     var f = function () { var a = arguments, b = this; clearTimeout(z); z = setTimeout(function () { z = null; fn.apply(b, a); }, ms); };
@@ -73,19 +81,20 @@
   var STIL = [
     '.tm{color:var(--tx);font-size:16px;display:flex;flex-direction:column;gap:12px;min-width:0}',
     '.tm *{box-sizing:border-box}',
-    '.tm-ara{width:100%;min-height:48px;padding:0 14px;font:inherit;color:var(--tx);background:var(--panel2);border:1px solid var(--line);border-radius:10px}',
+    '.tm-ara{width:100%;min-height:48px;padding:0 14px;font:inherit;color:var(--tx);background:var(--panel2);border:1px solid var(--line);border-radius:var(--r-btn,10px)}',
     '.tm-cipler{display:flex;flex-wrap:wrap;gap:8px}',
-    '.tm-cip{min-height:48px;padding:0 16px;font:inherit;font-size:16px;color:var(--tx);background:var(--panel2);border:1px solid var(--line);border-radius:24px;cursor:pointer}',
-    '.tm-cip[aria-pressed="true"]{background:var(--ac);color:var(--onac);border-color:var(--ac)}',
+    '.tm-cip{min-height:48px;padding:0 16px;font:inherit;font-size:16px;color:var(--tx);background:var(--panel2);border:2px solid var(--line);border-radius:var(--r-btn,10px);cursor:pointer}',
+    // seçili çip dolu değil çerçeveli vurgu (Fable bulgusu): kalın vurgu çerçevesi + kalın yazı
+    '.tm-cip[aria-pressed="true"]{border-color:var(--ac);font-weight:700;box-shadow:inset 0 0 0 1px var(--ac)}',
     '.tm-cip small{font-size:13px;color:inherit;opacity:.8;margin-left:6px}',
     '.tm-izgara{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:12px}',
-    '.tm-kart{display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:8px;min-height:48px;font:inherit;text-align:left;color:var(--tx);background:var(--panel);border:1px solid var(--line);border-radius:12px;cursor:pointer;transition:transform .15s ease,opacity .15s ease}',
+    '.tm-kart{display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:8px;min-height:48px;font:inherit;text-align:left;color:var(--tx);background:var(--panel);border:1px solid var(--line);border-radius:var(--r-kart,12px);cursor:pointer;transition:transform .15s ease,opacity .15s ease}',
     '.tm-kart:hover{transform:translateY(-2px)}',
     '.tm-kart[aria-current="true"]{border-color:var(--ac);outline:2px solid var(--ac);outline-offset:0}',
-    '.tm-resim{width:100%;aspect-ratio:190/360;border-radius:8px;background:var(--bg);display:block;object-fit:cover}',
+    '.tm-resim{width:100%;aspect-ratio:190/360;border-radius:calc(var(--r-kart,12px) / 2);background:var(--bg);display:block;object-fit:cover}',
     '.tm-ad{font-size:16px;font-weight:600;line-height:1.25}',
     '.tm-kat{font-size:13px;color:var(--mut)}',
-    '.tm-panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:16px}',
+    '.tm-panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-kart,14px);padding:16px;display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:16px}',
     '@media (max-width:640px){.tm-panel{grid-template-columns:1fr}}',
     '.tm-panel h3{margin:0;font-size:20px}',
     '.tm-panel p{margin:0;color:var(--mut);font-size:16px}',
@@ -93,12 +102,15 @@
     '.tm-alan label{font-size:16px}',
     '.tm-satir{display:flex;gap:10px;align-items:center}',
     '.tm-satir input[type=range]{flex:1;min-height:48px;accent-color:var(--ac)}',
-    '.tm-sayi,.tm-metin,.tm-secim{min-height:48px;padding:0 12px;font:inherit;color:var(--tx);background:var(--panel2);border:1px solid var(--line);border-radius:10px}',
+    '.tm-sayi,.tm-metin,.tm-secim{min-height:48px;padding:0 12px;font:inherit;color:var(--tx);background:var(--panel2);border:1px solid var(--line);border-radius:var(--r-btn,10px)}',
     '.tm-sayi{width:96px}.tm-metin,.tm-secim{width:100%}',
     '.tm-yonler{display:flex;gap:8px;flex-wrap:wrap}',
     '.tm-eylem{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}',
-    '.tm-btn{min-height:48px;padding:0 18px;font:inherit;font-size:16px;color:var(--tx);background:var(--panel2);border:1px solid var(--line);border-radius:10px;cursor:pointer}',
-    '.tm-ana{min-height:56px;padding:0 24px;background:var(--ac);color:var(--onac);border-color:var(--ac);font-weight:700}',
+    '.tm-btn{min-height:48px;padding:0 18px;font:inherit;font-size:16px;color:var(--tx);background:var(--panel2);border:1px solid var(--line);border-radius:var(--r-btn,10px);cursor:pointer}',
+    // ana eylem dolu değil çerçeveli (Fable bulgusu)
+    '.tm-ana{min-height:56px;padding:0 24px;background:var(--panel);color:var(--tx);border:3px solid var(--ac);font-weight:700}',
+    '.tm-btn[disabled]{opacity:.75;cursor:default}',
+    '.tm-geri{display:flex;gap:10px;align-items:center;flex-wrap:wrap}',
     '.tm-durum{font-size:16px;color:var(--mut);min-height:24px}',
     '.tm-durum[data-tur="ok"]{color:var(--ok)}.tm-durum[data-tur="uy"]{color:var(--uy)}',
     '.tm-buyuk{width:100%;aspect-ratio:190/360;border-radius:10px;background:var(--bg)}',
@@ -186,8 +198,11 @@
         if (no !== yenile.no) return;
         var j = JSON.parse(t);
         d.parca = j.senaryo; d.onizlemeMetni = j.onizleme;
-        bildir('');
-        if (onizleGonder && typeof app.onizle === 'function') { try { app.onizle(j.onizleme); } catch (e) { /* uygulama önizlemesi yoksa sessiz */ } }
+        if (d.eklenen !== d.parca && !eklemeSuruyor) ekleDugmesi(false);
+        if (!onizleGonder) bildir('');
+        // Senaryoya dokunmadan geçici önizleme; app.onizle (senaryoyu değiştirir) bilerek KULLANILMAZ.
+        if (onizleGonder && onizlemeYolu(app) === 'gecici') { try { app.geciciOnizle(j.onizleme); bildir('Önizleme gösteriliyor; senaryonuz değişmedi. Eklemek için "Videoya ekle".'); } catch (e) { /* uygulama önizlemesi yoksa sessiz */ } }
+        else if (onizleGonder) bildir('Önizleme sağdaki resimde; senaryonuz değişmedi.');
         istek('/malzeme/kucuk', Object.assign({ t: null }, g)).then(function (u) { if (no === yenile.no) buyukResim.src = u; }).catch(function () {});
       }).catch(function (e) { if (no === yenile.no) bildir(e.message, 'uy'); });
     }
@@ -227,24 +242,64 @@
       return kutu;
     }
 
+    // "Videoya ekle" tek kez ekler: işlem sürerken ve aynı parça eklendikten sonra (ayar değişene dek) düğme kapalı; görünür bildirim + Geri al.
+    var ekleBtn = null, geriKutu = null, eklemeSuruyor = false;
+    function ekleDugmesi(eklendi) {
+      if (!ekleBtn) return;
+      ekleBtn.disabled = !!eklendi;
+      ekleBtn.textContent = eklendi ? 'Eklendi ✓' : 'Videoya ekle';
+    }
+    function geriAlGoster(kayit) {
+      if (!geriKutu) return;
+      geriKutu.innerHTML = '';
+      if (!kayit) return;
+      geriKutu.appendChild(el('button', { sinif: 'tm-btn', type: 'button', metin: 'Geri al', onclick: function () {
+        var simdi = typeof app.senaryoMetni === 'function' ? app.senaryoMetni() : null;
+        var k = geriAlKarari(kayit, simdi);
+        if (k === 'geri' && typeof app.senaryoDegistir === 'function') {
+          app.senaryoDegistir(kayit.once, 'Malzeme kitaplığı (geri al)');
+          d.eklenen = ''; ekleDugmesi(false); geriKutu.innerHTML = '';
+          bildir('Ekleme geri alındı; senaryo eski hâline döndü.', 'ok');
+        } else if (k === 'degisti') {
+          bildir('Senaryo eklemeden sonra değişti; geri alma yapılmadı. Satırı senaryodan elle silebilirsiniz.', 'uy');
+        }
+      } }));
+    }
     function ekle() {
+      if (eklemeSuruyor || (d.parca && d.eklenen === d.parca)) return Promise.resolve();
+      eklemeSuruyor = true; if (ekleBtn) ekleBtn.disabled = true;
       var p = d.parca ? Promise.resolve() : yenile(false);
       return p.then(function () {
-        if (!d.parca) return;
-        if (typeof app.senaryoyaEkle === 'function') { app.senaryoyaEkle(d.parca); bildir('"' + d.secili.ad + '" videoya eklendi.', 'ok'); }
-        else bildir('Uygulama bağlantısı yok: senaryo parçası panoya kopyalanabilir.', 'uy');
-      });
+        if (!d.parca) { ekleDugmesi(false); return; }
+        if (typeof app.senaryoyaEkle === 'function') {
+          var once = typeof app.senaryoMetni === 'function' ? app.senaryoMetni() : null;
+          var tamam = app.senaryoyaEkle(d.parca, 'Malzeme kitaplığı') !== false;
+          if (!tamam) { ekleDugmesi(false); bildir('Eklenemedi.', 'uy'); return; }
+          d.eklenen = d.parca; ekleDugmesi(true);
+          var sonra = typeof app.senaryoMetni === 'function' ? app.senaryoMetni() : null;
+          bildir('"' + d.secili.ad + '" videonun sonuna eklendi.', 'ok');
+          geriAlGoster(once !== null && sonra !== null ? { once: once, sonra: sonra } : null);
+        } else { ekleDugmesi(false); bildir('Uygulama bağlantısı yok: senaryo parçası panoya kopyalanabilir.', 'uy'); }
+      }).catch(function (e) { ekleDugmesi(false); bildir(e.message, 'uy'); }).then(function () { eklemeSuruyor = false; });
     }
 
+    function kapat() {
+      panel.setAttribute('hidden', ''); d.secili = null; izgaraCiz();
+      if (typeof app.geciciOnizleKapat === 'function') { try { app.geciciOnizleKapat(); } catch (e) { /* sessiz */ } }
+    }
     function sec(m) {
       d.secili = m; d.degerler = varsayilanDegerler(m); d.parca = m.senaryo || ''; d.onizlemeMetni = '';
       panel.innerHTML = ''; panel.removeAttribute('hidden');
       var sol = el('div', { sinif: 'tm-alan' }, [el('h3', { metin: m.ad }), el('p', { metin: m.aciklama + (m.canli ? ' (Canlı: video üretildiği ana göre.)' : '') })]);
       (m.sema || []).forEach(function (s) { sol.appendChild(alan(s)); });
+      ekleBtn = el('button', { sinif: 'tm-btn tm-ana', type: 'button', metin: 'Videoya ekle', onclick: ekle });
+      geriKutu = el('div', { sinif: 'tm-geri' });
+      d.eklenen = '';
       sol.appendChild(el('div', { sinif: 'tm-eylem' }, [
-        el('button', { sinif: 'tm-btn tm-ana', type: 'button', metin: 'Videoya ekle', onclick: ekle }),
+        ekleBtn,
         el('button', { sinif: 'tm-btn', type: 'button', metin: 'Önizle', onclick: function () { yenile(true); } }),
-        el('button', { sinif: 'tm-btn', type: 'button', metin: 'Kapat', onclick: function () { panel.setAttribute('hidden', ''); d.secili = null; izgaraCiz(); } })
+        el('button', { sinif: 'tm-btn', type: 'button', metin: 'Kapat', onclick: kapat }),
+        geriKutu
       ]));
       panel.appendChild(sol);
       panel.appendChild(el('div', {}, [buyukResim]));
@@ -284,7 +339,7 @@
     });
   }
 
-  var api = { mount: mount, birakmaHedefiYap: birakmaHedefiYap, MIME: MIME, _ic: { normal: normal, filtrele: filtrele, kategoriSayilari: kategoriSayilari, varsayilanDegerler: varsayilanDegerler, sinirla: sinirla, istekGovdesi: istekGovdesi, bekletici: bekletici } };
+  var api = { mount: mount, birakmaHedefiYap: birakmaHedefiYap, MIME: MIME, _ic: { normal: normal, filtrele: filtrele, kategoriSayilari: kategoriSayilari, varsayilanDegerler: varsayilanDegerler, sinirla: sinirla, istekGovdesi: istekGovdesi, bekletici: bekletici, onizlemeYolu: onizlemeYolu, geriAlKarari: geriAlKarari } };
   kok.TaaMalzeme = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -1,0 +1,10 @@
+# Açıklama: Dalga 3 kış/yılbaşı örneği (950x1800 dikey): çam ağacı, fişekler, yılbaşı geri sayımı, karlı yazı, kar küresi. Sahip: Yusuf. Yazan: [Claude#Malzeme Opus 5.5, yenileme-1.0, 2026-11-25]. Silme yok.
+ekran 950x1800
+fps 25
+acilis fade
+kapanis fade
+malzeme cam-agaci sure=7 renk=kirmizi-altin hiz=1 deger=18 metin="MUTLU YILLAR"
+malzeme kis-suslu-yazi sure=5 renk=gumus-mavi hiz=1 deger=14 metin="KIŞ FIRSATI"
+malzeme yilbasi-geri-sayim sure=9 renk=altin-gece hiz=1 deger=5 metin="2027"
+malzeme yilbasi-senlik sure=8 renk=altin-gece hiz=1 deger=8 metin="MUTLU YILLAR"
+malzeme kar-kuresi sure=5 renk=mor-altin hiz=1 metin="2027"

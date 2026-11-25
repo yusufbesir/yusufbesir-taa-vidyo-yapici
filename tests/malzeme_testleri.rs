@@ -5,6 +5,10 @@
 use taa_vidyo_yapici::{malzeme, malzeme_http, senaryo, uret};
 use std::time::Instant;
 
+/// Ağır render testleri sırayla koşar (paralel iş parçacıkları süre ölçümünü bozmasın) [Claude#Malzeme, 2026-11-25].
+static KILIT: std::sync::Mutex<()> = std::sync::Mutex::new(());
+fn kilit() -> std::sync::MutexGuard<'static, ()> { KILIT.lock().unwrap_or_else(|e| e.into_inner()) }
+
 fn kare(metin: &str, t: f32) -> (Vec<u8>, u32, u32) {
     let s = uret::senaryo_oku(metin).unwrap_or_else(|e| panic!("{e}\n{metin}"));
     let f = uret::font();
@@ -29,6 +33,7 @@ fn her_malzeme_gecerli_senaryo_uretir() {
 
 #[test]
 fn her_malzeme_render_edilir_ve_deterministik() {
+    let _k = kilit();
     let mut olcum: Vec<(f32, &str)> = vec![];
     for k in malzeme::KATALOG {
         let p = malzeme::senaryo_parcasi(&malzeme::Istek { id: k.id.into(), ..Default::default() }).unwrap();
@@ -62,6 +67,7 @@ fn her_malzeme_render_edilir_ve_deterministik() {
 
 #[test]
 fn kare_suresi_olcumu() {
+    let _k = kilit();
     // hazırlık hariç yalnız kare çizimi: yoğun malzemelerde 25 fps üretim için kare başı süre
     for id in ["yutkun-labirent", "yutkun-kovalamaca", "havai-fisek-gosteri", "konfeti-patlama", "kar-yagisi", "gecis-daire", "kayan-led", "rozet-firsat"] {
         let p = malzeme::senaryo_parcasi(&malzeme::Istek { id: id.into(), ..Default::default() }).unwrap();
@@ -75,8 +81,57 @@ fn kare_suresi_olcumu() {
     }
 }
 
+/// Dalga 3 (KARAR-ANIM 1. bölüm ve kabul ölçütü) [Claude#Malzeme Opus 5.5, 2026-11-25]: kare bütçesi ve LED güvenliği.
+/// Bütçe: 950x1800 kare çizimi (hazırlık hariç) ortalama ölçülür, release'te 120 ms üstü başarısızlık; hedef ≤ 45 ms (raporlanır).
+#[test]
+fn dalga3_kare_butcesi() {
+    let _k = kilit();
+    let mut olc: Vec<(f32, &str)> = vec![];
+    for k in malzeme::KATALOG {
+        let p = malzeme::senaryo_parcasi(&malzeme::Istek { id: k.id.into(), ..Default::default() }).unwrap();
+        let s = uret::senaryo_oku(&malzeme::onizleme_senaryosu(&p)).unwrap();
+        let f = uret::font();
+        let hz = senaryo::hazirla(&f, &s);
+        let bas = Instant::now();
+        let n = 3;
+        for i in 0..n { let _ = senaryo::kare_uret(&s, &hz, 0.7 + i as f32 * 1.9, i); }
+        olc.push((bas.elapsed().as_secs_f32() * 1000.0 / n as f32, k.id));
+    }
+    olc.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap());
+    let ort = olc.iter().map(|x| x.0).sum::<f32>() / olc.len() as f32;
+    let asan: Vec<_> = olc.iter().filter(|x| x.0 > 45.0).collect();
+    eprintln!("BÜTÇE 950x1800 kare (ms): {} kalem, ortalama {ort:.1}, en yavaş 8: {:?}; 45 ms'yi aşan {}: {:?}", olc.len(), &olc[..8], asan.len(), asan);
+    if !cfg!(debug_assertions) { assert!(olc[0].0 < 120.0, "bütçe aşıldı: {:?}", olc[0]); }
+}
+
+/// LED güvenliği: ardışık iki karede (1/25 sn) ortalama parlaklık farkı ≤ %20; yeni kış/sahne kalemlerinde kare ortalaması ≤ %45.
+#[test]
+fn dalga3_flas_ve_parlaklik() {
+    let _k = kilit();
+    let ort = |a: &[u8]| a.chunks(3).map(|p| (p[0] as u32 + p[1] as u32 + p[2] as u32) as f32 / 3.0).sum::<f32>() / (a.len() / 3) as f32 / 255.0;
+    let mut parlak = vec![];
+    for k in malzeme::KATALOG {
+        let p = malzeme::senaryo_parcasi(&malzeme::Istek { id: k.id.into(), ..Default::default() }).unwrap();
+        let metin = malzeme::onizleme_senaryosu(&p).replace("950x1800", "190x360");
+        let mut en = 0f32;
+        for i in 0..12 {
+            let t = 0.3 + i as f32 * (k.sure - 0.6) / 12.0;
+            let (a, _, _) = kare(&metin, t);
+            let (b, _, _) = kare(&metin, t + 0.04);
+            let (pa, pb) = (ort(&a), ort(&b));
+            assert!((pa - pb).abs() <= 0.20, "{} t={t}: flaş (parlaklık {pa:.2} → {pb:.2})", k.id);
+            en = en.max(pa);
+        }
+        if matches!(k.kategori, "kis" | "sahne") || k.id == "kinetik-yazi" { assert!(en <= 0.45, "{}: kare ortalama parlaklığı %{:.0} > %45", k.id, en * 100.0); }
+        parlak.push((en, k.id));
+    }
+    parlak.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap());
+    eprintln!("EN PARLAK 6 (ortalama): {:?}", &parlak[..6]);
+}
+
 #[test]
 fn parametre_sinirlari() {
+    let _k = kilit();
     for k in malzeme::KATALOG {
         let q = |f: &dyn Fn(&mut malzeme::Istek)| { let mut i = malzeme::Istek { id: k.id.into(), ..Default::default() }; f(&mut i); malzeme::senaryo_parcasi(&i) };
         assert!(q(&|i| i.sure = Some(malzeme::SURE_MIN)).is_ok(), "{}", k.id);
@@ -167,6 +222,12 @@ fn kontak_sayfasi() {
         for y in 0..kh { let s = (y * kw * 3) as usize; let d = (((oy + y) * w + ox) * 3) as usize; tuval[d..d + (kw * 3) as usize].copy_from_slice(&f[s..s + (kw * 3) as usize]); }
     }
     std::fs::write(format!("{kl}/kontak.png"), malzeme_http::png_sikistir(&tuval, w, h)).unwrap();
+    let ozel: Vec<(String, f32)> = std::env::var("MALZEME_KARE").map(|v| v.split(',').filter_map(|x| { let (a, b) = x.split_once('@')?; Some((a.to_string(), b.parse().ok()?)) }).collect()).unwrap_or_default();
+    for (id, t) in &ozel {
+        let p = malzeme::senaryo_parcasi(&malzeme::Istek { id: id.clone(), ..Default::default() }).unwrap();
+        let (f, fw, fh) = kare(&malzeme::onizleme_senaryosu(&p), *t);
+        std::fs::write(format!("{kl}/{id}-{t}.png"), malzeme_http::png_sikistir(&f, fw, fh)).unwrap();
+    }
     for (id, t) in [("yutkun-labirent", 4.0f32), ("yutkun-kovalamaca", 3.0), ("rozet-taksit", 2.0), ("kayan-led", 3.0), ("geri-sayim", 3.3), ("havai-fisek-gosteri", 2.2)] {
         let p = malzeme::senaryo_parcasi(&malzeme::Istek { id: id.into(), ..Default::default() }).unwrap();
         let (f, fw, fh) = kare(&malzeme::onizleme_senaryosu(&p), t);

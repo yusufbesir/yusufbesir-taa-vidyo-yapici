@@ -104,7 +104,7 @@ fn cekmece_kurali_sayfada() {
 
 #[test]
 fn modul_yuvalari_ve_taaapp() {
-    for s in ["id=\"aiMount\"", "id=\"malzemeMount\"", "window.TaaApp = Object.freeze(", "senaryoMetni:", "senaryoyaEkle(metin)", "senaryoDegistir(metin)",
+    for s in ["id=\"aiMount\"", "id=\"malzemeMount\"", "window.TaaApp = Object.freeze(", "senaryoMetni:", "senaryoyaEkle(metin, kaynak)", "senaryoDegistir(metin, kaynak)",
               "onizle(metin)", "uret()", "durum: () =>", "tema: () =>", "window.TaaAI.mount(yeni, window.TaaApp)", "window.TaaMalzeme.mount(el, window.TaaApp)",
               "<script src=\"/ai.js\"></script>", "<script src=\"/malzeme.js\"></script>", "Hazır senaryolar", "Malzeme kitaplığı"] {
         assert!(SAYFA.contains(s), "modül yuvası: {s} yok");
@@ -145,6 +145,121 @@ fn ust_cubuk_ve_eylem_cubugu() {
     for y in ["backdrop-filter", "linear-gradient", "radial-gradient", "steps(", "blur("] {
         let css_son = SAYFA.find("</style>").unwrap();
         assert!(!SAYFA[..css_son].contains(y), "CSS'te yasak: {y}");
+    }
+}
+
+// ---------- Dalga 3 [Claude#UI Opus 5.5, yenileme-1.0, 2026-11-25]: Fable bulguları ve yeni yuvalar ----------
+
+fn css() -> &'static str { &SAYFA[..SAYFA.find("</style>").unwrap()] }
+
+#[test]
+fn gecici_onizleme_sozlesmesi() {
+    // (1-host) imza sabit: geciciOnizle(metin):boolean, geciciOnizleKapat():void; senaryo değişmez, yeni senaryo işleminde kapanır; onizle aynı kalır
+    for s in ["geciciOnizle(metin) { return geciciOnizle(metin); }", "geciciOnizleKapat() { geciciOnizleKapat(); }",
+              "onizle(metin) { if (typeof metin === 'string') return window.TaaApp.senaryoDegistir(metin); degisti(); return true; }",
+              "function degisti() { if (geciciMetin !== null) { geciciMetin = null; geciciSeritGoster(); }",
+              "api('/klip', geciciMetin !== null ? geciciMetin : sen.value)", "id=\"geciciSerit\"", "id=\"geciciKapat\""] {
+        assert!(SAYFA.contains(s), "geçici önizleme: {s} yok");
+    }
+    // geçici önizleme sen.value'ya yazmaz
+    let i = SAYFA.find("function geciciOnizle(metin) {").unwrap();
+    let govde = &SAYFA[i..i + SAYFA[i..].find("\n}").unwrap()];
+    assert!(!govde.contains("sen.value"), "geciciOnizle senaryoyu değiştirmemeli");
+}
+
+#[test]
+fn onizleme_kutusu_olcumu() {
+    // (4) kutu yüksekliğinden ölçü, genişlik oranla; ResizeObserver; çekmece geçişi bitince bir kez daha ölçüm
+    for s in ["#tasarim{aspect-ratio:950/1800}", "function sahneOlc()", "new ResizeObserver(() => sahneOlc())", "olcu.h = 0; sahneOlc(); window.dispatchEvent(new Event('resize'))",
+              "c.drawImage(kaynak, 0, 0, tw, th)", "devicePixelRatio"] {
+        assert!(SAYFA.contains(s), "önizleme ölçümü: {s} yok");
+    }
+}
+
+#[test]
+fn senaryo_degisti_bildirimi() {
+    // (12) AI/malzeme/hazır senaryoyu değiştirince Yaz kipinde bildirim ve "Önceki senaryoya dön"
+    let yaz = SAYFA.find("data-kip=\"yaz\"").unwrap();
+    let b = SAYFA.find("id=\"senaryoBildirim\"").unwrap();
+    assert!(b > yaz && b < SAYFA.find("data-kip=\"hazir\"").unwrap(), "bildirim Yaz kipinde olmalı");
+    for s in ["id=\"senaryoGeri\"", "Önceki senaryoya dön", "senaryoDisDegisti(tarifOnceki, kaynak)", "senaryoDisDegisti(once, kaynak)", "tarifOnizle(j, 'Hazır senaryo')",
+              "'Malzeme kitaplığı'", ".bildirim.dar p,.bildirim.dar #senaryoBildirimKapat{display:none}"] {
+        assert!(SAYFA.contains(s), "bildirim: {s} yok");
+    }
+    // daraltınca geri dönüş düğmesi gizlenmez
+    assert!(!SAYFA.contains(".bildirim.dar #senaryoGeri"));
+}
+
+#[test]
+fn dokunma_hedefleri_en_az_48() {
+    // (15) CSS'teki hiçbir min-height 48 px'in altında değil; listelenen hedefler açıkça 48
+    let c = css();
+    let mut i = 0;
+    while let Some(j) = c[i..].find("min-height:") {
+        let k = i + j + 11;
+        let sayi: String = c[k..].chars().take_while(|x| x.is_ascii_digit()).collect();
+        if !sayi.is_empty() && c[k + sayi.len()..].starts_with("px") {
+            let n: u32 = sayi.parse().unwrap();
+            assert!(n == 0 || n >= 48, "min-height:{n}px (< 48) — bağlam: {}", &c[k.saturating_sub(80)..k + 10]);
+        }
+        i = k;
+    }
+    for s in [".nokta{width:48px;height:48px;", ".seg button{min-height:48px;", "html[data-tema=\"eslik\"] .kipBtn{min-height:48px;", "#durum{display:inline-flex;align-items:center;gap:8px;min-height:48px;",
+              "#cekmeceKapat{min-width:48px;", ".chip{display:inline-flex;align-items:center;min-height:48px;", "html[data-tema=\"eslik\"] #app{grid-template-rows:56px"] {
+        assert!(c.contains(s), "48 px: {s} yok");
+    }
+}
+
+#[test]
+fn durum_hapi_ilerleme_ve_hareket() {
+    let c = css();
+    // (16) üç nokta yok, iki satıra esner
+    assert!(c.contains("#durum span{white-space:normal"), "durum hapı esnemeli");
+    assert!(!c.contains("text-overflow:ellipsis"), "CSS'te üç noktayla kesme kalmamalı");
+    // (17) ilerleme yalnız transform; hareketi azaltta 120 ms solma
+    assert!(c.contains("transform:scaleX(0);transform-origin:left center;transition:transform .2s linear"));
+    assert!(!c.contains("transition:width") && SAYFA.contains("'scaleX(' +"), "ilerleme genişlikle canlandırılmamalı");
+    assert!(c.contains("transition-property:opacity!important;transition-duration:120ms!important"), "hareketi azalt: 120 ms solma");
+}
+
+#[test]
+fn isik_duz_gorunumde_devre_disi() {
+    // (18) Gündüz/Akşam gizlenmez; devre dışı + neden yazısı
+    assert!(!SAYFA.contains("id=\"isikSeg\" hidden"));
+    for s in ["id=\"isikNeden\"", "Işık yalnız Bina karşıdan görünümünde", "x.disabled = !isikAcik", "aria-describedby=\"isikNeden\""] {
+        assert!(SAYFA.contains(s), "ışık: {s} yok");
+    }
+}
+
+#[test]
+fn surum_ve_turkce_metinler() {
+    // (14) üst çubuk sürümü /bilgi'den
+    assert!(SAYFA.contains("$('#surum').textContent = (bilgi.surum ? 'v' + bilgi.surum"));
+    assert!(SAYFA.contains("<span id=\"surum\"></span>"), "sürüm sayfaya sabit yazılmamalı");
+    // (19) bulunma eki ve Türkçe stil adı
+    for s in ["deepseek: \"'te\"", "claude: \"'da\"", "${esc(a)}${bulunmaEki(a)} aç", "const stilAdi = s =>", "bulunmaEki: ad => bulunmaEki(ad)"] {
+        assert!(SAYFA.contains(s), "Türkçe: {s} yok");
+    }
+    assert!(!SAYFA.contains("}'de aç") && !SAYFA.contains("Gosterisli"));
+}
+
+#[test]
+fn oynatici_ve_donusturucu_yuvalari() {
+    // (5) Oynatıcı girişi ve rotaları
+    for s in ["id=\"oynaticiAc\"", "window.open('/oynatici', 'taa-oynatici')", ">Oynatıcı<"] { assert!(SAYFA.contains(s), "oynatıcı: {s} yok"); }
+    for s in ["(\"GET\", \"/oynatici\")", "(\"GET\", \"/oynatici.js\")", "(\"GET\", \"/oynatici.css\")", "(\"GET\", \"/cikis\")", "include_str!(\"../web/oynatici.html\")",
+              "include_str!(\"../web/cikis.html\")", "y.starts_with(\"/oynatici/\")", "(\"GET\", \"/donustur.js\")", "include_str!(\"../web/donustur.js\")", "y.starts_with(\"/donustur/\")"] {
+        assert!(SUNUCU.contains(s), "sunucu: {s} yok");
+    }
+    // (6) Hazır > Dönüştürücü üçüncü sekme
+    let a = SAYFA.find("id=\"hazirSekmeSen\"").unwrap(); let b = SAYFA.find("id=\"hazirSekmeMal\"").unwrap(); let c = SAYFA.find("id=\"hazirSekmeDon\"").unwrap();
+    assert!(a < b && b < c, "sekme sırası: senaryolar, malzeme, dönüştürücü");
+    for s in ["id=\"donusturMount\"", "window.TaaDonustur.mount(el, window.TaaApp)", "<script src=\"/donustur.js\"></script>", ">Dönüştürücü<"] { assert!(SAYFA.contains(s), "dönüştürücü: {s} yok"); }
+    // (7) AI adım göstergesi yuvası yapay zekâ kipinin içinde
+    let ai = SAYFA.find("id=\"aiMount\"").unwrap();
+    assert!(SAYFA[ai..ai + 200].contains("id=\"aiAdimYuva\""), "aiAdimYuva aiMount'un ilk çocuğu olmalı");
+    for id in ["oynaticiAc", "hazirSekmeDon", "donusturMount", "aiAdimYuva", "senaryoBildirim", "senaryoGeri", "geciciSerit", "isikNeden"] {
+        assert_eq!(SAYFA.matches(&format!("id=\"{id}\"")).count(), 1, "id=\"{id}\" tam 1 kez olmalı");
     }
 }
 

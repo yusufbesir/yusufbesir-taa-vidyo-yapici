@@ -8,7 +8,32 @@ use super::*;
 #[derive(Debug, Clone)]
 pub struct Hazirlik { pub tarif: Tarif, pub kaynak: &'static str, pub notlar: Vec<String>, pub anladim: Vec<String>, pub anlasilmayan: Vec<String>, pub varsayimlar: Vec<String> }
 
+/// Varsayılan işletme adı (ayar `taa-isletme` boşsa). 2026-11-25 [Claude#AI Opus 5.5]: koda gömülü ad ayara taşındı; bkz. `isletme_ile`.
 pub const MARKA: [&str; 2] = ["TERZİ", "ADEM ALTUN"];
+
+thread_local! {
+    /// Bu iş parçacığındaki istek için işletme adı satırları. None: imza sahnesi eklenmez (ayarda kapalı).
+    static ISLETME: std::cell::RefCell<Option<Vec<String>>> = std::cell::RefCell::new(Some(MARKA.iter().map(|s| s.to_string()).collect()));
+}
+/// İşletme adı satırları: "TERZİ ADEM ALTUN" → ["TERZİ", "ADEM ALTUN"]; "|" varsa ondan bölünür.
+pub fn isletme_satirlari(ad: &str) -> Vec<String> {
+    let (t, _) = metin_temizle(ad);
+    let t = buyuk(t.trim());
+    let t: String = t.chars().take(MAX_KARAKTER * 2).collect();
+    if t.contains('|') { return t.split('|').map(|x| x.trim().chars().take(MAX_KARAKTER).collect::<String>()).filter(|x| !x.is_empty()).take(3).collect(); }
+    let w: Vec<&str> = t.split_whitespace().collect();
+    match w.len() { 0 => vec![], 1 => vec![w[0].chars().take(MAX_KARAKTER).collect()], _ => vec![w[0].to_string(), w[1..].join(" ").chars().take(MAX_KARAKTER).collect()] }
+}
+/// `f`'i verilen işletme adıyla çalıştırır. `ad`: None → varsayılan (MARKA); Some("") ya da Some("kapali") → imza yok; Some(x) → x.
+pub fn isletme_ile<R>(ad: Option<&str>, f: impl FnOnce() -> R) -> R {
+    let yeni = match ad { None => Some(MARKA.iter().map(|s| s.to_string()).collect::<Vec<_>>()), Some(a) if a.trim().is_empty() || sadelestir(a.trim()) == "kapali" => None, Some(a) => Some(isletme_satirlari(a)).filter(|v| !v.is_empty()) };
+    let eski = ISLETME.with(|c| c.replace(yeni));
+    let r = f();
+    ISLETME.with(|c| *c.borrow_mut() = eski);
+    r
+}
+fn marka() -> Option<Vec<String>> { ISLETME.with(|c| c.borrow().clone()) }
+fn marka_taslak() -> Option<Taslak> { marka().map(|m| ts(m, Rol::Imza)) }
 
 // ───────── küçük yardımcılar ─────────
 /// Belirteç `t` hedef sözcüğe uyar mı? Ön ek (4+ harf), tam eşleşme (kısa) ve tek harf yazım hatası toleransı (5+ harf).
@@ -37,20 +62,21 @@ fn bos_mu(s: &str) -> bool { BOS.contains(&s) || DURAK.iter().any(|d| s == *d) }
 
 /// Bir LED sahnesi taslağı: satırlar + rol (stil seçimi için).
 #[derive(Clone, Debug)]
-struct Taslak { satir: Vec<String>, rol: Rol, tema: Option<(&'static str, &'static str, &'static str)> }
+struct Taslak { satir: Vec<String>, rol: Rol, tema: Option<(&'static str, &'static str, &'static str)>, malzeme: Option<String> }
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum Rol { Giris, Vurgu, Bilgi, Imza }
-fn t(satir: &[&str], rol: Rol) -> Taslak { Taslak { satir: satir.iter().map(|x| x.to_string()).collect(), rol, tema: None } }
-fn ts(satir: Vec<String>, rol: Rol) -> Taslak { Taslak { satir, rol, tema: None } }
+fn t(satir: &[&str], rol: Rol) -> Taslak { Taslak { satir: satir.iter().map(|x| x.to_string()).collect(), rol, tema: None, malzeme: None } }
+fn ts(satir: Vec<String>, rol: Rol) -> Taslak { Taslak { satir, rol, tema: None, malzeme: None } }
 impl Taslak { fn tema(mut self, giris: &'static str, efekt: &'static str, palet: &'static str) -> Self { self.tema = Some((giris, efekt, palet)); self } }
 
 /// Rol başına stil seçenekleri (giriş, efekt, palet, yazı tipi, süre). `cesit` ile döner ("Başka öneri").
 fn stil(rol: Rol, cesit: usize) -> (&'static str, &'static str, &'static str, &'static str, f32) {
     let v: &[(&str, &str, &str, &str, f32)] = match rol {
-        Rol::Giris => &[("belir", "", "sicak-beyaz", "bebas", 3.5), ("alttan", "", "beyaz", "anton", 3.5), ("yandan", "", "gok-mavisi", "bebas", 3.5), ("toplan", "", "seftali", "anton", 3.5)],
-        Rol::Vurgu => &[("zipla", "konfeti", "kirmizi-altin", "anton", 4.0), ("zoom", "havai-fisek", "altin-gece", "anton", 4.0), ("patla", "pirilti", "gun-batimi", "bebas", 4.0), ("elastik", "parlama", "sari-lacivert", "anton", 4.0)],
-        Rol::Bilgi => &[("alttan", "", "sicak-beyaz", "bebas", 4.0), ("belir", "cerceve", "buz-cyan", "anton", 4.0), ("soldan", "", "altin", "bebas", 4.0), ("yandan", "", "nane", "anton", 4.0)],
-        Rol::Imza => &[("belir", "cerceve-altin", "altin-gece", "anton", 3.5), ("toplan", "parlama", "altin", "anton", 3.5), ("belir", "pirilti", "bakir", "bebas", 3.5), ("alttan", "cerceve", "tek-altin", "anton", 3.5)],
+        // 2026-11-25 [Claude#AI Opus 5.5]: süreler /denetle eşiğine göre (her mesaj ≥5 sn; tek ritim ±%20): 6 sn
+        Rol::Giris => &[("belir", "", "sicak-beyaz", "bebas", 6.0), ("alttan", "", "beyaz", "anton", 6.0), ("yandan", "", "gok-mavisi", "bebas", 6.0), ("toplan", "", "seftali", "anton", 6.0)],
+        Rol::Vurgu => &[("zipla", "konfeti", "kirmizi-altin", "anton", 6.0), ("zoom", "havai-fisek", "altin-gece", "anton", 6.0), ("patla", "pirilti", "gun-batimi", "bebas", 6.0), ("elastik", "parlama", "sari-lacivert", "anton", 6.0)],
+        Rol::Bilgi => &[("alttan", "", "sicak-beyaz", "bebas", 6.0), ("belir", "cerceve", "buz-cyan", "anton", 6.0), ("soldan", "", "altin", "bebas", 6.0), ("yandan", "", "nane", "anton", 6.0)],
+        Rol::Imza => &[("belir", "cerceve-altin", "altin-gece", "anton", 6.0), ("toplan", "parlama", "altin", "anton", 6.0), ("belir", "pirilti", "bakir", "bebas", 6.0), ("alttan", "cerceve", "tek-altin", "anton", 6.0)],
     };
     v[cesit % v.len()]
 }
@@ -323,6 +349,7 @@ fn kur(taslak: Vec<Taslak>, ist: &Istek, cesit: usize, kat: &Katalog) -> Result<
         sahneler.push(TSahne {
             metin: x.satir, giris: ist.giris.clone().unwrap_or_else(|| g.to_string()), cikis: ist.cikis.clone().unwrap_or_else(|| "sondur".to_string()),
             efekt, palet: ist.palet.clone().unwrap_or_else(|| p.to_string()), font: ist.font.clone().unwrap_or_else(|| f.to_string()), sure: ist.sure.unwrap_or(s),
+            malzeme: x.malzeme.clone().unwrap_or_default(),
         });
     }
     let acilis = if ist.acilis != "yok" { ist.acilis.clone() } else { ["fade", "perde", "kapi", "iris"][cesit % 4].to_string() };
@@ -333,11 +360,11 @@ fn kur(taslak: Vec<Taslak>, ist: &Istek, cesit: usize, kat: &Katalog) -> Result<
 /// Her koşulda geçerli olan güvenli karşılama şablonu.
 pub fn guvenli_sablon(kat: &Katalog, cesit: usize) -> Tarif {
     let ist = Istek { acilis: "yok".into(), kapanis: "yok".into(), gorunum: "duz".into(), ..Default::default() };
-    let x = vec![t(&["HOŞ", "GELDİNİZ"], Rol::Vurgu).tema("belir", "pirilti", "altin"), t(&MARKA, Rol::Imza)];
+    let x: Vec<Taslak> = std::iter::once(t(&["HOŞ", "GELDİNİZ"], Rol::Vurgu).tema("belir", "pirilti", "altin")).chain(marka_taslak()).collect();
     match kur(x, &ist, cesit, kat) {
         Ok(d) => d.tarif,
         // katalog boş olsa bile çalışan en sade biçim
-        Err(_) => Tarif { gorunum: "duz".into(), acilis: "yok".into(), kapanis: "yok".into(), sahneler: vec![TSahne { metin: vec!["HOŞ GELDİNİZ".into()], giris: "belir".into(), cikis: "yok".into(), efekt: vec![], palet: "altin".into(), font: String::new(), sure: 4.5 }] },
+        Err(_) => Tarif { gorunum: "duz".into(), acilis: "yok".into(), kapanis: "yok".into(), sahneler: vec![TSahne { metin: vec!["HOŞ GELDİNİZ".into()], giris: "belir".into(), cikis: "yok".into(), efekt: vec![], palet: "altin".into(), font: String::new(), sure: OKUNUR_SURE, malzeme: String::new() }] },
     }
 }
 
@@ -372,8 +399,62 @@ fn acik_metin_var(m: &str) -> bool {
     kucuk && m.split(|c: char| !c.is_alphanumeric()).any(|w| { let h: Vec<char> = w.chars().filter(|c| c.is_alphabetic()).collect(); h.len() >= 2 && h.iter().all(|c| c.is_uppercase()) && !BIRIM.contains(&sadelestir(w).as_str()) })
 }
 
-/// Yerel zincir: niyet şablonu → kural motoru (metin aynen) → güvenli şablon. Her zaman geçerli bir tarif döner.
+// ───────── malzeme sahnesi (oyun, havai fişek, kar, geri sayım ...) ─────────
+/// (tarifte aranan sözcük ya da öbek, malzeme kataloğunun etiketlerinde aranan sözcük). Kimlikler koda yazılmaz:
+/// katalog (crate::malzeme::KATALOG) etiketlerinden dinamik bulunur; Malzeme ajanı yeni paket ekledikçe kendiliğinden kapsanır.
+const MALZEME_TETIK: &[(&str, &str)] = &[
+    ("pacman", "labirent"), ("pakman", "labirent"), ("labirent", "labirent"), ("kovalamaca", "kovalamaca"), ("oyun", "oyun"),
+    ("havai fisek", "havai fisek"), ("havai", "havai fisek"), ("konfeti", "konfeti"), ("kar yagisi", "kar"), ("kar", "kar"), ("karli", "kar"),
+    ("geri sayim", "geri sayim"), ("kalp", "kalp"), ("kalpli", "kalp"), ("ok", "ok"), ("oklar", "ok"), ("rozet", "rozet"), ("ekolayzer", "ekolayzer"),
+    ("ekolayzir", "ekolayzer"), ("equalizer", "ekolayzer"), ("cam agaci", "cam"), ("cam", "cam"), ("yilbasi", "yilbasi"), ("yeni yil", "yilbasi"),
+];
+/// Tarifte geçen malzeme isteklerini katalog kimliklerine çevirir (en çok 2, sırayla).
+pub fn malzeme_istekleri(metin: &str, kat: &Katalog) -> Vec<String> {
+    let s = format!(" {} ", sadelestir(metin).chars().map(|c| if c.is_alphanumeric() { c } else { ' ' }).collect::<String>().split_whitespace().collect::<Vec<_>>().join(" "));
+    let mut v: Vec<(usize, String)> = vec![];
+    for (tetik, etiket) in MALZEME_TETIK {
+        let Some(yer) = s.find(&format!(" {tetik} ")) else { continue };
+        // etiket eşleşmesi: kalemin etiketlerinden biri `etiket` ise (çok sözcüklü etiketler tam eşleşir); "cam" bulunamazsa kış/kar'a düşer
+        let bul = |e: &str| crate::malzeme::KATALOG.iter().filter(|k| kat.malzeme.iter().any(|m| m == k.id)).find(|k| k.etiketler.split(',').any(|x| sadelestir(x.trim()) == e)).map(|k| k.id.to_string());
+        let Some(id) = bul(etiket).or_else(|| if *etiket == "cam" { bul("kis").or_else(|| bul("kar")) } else { None }) else { continue };
+        if !v.iter().any(|x| x.1 == id) { v.push((yer, id)); }
+    }
+    v.sort_by_key(|x| x.0);
+    v.into_iter().map(|x| x.1).take(2).collect()
+}
+/// Tarifte malzeme isteği varsa tarifin başına malzeme sahnesi ekler (yazısı ilk sahnenin mesajı olur). Doğrulamadan geçirir.
+pub fn malzeme_ekle(tarif: &Tarif, metin: &str, kat: &Katalog) -> Option<(Tarif, Vec<String>)> {
+    if tarif.sahneler.iter().any(|s| !s.malzeme.is_empty()) { return None; }
+    let ids = malzeme_istekleri(metin, kat);
+    if ids.is_empty() { return None; }
+    let mut t = tarif.clone();
+    let ilk = t.sahneler.first().map(|s| s.metin.clone()).unwrap_or_default();
+    let mut eklenen = vec![];
+    for (k, id) in ids.iter().enumerate() {
+        let Some(kalem) = crate::malzeme::bul(id) else { continue };
+        let metin = if kalem.metin.is_some() { ilk.clone() } else { vec![] };
+        let sh = TSahne { metin, giris: "yok".into(), cikis: "yok".into(), efekt: vec![], palet: kalem.renk.to_string(), font: String::new(), sure: kalem.sure.clamp(6.0, 12.0), malzeme: id.clone() };
+        t.sahneler.insert(k.min(t.sahneler.len()), sh);
+        eklenen.push(kalem.ad.to_string());
+    }
+    // malzeme sahnesi ilk sahnenin yazısını taşıyorsa aynı yazı iki kez görünmesin
+    if t.sahneler.len() > ids.len() + 1 && t.sahneler.first().map(|s| !s.metin.is_empty()).unwrap_or(false) && t.sahneler[ids.len()].metin == ilk { t.sahneler.remove(ids.len()); }
+    while toplam_sure(&t) > MAX_TOPLAM_SN || t.sahneler.len() > MAX_SAHNE { if t.sahneler.len() <= ids.len() { break; } t.sahneler.pop(); }
+    let d = dogrula(&tarif_json(&t), kat).ok()?;
+    Some((d.tarif, vec![format!("İstediğiniz görseli malzeme kitaplığından ekledim: {}.", eklenen.join(", "))]))
+}
+
+/// Yerel zincir: niyet şablonu → kural motoru (metin aynen) → güvenli şablon; tarifte oyun/havai fişek/kar gibi görsel istenmişse malzeme sahnesi eklenir. Her zaman geçerli bir tarif döner.
 pub fn kural_hazirla(metin: &str, kat: &Katalog, kullanici: &[Kural], cesit: usize) -> Hazirlik {
+    let mut h = kural_hazirla_ic(metin, kat, kullanici, cesit);
+    let ham: String = metin.chars().take(MAX_TARIF).collect();
+    if let Some((t, v)) = malzeme_ekle(&h.tarif, &ham, kat) {
+        h.tarif = t; h.varsayimlar.extend(v);
+        if h.kaynak == "sablon" { h.kaynak = "kural"; }
+    }
+    h
+}
+fn kural_hazirla_ic(metin: &str, kat: &Katalog, kullanici: &[Kural], cesit: usize) -> Hazirlik {
     let ham: String = metin.chars().filter(|c| !c.is_control() || *c == '\n').take(MAX_TARIF).collect();
     let (ham, yinelendi) = yinelemeyi_azalt(ham.trim());
     let mut varsayimlar = vec![];
@@ -408,7 +489,7 @@ pub fn kural_hazirla(metin: &str, kat: &Katalog, kullanici: &[Kural], cesit: usi
         b.taslak.sort_by_key(|x| x.0);
         let mut taslak: Vec<Taslak> = vec![];
         for (_, x) in b.taslak.drain(..) { if !taslak.iter().any(|y| y.satir == x.satir) { taslak.push(x); } }
-        if b.kampanya && !b.marka_var { taslak.push(t(&MARKA, Rol::Imza)); varsayimlar.push("Sona işletme adını (TERZİ ADEM ALTUN) ekledim.".into()); }
+        if b.kampanya && !b.marka_var { if let Some(m) = marka_taslak() { varsayimlar.push(format!("Sona işletme adını ({}) ekledim.", m.satir.join(" "))); taslak.push(m); } }
         if taslak.len() > MAX_SAHNE { taslak.truncate(MAX_SAHNE); }
         varsayimlar.extend(b.varsayim.drain(..));
         if let Ok(d) = kur(taslak, &ist, cesit, kat) {
@@ -429,7 +510,7 @@ pub fn kural_hazirla(metin: &str, kat: &Katalog, kullanici: &[Kural], cesit: usi
         let mut h = sablon(varsayimlar.clone(), "Ekrana yazılacak metin yazılmadığı için \"HOŞ GELDİNİZ\" yazdım; isterseniz metni değiştirin.");
         h.notlar.extend(b.notlar.iter().cloned());
         if !bilinmeyen.is_empty() && anim_istegi { h.notlar.push(format!("\"{}\" adında bir animasyon ya da efekt katalogda bulunamadı; benzer bir hareket seçtim.", bilinmeyen.join(" "))); }
-        let mut x = vec![t(&["HOŞ", "GELDİNİZ"], Rol::Vurgu).tema("belir", "pirilti", "altin"), t(&MARKA, Rol::Imza)];
+        let mut x: Vec<Taslak> = std::iter::once(t(&["HOŞ", "GELDİNİZ"], Rol::Vurgu).tema("belir", "pirilti", "altin")).chain(marka_taslak()).collect();
         if ist.giris.is_none() && ist.efekt.is_empty() && anim_istegi { x[0] = x[0].clone().tema("zipla", "konfeti", "gun-batimi"); }
         if let Ok(d) = kur(x, &ist, cesit, kat) { h.tarif = d.tarif; }
         h.anladim = ist.anladim.clone();

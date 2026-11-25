@@ -221,47 +221,83 @@ impl<'a> Tuval<'a> {
 }
 
 // ---------------------------------------------------------------- özgün karakterler
-/// Yutkun: noktaları yutan sarı top; başında küçük yeşil filiz ve tek göz (özgün tasarım).
+/// Yutkun (dalga 3 özgünleştirme): yuvarlatılmış KARE gövdeli mercan-turuncu yaratık; ağız kama değil, öne açılan
+/// DİKDÖRTGEN çene yarığı (üst/alt çene), başında yeşil filiz, kalın koyu dış çizgi, 3 tonlu gölge. Top/kama silüeti yok.
 pub fn yutkun(tv: &mut Tuval, cx: f32, cy: f32, r: f32, yon: f32, agiz: f32) {
-    let ac = agiz.clamp(0.0, 1.0) * 0.8;
-    if let Some((x0, y0, x1, y1)) = tv.kutu(cx - r - 1.0, cy - r - 1.0, cx + r + 1.0, cy + r + 1.0) {
-        for y in y0..=y1 { for x in x0..=x1 {
-            let (dx, dy) = (x as f32 + 0.5 - cx, y as f32 + 0.5 - cy);
-            let d = (dx * dx + dy * dy).sqrt();
-            let k = (r - d + 0.5).clamp(0.0, 1.0);
-            if k <= 0.0 { continue; }
-            let a = (dy.atan2(dx) - yon + PI).rem_euclid(TAU) - PI;
-            if a.abs() < ac && d > r * 0.05 { continue; }
-            tv.px(x, y, SARI, k);
-        } }
+    const GOVDE: Renk = Renk(255, 122, 64);
+    const GOLGE: Renk = Renk(170, 66, 30);
+    const ISIK: Renk = Renk(255, 196, 150);
+    let sag = yon.cos() >= 0.0;
+    let s = if sag { 1.0 } else { -1.0 };
+    let dikey = yon.sin().abs() > 0.7;
+    // dış çizgi + gölge + gövde (sert gölge sağ alt)
+    tv.yuvarlak(cx, cy, r * 1.06, r * 1.0, r * 0.42, KOYU, 1.0);
+    tv.yuvarlak(cx + r * 0.08, cy + r * 0.08, r * 0.94, r * 0.88, r * 0.36, GOLGE, 1.0);
+    tv.yuvarlak(cx, cy, r * 0.94, r * 0.88, r * 0.36, GOVDE, 1.0);
+    tv.yuvarlak(cx - r * 0.3, cy - r * 0.5, r * 0.36, r * 0.12, r * 0.1, ISIK, 1.0);
+    // ağız: öne doğru dikdörtgen yarık; açıklık 0..1
+    let ac = agiz.clamp(0.0, 1.0);
+    let ay = r * (0.06 + 0.34 * ac);
+    if dikey {
+        let sy = if yon.sin() > 0.0 { 1.0 } else { -1.0 };
+        tv.dikd(cx - ay, cy + sy * r * 0.15 - if sy < 0.0 { r * 0.95 } else { 0.0 }, cx + ay, cy + sy * r * 0.15 + if sy > 0.0 { r * 0.95 } else { 0.0 }, KOYU, 1.0);
+    } else {
+        let (x0, x1) = if sag { (cx + r * 0.05, cx + r * 1.1) } else { (cx - r * 1.1, cx - r * 0.05) };
+        tv.dikd(x0, cy + r * 0.12 - ay, x1, cy + r * 0.12 + ay, KOYU, 1.0);
+        // dişler (beyaz küçük kareler, üst çenede)
+        for i in 0..2 { let x = cx + s * r * (0.45 + i as f32 * 0.3); tv.dikd(x - r * 0.07, cy + r * 0.12 - ay, x + r * 0.07, cy + r * 0.12 - ay + r * 0.12, BEYAZ, 1.0); }
     }
-    let (dx, dy) = (yon.cos(), yon.sin());
-    let (mut ux, mut uy) = (dy, -dx);
-    if uy > 0.0 || (uy == 0.0 && ux < 0.0) { ux = -ux; uy = -uy; }
-    tv.daire(cx + dx * r * 0.12 + ux * r * 0.5, cy + dy * r * 0.12 + uy * r * 0.5, r * 0.13, KOYU, 1.0);
-    let (fx, fy) = (cx + ux * r * 0.95, cy + uy * r * 0.95);
-    tv.cizgi(cx + ux * r * 0.8, cy + uy * r * 0.8, fx, fy, r * 0.08, Renk(60, 170, 60), 1.0);
-    tv.elips(fx + r * 0.18, fy - r * 0.05, r * 0.26, r * 0.11, -0.5, Renk(90, 220, 90), 1.0);
+    // tek büyük göz (beyaz + koyu bebek), yöne bakar
+    let (gx, gy) = (cx + s * r * 0.18, cy - r * 0.36);
+    tv.daire(gx, gy, r * 0.24, BEYAZ, 1.0);
+    tv.daire(gx + s * r * 0.08, gy, r * 0.12, KOYU, 1.0);
+    // filiz
+    tv.cizgi(cx - s * r * 0.2, cy - r * 0.86, cx - s * r * 0.3, cy - r * 1.22, r * 0.1, Renk(60, 170, 60), 1.0);
+    tv.elips(cx - s * r * 0.08, cy - r * 1.22, r * 0.26, r * 0.11, -0.5 * s, Renk(110, 230, 90), 1.0);
 }
 
-/// Kovalayıcı: tek büyük gözlü, antenli, üç ayaklı jöle yaratık (özgün tasarım).
+/// Kovalayıcı (dalga 3 özgünleştirme): KARE kafalı robot-jöle; kubbe başlık ve dalgalı etek YOK. Yuvarlatılmış kare gövde,
+/// yatay vizör (göz şeridi), tek kısa anten topu, iki YUVARLAK ayak (yürürken sırayla kalkar), kalın koyu dış çizgi.
 pub fn kovalayici(tv: &mut Tuval, cx: f32, cy: f32, r: f32, renk: Renk, bak: (f32, f32), tt: f32) {
-    for s in [-1.0f32, 1.0] {
-        let (ax, ay) = (cx + s * r * 0.62, cy - r * 1.32);
-        tv.cizgi(cx + s * r * 0.35, cy - r * 0.8, ax, ay, r * 0.09, renk, 1.0);
-        tv.daire(ax, ay, r * 0.14, BEYAZ, 1.0);
+    let golge = kos(renk, 0.6);
+    // anten
+    tv.cizgi(cx, cy - r * 0.9, cx, cy - r * 1.25, r * 0.1, KOYU, 1.0);
+    tv.daire(cx, cy - r * 1.3, r * 0.15, BEYAZ, 1.0);
+    // ayaklar
+    for (i, sx) in [-0.48f32, 0.48].iter().enumerate() {
+        let kalk = ((tt * 8.0 + i as f32 * PI).sin().max(0.0)) * r * 0.16;
+        tv.daire(cx + sx * r, cy + r * 0.9 - kalk, r * 0.3, KOYU, 1.0);
+        tv.daire(cx + sx * r, cy + r * 0.9 - kalk, r * 0.22, golge, 1.0);
     }
-    tv.daire(cx, cy - r * 0.1, r, renk, 1.0);
-    tv.dikd(cx - r, cy - r * 0.1, cx + r, cy + r * 0.55, renk, 1.0);
-    for i in 0..3 {
-        let x = cx + (i as f32 - 1.0) * r * 0.66;
-        tv.daire(x, cy + r * 0.6 + (tt * 9.0 + i as f32 * 2.1).sin() * r * 0.08, r * 0.36, renk, 1.0);
-    }
-    tv.daire(cx, cy - r * 0.15, r * 0.44, BEYAZ, 1.0);
-    tv.daire(cx + bak.0 * r * 0.2, cy - r * 0.15 + bak.1 * r * 0.2, r * 0.2, KOYU, 1.0);
+    // gövde: dış çizgi, gölge, yüz
+    tv.yuvarlak(cx, cy, r * 1.0, r * 0.95, r * 0.18, KOYU, 1.0);
+    tv.yuvarlak(cx + r * 0.06, cy + r * 0.06, r * 0.88, r * 0.83, r * 0.14, golge, 1.0);
+    tv.yuvarlak(cx, cy, r * 0.88, r * 0.83, r * 0.14, renk, 1.0);
+    // vizör
+    tv.yuvarlak(cx, cy - r * 0.2, r * 0.7, r * 0.24, r * 0.08, KOYU, 1.0);
+    for s in [-1.0f32, 1.0] { tv.dikd(cx + s * r * 0.32 + bak.0 * r * 0.16 - r * 0.12, cy - r * 0.32 + bak.1 * r * 0.06, cx + s * r * 0.32 + bak.0 * r * 0.16 + r * 0.12, cy - r * 0.08 + bak.1 * r * 0.06, BEYAZ, 1.0); }
+    // ağız ızgarası
+    for i in 0..3 { let x = cx + (i as f32 - 1.0) * r * 0.3; tv.dikd(x - r * 0.08, cy + r * 0.3, x + r * 0.08, cy + r * 0.5, KOYU, 1.0); }
 }
 
-const KOVALAYICI_RENK: [Renk; 4] = [Renk(170, 90, 255), Renk(60, 220, 120), Renk(255, 90, 50), Renk(40, 150, 255)];
+const KOVALAYICI_RENK: [Renk; 4] = [Renk(170, 90, 255), Renk(60, 220, 120), Renk(255, 70, 140), Renk(40, 150, 255)];
+
+/// Yutkun koridoru (dalga 3): mavi çizgili tüp DEĞİL; dolu koyu zemin şeridi + kenarda kalın açık bordür + enine şeritler.
+fn koridor(tv: &mut Tuval, yol: &Yol, yari: f32, renk: Renk, u: f32) {
+    let (zemin, serit, bordur) = (kos(renk, 0.26), kos(renk, 0.36), kar(renk, BEYAZ, 0.25));
+    for i in 1..yol.p.len() { tv.cizgi(yol.p[i - 1].0, yol.p[i - 1].1, yol.p[i].0, yol.p[i].1, yari * 2.0, bordur, 1.0); }
+    for i in 1..yol.p.len() { tv.cizgi(yol.p[i - 1].0, yol.p[i - 1].1, yol.p[i].0, yol.p[i].1, yari * 2.0 - 16.0 * u, zemin, 1.0); }
+    let mut d = 0.0;
+    while d < yol.uzun() {
+        let (x, y, a) = yol.nokta(d);
+        let (nx, ny) = (-a.sin(), a.cos());
+        tv.cizgi(x + nx * (yari - 14.0 * u), y + ny * (yari - 14.0 * u), x - nx * (yari - 14.0 * u), y - ny * (yari - 14.0 * u), 10.0 * u, serit, 1.0);
+        d += 46.0 * u;
+    }
+}
+
+/// Yem: nokta değil küçük elmas (döndürülmüş kare).
+fn yem(tv: &mut Tuval, x: f32, y: f32, r: f32, renk: Renk) { tv.cokgen(&[(x, y - r), (x + r, y), (x, y + r), (x - r, y)], renk, 1.0); }
 
 const ROBI_A: [&str; 14] = [".....AA.....", ".....AA.....", "..KKKKKKKK..", "..KGGKKGGK..", "..KGSKKGSK..", "..KKKKKKKK..", "..KKSSSSKK..", "..KKKKKKKK..", ".KKKKKKKKKK.", "K.KKKKKKKK.K", "K.KKAAAAKK.K", "..KKKKKKKK..", "..KK....KK..", ".KK......KK."];
 const ROBI_B: [&str; 14] = [".....AA.....", ".....AA.....", "..KKKKKKKK..", "..KGGKKGGK..", "..KGSKKGSK..", "..KKKKKKKK..", "..KKSSSSKK..", "..KKKKKKKK..", "KKKKKKKKKKKK", "..KKKKKKKK..", "..KKAAAAKK..", "..KKKKKKKK..", "...KK..KK...", "...KK..KK..."];
@@ -278,7 +314,10 @@ fn yazi_kutusu(id: &str) -> Option<(f32, f32)> {
     Some(match id {
         "rozet-yuzde" => (500.0, 300.0), "rozet-taksit" => (700.0, 400.0), "rozet-yeni" => (470.0, 240.0), "rozet-son-gunler" => (740.0, 250.0),
         "rozet-indirim" => (440.0, 300.0), "rozet-firsat" => (700.0, 280.0), "logo-perde" | "logo-iris" | "logo-parlama" => (800.0, 560.0),
-        _ => return None,
+        // dalga 3: 3B (TTF maske) yazılı malzemeler
+        "yazi-3b-don" | "yazi-3b-derin" => (820.0, 560.0), "yazi-yil" => (820.0, 420.0), "altin-toz" | "isik-huzmesi" | "sahne-karli-isik" => (800.0, 480.0), "izgara-zemin" => (820.0, 380.0),
+        "kar-katmanli" | "kar-birikme" | "kis-manzarasi" => (800.0, 380.0), "yilbasi-senlik" | "yilbasi-geri-sayim" => (820.0, 400.0),
+        _ => return crate::malzeme_ek::yazi_kutusu(id),
     })
 }
 
@@ -303,6 +342,23 @@ fn yazi_bas(tv: &mut Tuval, z: &Hazir, yuz: Renk, yan: Renk, olcek: f32, aci: f3
     }
 }
 
+/// Rozet yazısı (dalga 3, Fable bulgusu "koyu yazı LED'de okunmuyor"): AÇIK yüz + kalın koyu dış çizgi (8 yönlü kopya) + koyu ekstrüzyon.
+fn yazi_rozet(tv: &mut Tuval, z: &Hazir, olcek: f32, aci: f32, dx: f32, dy: f32, u: f32) {
+    let kal = 9.0 * u * olcek.max(0.3);
+    for (ox, oy) in [(-1.0f32, 0.0f32), (1.0, 0.0), (0.0, -1.0), (0.0, 1.0), (-0.7, -0.7), (0.7, -0.7), (-0.7, 0.7), (0.7, 0.7)] {
+        yazi_bas(tv, z, KOYU, KOYU, olcek, aci, dx + ox * kal, dy + oy * kal, 1.0);
+    }
+    yazi_bas(tv, z, Renk(255, 252, 240), KOYU, olcek, aci, dx, dy, 7.0 * u);
+}
+
+/// Koyu dış çizgili açık piksel yazı (LED okunurluğu).
+fn piksel_cizgili(tv: &mut Tuval, s: &str, cx: f32, cy: f32, gen: f32, en_cok: f32, renk: Renk) {
+    let h = sigdir(s, gen, en_cok);
+    let k = (h * 0.35).max(2.0);
+    for (ox, oy) in [(-k, 0.0), (k, 0.0), (0.0, -k), (0.0, k), (-k, -k), (k, -k), (-k, k), (k, k)] { tv.piksel_yazi(s, cx + ox, cy + oy, h, KOYU, 1.0); }
+    tv.piksel_yazi(s, cx, cy, h, renk, 1.0);
+}
+
 // ---------------------------------------------------------------- yol (labirent)
 struct Yol { p: Vec<(f32, f32)>, l: Vec<f32> }
 impl Yol {
@@ -325,6 +381,7 @@ impl Yol {
         }
         (self.p[0].0, self.p[0].1, 0.0)
     }
+    #[allow(dead_code)]
     fn tup(&self, tv: &mut Tuval, dis: f32, ic: f32, duvar: Renk, zemin: Renk) {
         for i in 1..self.p.len() { tv.cizgi(self.p[i - 1].0, self.p[i - 1].1, self.p[i].0, self.p[i].1, dis * 2.0, duvar, 1.0); }
         for i in 1..self.p.len() { tv.cizgi(self.p[i - 1].0, self.p[i - 1].1, self.p[i].0, self.p[i].1, ic * 2.0, zemin, 1.0); }
@@ -348,6 +405,8 @@ pub fn ciz(m: &MalzemeAyar, metin: &str, z: &Hazir, k: &mut [u8], w: u32, h: u32
     let tt = yerel * m.hiz;
     let (yuz, vu, zem) = (z.yuz, z.vurgu, z.zemin);
     let yazi = buyuk(metin);
+    // dalga 3 paketleri: kış/yılbaşı ve premium sahne/3B yazı (ayrı dosyalarda)
+    if crate::malzeme_kis::ciz(m, &yazi, z, &mut tv, yerel, sure) || crate::malzeme_sahne::ciz(m, &yazi, z, &mut tv, yerel, sure) || crate::malzeme_ek::ciz(m, &yazi, z, &mut tv, yerel, sure) { return; }
     let dv = m.deger;
     let yon_aci = match m.yon.as_str() { "sol" => PI, "yukari" => -PI / 2.0, "asagi" => PI / 2.0, _ => 0.0 };
     match m.id.as_str() {
@@ -360,8 +419,9 @@ pub fn ciz(m: &MalzemeAyar, metin: &str, z: &Hazir, k: &mut [u8], w: u32, h: u32
             let mut p = vec![];
             for i in 0..n { let y = ust + lh * (i as f32 + 0.5); if i % 2 == 0 { p.push((xl, y)); p.push((xr, y)); } else { p.push((xr, y)); p.push((xl, y)); } }
             let yol = Yol::yeni(p);
-            let r_dis = (lh * 0.36).min(95.0 * u);
-            yol.tup(&mut tv, r_dis, r_dis - 14.0 * u, yuz, zem);
+            let r_dis = (lh * 0.42).min(118.0 * u);
+            koridor(&mut tv, &yol, r_dis, yuz, u);
+            let _ = zem;
             let v = 300.0 * u;
             let ara = r_dis * 1.9;
             let dongu = yol.uzun() + ara * 4.0 + 200.0 * u;
@@ -371,14 +431,15 @@ pub fn ciz(m: &MalzemeAyar, metin: &str, z: &Hazir, k: &mut [u8], w: u32, h: u32
             let mut d = adim;
             while d < yol.uzun() {
                 let (x, y, _) = yol.nokta(d);
-                if d > s { tv.daire(x, y, 9.0 * u, Renk(255, 220, 180), 1.0); } else { yenen += 1; }
+                if d > s { yem(&mut tv, x, y, 13.0 * u, Renk(255, 230, 120)); } else { yenen += 1; }
                 d += adim;
             }
             for i in 0..n {
                 let (x, y, _) = yol.nokta(yol.l[i * 2 + 1].min(yol.uzun()));
-                if yol.l[i * 2 + 1] > s { tv.daire(x, y, (20.0 + 4.0 * (tt * 3.0).sin()) * u, Renk(255, 236, 200), 1.0); }
+                if yol.l[i * 2 + 1] > s { tv.yildiz(x, y, (30.0 + 4.0 * (tt * 3.0).sin()) * u, 0.5, 4, 0.0, Renk(120, 240, 255), 1.0); }
             }
-            let r = r_dis * 0.62;
+            // karakter boyu ekran genişliğinin ≥%15'i (Fable bulgusu)
+            let r = (r_dis * 0.78).max(wf * 0.075);
             for c in (0..3).rev() {
                 let sc = s - ara * (c as f32 + 1.0);
                 if sc < 0.0 || sc > yol.uzun() { continue; }
@@ -386,16 +447,16 @@ pub fn ciz(m: &MalzemeAyar, metin: &str, z: &Hazir, k: &mut [u8], w: u32, h: u32
                 kovalayici(&mut tv, x, y, r * 0.95, KOVALAYICI_RENK[c], (a.cos(), a.sin()), tt + c as f32);
             }
             if s <= yol.uzun() { let (x, y, a) = yol.nokta(s); yutkun(&mut tv, x, y, r, a, (tt * 7.0).sin().abs()); }
-            tv.piksel_yazi(&format!("SKOR {:04}", yenen * 10), cx, hf * 0.05, 12.0 * u, vu, 1.0);
-            tv.piksel_sigdir(&yazi, cx, hf * 0.14, wf * 0.9, 22.0 * u, SARI, 1.0);
+            tv.piksel_yazi(&format!("PUAN {:04}", yenen * 10), cx, hf * 0.05, 12.0 * u, vu, 1.0);
+            tv.piksel_sigdir(&yazi, cx, hf * 0.14, wf * 0.9, 22.0 * u, BEYAZ, 1.0);
         }
         "yutkun-kovalamaca" => {
             let adet = (dv.round() as usize).clamp(1, 4);
-            for (sira, yc) in [(0usize, hf * 0.44), (1, hf * 0.76)] {
-                let (r_dis, r_ic) = (150.0 * u, 132.0 * u);
-                tv.cizgi(-300.0, yc, wf + 300.0, yc, r_dis * 2.0, yuz, 1.0);
-                tv.cizgi(-300.0, yc, wf + 300.0, yc, r_ic * 2.0, zem, 1.0);
-                let r = 96.0 * u;
+            for (sira, yc) in [(0usize, hf * 0.40), (1, hf * 0.62), (2, hf * 0.84)] {
+                let r_dis = 140.0 * u;
+                let duz = Yol::yeni(vec![(-300.0, yc), (wf + 300.0, yc)]);
+                koridor(&mut tv, &duz, r_dis, yuz, u);
+                let r = 92.0 * u;
                 let ara = r * 2.7;
                 let yol_l = wf + 2.0 * r + ara * adet as f32 + 120.0 * u;
                 let v = 340.0 * u;
@@ -409,13 +470,13 @@ pub fn ciz(m: &MalzemeAyar, metin: &str, z: &Hazir, k: &mut [u8], w: u32, h: u32
                 let mut x = 40.0 * u;
                 while x < wf {
                     let gecildi = if sag { x < x_of(s) } else { x > x_of(s) };
-                    if !gecildi { tv.daire(x, yc, 10.0 * u, Renk(255, 220, 180), 1.0); }
+                    if !gecildi { yem(&mut tv, x, yc, 13.0 * u, Renk(255, 230, 120)); }
                     x += 70.0 * u;
                 }
-                for c in 0..adet { let xc = x_of(s - ara * (c as f32 + 1.0)); kovalayici(&mut tv, xc, yc + 6.0 * u, r * 0.9, KOVALAYICI_RENK[(c + sira) % 4], (yon.cos(), 0.0), tt + c as f32); }
+                for c in 0..adet { let xc = x_of(s - ara * (c as f32 + 1.0)); kovalayici(&mut tv, xc, yc, r * 0.85, KOVALAYICI_RENK[(c + sira) % 4], (yon.cos(), 0.0), tt + c as f32); }
                 yutkun(&mut tv, x_of(s), yc, r, yon, (tt * 7.0).sin().abs());
             }
-            tv.piksel_satirlar(&yazi, cx, hf * 0.15, wf * 0.9, 26.0 * u, SARI, 1.0);
+            tv.piksel_satirlar(&yazi, cx, hf * 0.15, wf * 0.9, 26.0 * u, BEYAZ, 1.0);
         }
         "robi-yuruyus" => {
             let sol = m.yon == "sol";
@@ -754,7 +815,7 @@ pub fn ciz(m: &MalzemeAyar, metin: &str, z: &Hazir, k: &mut [u8], w: u32, h: u32
             }
             let olcek = 1.0 + 0.05 * (tt * 2.5).sin();
             tv.yildiz(cx, cy, 380.0 * u * olcek, 0.48, 5, tt * 0.2, yuz, 1.0);
-            tv.piksel_sigdir(&yazi, cx, cy + 40.0 * u, 380.0 * u, 26.0 * u, KOYU, 1.0);
+            piksel_cizgili(&mut tv, &yazi, cx, cy + 40.0 * u, 380.0 * u, 26.0 * u, BEYAZ);
         }
         // ------------------------------------------------ hava
         "kar-yagisi" => {
@@ -909,7 +970,7 @@ pub fn ciz(m: &MalzemeAyar, metin: &str, z: &Hazir, k: &mut [u8], w: u32, h: u32
             tv.yildiz(cx, cy, 420.0 * u * ol, 0.84, 18, tt * 0.3, vu, 1.0);
             tv.daire(cx, cy, 330.0 * u * ol, yuz, 1.0);
             tv.halka(cx, cy, 300.0 * u * ol, 8.0 * u, vu, 1.0);
-            yazi_bas(&mut tv, z, KOYU, kos(vu, 0.6), ol, 0.0, 0.0, 0.0, 6.0 * u);
+            yazi_rozet(&mut tv, z, ol, 0.0, 0.0, 0.0, u);
         }
         "rozet-taksit" => {
             let ol = anim::geri((yerel / 0.6).min(1.0));
@@ -922,14 +983,14 @@ pub fn ciz(m: &MalzemeAyar, metin: &str, z: &Hazir, k: &mut [u8], w: u32, h: u32
                 let pts: Vec<(f32, f32)> = [(sx, cy + hh - 20.0 * u), (sx + 30.0 * u, cy + hh - 20.0 * u), (sx + 30.0 * u + 80.0 * u, cy - hh + 20.0 * u), (sx + 80.0 * u, cy - hh + 20.0 * u)].iter().map(|q| (sinir(q.0, cx - hw + 30.0 * u, cx + hw - 30.0 * u), q.1)).collect();
                 tv.cokgen(&pts, kos(yuz, 0.9), 1.0);
             }
-            yazi_bas(&mut tv, z, KOYU, kos(vu, 0.6), ol, 0.0, 0.0, 0.0, 6.0 * u);
+            yazi_rozet(&mut tv, z, ol, 0.0, 0.0, 0.0, u);
         }
         "rozet-yeni" => {
             let ol = anim::elastik((yerel / 1.0).min(1.0)).max(0.02);
             tv.daire(cx, cy, 410.0 * u * ol, vu, 1.0);
             tv.daire(cx, cy, 330.0 * u * ol, yuz, 1.0);
             for i in 0..28 { let a = tt * 0.5 + i as f32 / 28.0 * TAU; tv.daire(cx + a.cos() * 370.0 * u * ol, cy + a.sin() * 370.0 * u * ol, 13.0 * u * ol, yuz, 1.0); }
-            yazi_bas(&mut tv, z, KOYU, kos(vu, 0.6), ol, 0.0, 0.0, 0.0, 6.0 * u);
+            yazi_rozet(&mut tv, z, ol, 0.0, 0.0, 0.0, u);
         }
         "rozet-son-gunler" => {
             let ol = anim::geri((yerel / 0.6).min(1.0));
@@ -949,7 +1010,7 @@ pub fn ciz(m: &MalzemeAyar, metin: &str, z: &Hazir, k: &mut [u8], w: u32, h: u32
                     tv.cizgi(x, yy - s * 20.0 * u, x + 50.0 * u, yy + s * 40.0 * u, 26.0 * u, vu, a);
                 }
             }
-            yazi_bas(&mut tv, z, KOYU, kos(vu, 0.6), ol, 0.0, 0.0, 0.0, 5.0 * u);
+            yazi_rozet(&mut tv, z, ol, 0.0, 0.0, 0.0, u);
         }
         "rozet-indirim" => {
             let aci = (tt * 1.4).sin() * 0.35 * (1.0 - (-yerel).exp() * 0.0);
@@ -962,7 +1023,7 @@ pub fn ciz(m: &MalzemeAyar, metin: &str, z: &Hazir, k: &mut [u8], w: u32, h: u32
             let ic: Vec<(f32, f32)> = [(cx, ust - 30.0 * u), (cx + hw - 22.0 * u, ust + 150.0 * u), (cx + hw - 22.0 * u, alt - 22.0 * u), (cx - hw + 22.0 * u, alt - 22.0 * u), (cx - hw + 22.0 * u, ust + 150.0 * u)].iter().map(|q| p(q.0, q.1)).collect();
             tv.cokgen(&ic, yuz, 1.0);
             tv.elips(cx, ust + 70.0 * u, 34.0 * u * sx.max(0.1), 34.0 * u, 0.0, zem, 1.0);
-            yazi_bas(&mut tv, z, KOYU, kos(vu, 0.6), 1.0, aci, 0.0, 120.0 * u, 5.0 * u);
+            yazi_rozet(&mut tv, z, 1.0, aci, 0.0, 120.0 * u, u);
         }
         "rozet-firsat" => {
             let ol = anim::geri((yerel / 0.6).min(1.0));
@@ -970,7 +1031,7 @@ pub fn ciz(m: &MalzemeAyar, metin: &str, z: &Hazir, k: &mut [u8], w: u32, h: u32
             tv.dikd(cx - hw - 22.0 * u, cy - hh - 22.0 * u, cx + hw + 22.0 * u, cy + hh + 22.0 * u, vu, 1.0);
             tv.dikd(cx - hw, cy - hh, cx + hw, cy + hh, yuz, 1.0);
             for s in [-1.0f32, 1.0] { for t2 in [-1.0f32, 1.0] { tv.daire(cx + s * (hw - 30.0 * u), cy + t2 * (hh - 30.0 * u), 12.0 * u, vu, 1.0); } }
-            yazi_bas(&mut tv, z, KOYU, kos(vu, 0.6), ol, 0.0, 0.0, 0.0, 6.0 * u);
+            yazi_rozet(&mut tv, z, ol, 0.0, 0.0, 0.0, u);
             let konum = fr(tt / 2.4) * 1.6 - 0.3;
             let bx = cx - hw + konum * hw * 2.0;
             if let Some((x0, y0, x1, y1)) = tv.kutu(cx - hw, cy - hh, cx + hw, cy + hh) {

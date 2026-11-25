@@ -1,6 +1,7 @@
 //! Yerel arayüz: 127.0.0.1 üzerinde küçük bir HTTP sunucusu; sayfa tarayıcıda açılır.
 //! Dış bağımlılık yok. Yalnız bu bilgisayardan erişilir (Host ve X-LED denetimi).
 //! 1.0 (yenileme-1.0, 2026-11-18) [Claude#UI Opus 5.5]: web/ai.js, web/malzeme.js ve web/yazi/*.woff2 gömülü uç noktaları eklendi. Sahip: Yusuf; değişiklik yalnız UI ajanı ya da Yusuf'un izniyle.
+//! Dalga 3 (2026-11-25) [Claude#UI Opus 5.5]: /oynatici, /oynatici.js, /oynatici.css, /cikis, /donustur.js gömülü; /oynatici/ ve /donustur/ modül yuvaları.
 use crate::{png, uret};
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
@@ -15,6 +16,13 @@ const LOGO: &str = include_str!("../logo/logo.svg");
 // dosya yer tutucu yorumsa sayfa mevcut panelleri gösterir.
 const AI_JS: &str = include_str!("../web/ai.js");
 const MALZEME_JS: &str = include_str!("../web/malzeme.js");
+// Dalga 3 yuvaları [Claude#UI Opus 5.5, yenileme-1.0, 2026-11-25]: Oynatıcı (/oynatici, /cikis) ve Dönüştürücü (/donustur.js) sayfaları gömülü;
+// dosyaların içeriği Oynatıcı ve Dönüştürücü ajanlarınındır (yer tutucuyken sayfa "henüz yüklü değil" gösterir).
+const OYNATICI_HTML: &str = include_str!("../web/oynatici.html");
+const OYNATICI_JS: &str = include_str!("../web/oynatici.js");
+const OYNATICI_CSS: &str = include_str!("../web/oynatici.css");
+const CIKIS_HTML: &str = include_str!("../web/cikis.html");
+const DONUSTUR_JS: &str = include_str!("../web/donustur.js");
 /// Temaların gömülü yazı tipleri (SIL OFL 1.1; lisanslar web/yazi/OFL-*.txt). İnternetten yükleme yok.
 const YAZILAR: &[(&str, &[u8])] = &[
     ("spacegrotesk.woff2", include_bytes!("../web/yazi/spacegrotesk.woff2")),
@@ -221,6 +229,11 @@ fn isle(mut s: TcpStream, o: Arc<Ortak>) {
     let yolu = yol.split('?').next().unwrap_or("/").to_string();
     if yontem == "POST" && !bas.iter().any(|(a, v)| a == "x-led" && v == "1") { return yanit(&mut s, 403, "text/plain; charset=utf-8", b"yasak"); }
     let metin = "text/plain; charset=utf-8";
+    // Oynatıcı (ISTEK-oynatici.md 1): /cikis, /oynatici, /oynatici.*, /oynatici/... akışa kendisi yazar (Range, CSP); yetki denetiminden SONRA
+    if crate::oynatici_http::bu_yol_mu(&yolu) {
+        let uretim = || o.durum.lock().map(|d| d.calisiyor).unwrap_or(false);
+        return crate::oynatici_http::isle_akis(&mut s, &yontem, &yol, &bas, &govde, &uretim);
+    }
     match (yontem.as_str(), yolu.as_str()) {
         ("GET", "/") => yanit(&mut s, 200, "text/html; charset=utf-8", SAYFA.as_bytes()),
         ("GET", "/ayar") => yanit(&mut s, 200, "application/json; charset=utf-8", crate::ayar::json_yaz(&crate::ayar::oku(&crate::ayar::varsayilan_yol())).as_bytes()),
@@ -236,6 +249,11 @@ fn isle(mut s: TcpStream, o: Arc<Ortak>) {
         ("GET", "/logo.svg") => yanit(&mut s, 200, "image/svg+xml", LOGO.as_bytes()),
         ("GET", "/ai.js") => yanit(&mut s, 200, "text/javascript; charset=utf-8", AI_JS.as_bytes()),
         ("GET", "/malzeme.js") => yanit(&mut s, 200, "text/javascript; charset=utf-8", MALZEME_JS.as_bytes()),
+        ("GET", "/oynatici") => yanit(&mut s, 200, "text/html; charset=utf-8", OYNATICI_HTML.as_bytes()),
+        ("GET", "/oynatici.js") => yanit(&mut s, 200, "text/javascript; charset=utf-8", OYNATICI_JS.as_bytes()),
+        ("GET", "/oynatici.css") => yanit(&mut s, 200, "text/css; charset=utf-8", OYNATICI_CSS.as_bytes()),
+        ("GET", "/cikis") => yanit(&mut s, 200, "text/html; charset=utf-8", CIKIS_HTML.as_bytes()),
+        ("GET", "/donustur.js") => yanit(&mut s, 200, "text/javascript; charset=utf-8", DONUSTUR_JS.as_bytes()),
         ("GET", y) if y.starts_with("/yazi/") => match YAZILAR.iter().find(|(a, _)| *a == &y[6..]) {
             Some((_, b)) => yanit(&mut s, 200, "font/woff2", b),
             None => yanit(&mut s, 404, "text/plain; charset=utf-8", b"yok"),
@@ -359,6 +377,10 @@ fn isle(mut s: TcpStream, o: Arc<Ortak>) {
         // "Tarif et": istem üretme, kural motoru, yanıt doğrulama (hepsi yalnız metin işler; dış adres yalnız listedeki adla açılır)
         (m, y) if y.starts_with("/malzeme/") => { let (kod, tur, g) = crate::malzeme_http::isle(m, &y[9..], &yazi); yanit(&mut s, kod, tur, g.as_bytes()) }
         (m, y) if y.starts_with("/tarif/") => { let (kod, tur, g) = crate::tarif_http::isle(m, &y[7..], &yazi, &cikti_klasoru()); yanit(&mut s, kod, tur, g.as_bytes()) }
+        // OYNATICI-YUVA: /oynatici/ yukarıda oynatici_http::isle_akis'e gider; bu kol yalnız emniyettir (yedek JSON girişi, ISTEK-oynatici.md 2).
+        (m, y) if y.starts_with("/oynatici/") => { let (kod, tur, g) = crate::oynatici_http::isle(m, &y[10..], &yazi, &cikti_klasoru()); yanit(&mut s, kod, tur, g.as_bytes()) }
+        // DONUSTUR-YUVA (ISTEK-donusturucu.md)
+        (m, y) if y.starts_with("/donustur/") => { let (kod, tur, g) = crate::donustur_http::isle(m, &y[10..], &yazi, &cikti_klasoru()); yanit(&mut s, kod, tur, g.as_bytes()) }
         _ => yanit(&mut s, 404, metin, b"yok"),
     }
 }
@@ -414,7 +436,11 @@ fn pencere(adres: &str) {
     use tao::event_loop::{ControlFlow, EventLoopBuilder};
     use tao::window::WindowBuilder;
     use wry::WebViewBuilder;
-    let el = EventLoopBuilder::new().build();
+    // Oynatıcı çıkış penceresi köprüsü (ISTEK-oynatici.md 4): kullanıcı olayı ile ikinci pencere aynı olay döngüsünde açılır/kapanır
+    let el = EventLoopBuilder::<crate::oynatici_pencere::Olay>::with_user_event().build();
+    crate::oynatici_pencere::kopru_kur(el.create_proxy());
+    let mut cikis = crate::oynatici_pencere::Cikis::default();
+    let kok = adres.split('?').next().unwrap_or(adres).trim_end_matches('/').to_string();
     let pencere = match WindowBuilder::new().with_title("TAA Vidyo Yapıcı").with_inner_size(tao::dpi::LogicalSize::new(1280.0, 860.0)).with_min_inner_size(tao::dpi::LogicalSize::new(900.0, 600.0)).build(&el) {
         Ok(p) => p,
         Err(e) => { hata_goster(&format!("Pencere açılamadı: {e}")); std::process::exit(2) }
@@ -426,9 +452,16 @@ fn pencere(adres: &str) {
         Ok(g) => g,
         Err(e) => { hata_goster(&format!("WebView2 çalışma zamanı bulunamadı veya başlatılamadı. Microsoft Edge WebView2 Runtime kurun (aka.ms/webview2). Ayrıntı: {e}")); std::process::exit(3) }
     };
-    el.run(move |olay, _, akis| {
+    el.run(move |olay, hedef, akis| {
         *akis = ControlFlow::Wait;
-        if let Event::WindowEvent { event: WindowEvent::CloseRequested, .. } = olay { std::process::exit(0); }
+        match olay {
+            Event::UserEvent(o) => crate::oynatici_pencere::isle(o, hedef, &mut baglam, &kok, &mut cikis),
+            // çıkış penceresi kapanırsa yalnız o kapanır; ana pencere kapanınca süreç biter
+            Event::WindowEvent { window_id, event: WindowEvent::CloseRequested, .. } => {
+                if crate::oynatici_pencere::pencere_mi(&cikis, window_id) { crate::oynatici_pencere::kapat(&mut cikis); } else { std::process::exit(0); }
+            }
+            _ => {}
+        }
     });
 }
 

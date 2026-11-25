@@ -1,7 +1,9 @@
-//! Tarif et birim testleri: JSON, doğrulama, enjeksiyon, sınırlar, istem, kural dosyası. Sahip: Yusuf; yazan [Claude#ebd691, 2026-11-16].
+//! Tarif et birim testleri: JSON, doğrulama, enjeksiyon, sınırlar, istem, kural dosyası. Sahip: Yusuf; yazan [Claude#ebd691, 2026-11-16]. Ek [Claude#AI Opus 5.5, yenileme-1.0, 2026-11-25]: ham (okunurluk düzeltmesiz) sınır denetimi.
 use super::*;
 fn kat() -> Katalog { Katalog::gercek() }
 fn tek(js: &str) -> Result<Dogrulama, Vec<String>> { dogrula(js, &kat()) }
+/// Okunurluk düzeltmesi (okunur_yap) uygulanmadan ham doğrulama (sınır testleri). 2026-11-25 [Claude#AI Opus 5.5].
+fn ham(js: &str) -> Result<Dogrulama, Vec<String>> { dogrula_ile(js, &kat(), false) }
 
 #[test]
 fn json_temel() {
@@ -44,10 +46,12 @@ fn sinirlar() {
     assert!(tek(&on_uc).is_err(), "13 sahne reddedilir");
     let uzun = format!("{{\"sahneler\":[{}]}}", vec!["{\"metin\":[\"A\"],\"sure\":15}"; 9].join(","));
     assert!(tek(&uzun).is_err(), "135 sn reddedilir");
-    let d = tek("{\"sahneler\":[{\"metin\":[\"1\",\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\"],\"sure\":99}]}").unwrap();
+    let d = ham("{\"sahneler\":[{\"metin\":[\"1\",\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\"],\"sure\":99}]}").unwrap();
     assert_eq!(d.tarif.sahneler[0].metin.len(), MAX_SATIR);
     assert_eq!(d.tarif.sahneler[0].sure, MAX_SURE);
-    let d = tek(&format!("{{\"sahneler\":[{{\"metin\":[\"{}\"],\"sure\":0.2}}]}}", "KELİME ".repeat(20))).unwrap();
+    // okunurluk düzeltmesiyle sahne en çok 3 satıra indirilir
+    assert!(tek("{\"sahneler\":[{\"metin\":[\"1\",\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\"],\"sure\":99}]}").unwrap().tarif.sahneler[0].metin.len() <= 3);
+    let d = ham(&format!("{{\"sahneler\":[{{\"metin\":[\"{}\"],\"sure\":0.2}}]}}", "KELİME ".repeat(20))).unwrap();
     assert!(d.tarif.sahneler[0].metin[0].chars().count() <= MAX_KARAKTER);
     assert_eq!(d.tarif.sahneler[0].sure, MIN_SURE);
     assert!(d.notlar.len() >= 2);
@@ -106,7 +110,8 @@ fn bes_tarif_yanit_cifti() {
         assert_eq!(d.tarif.sahneler.len(), n);
         crate::senaryo::ayristir(&senaryo_metni(&d.tarif)).unwrap_or_else(|e| panic!("senaryo hatası: {e}"));
     }
-    assert_eq!(tek(yanitlar[1]).unwrap().tarif.sahneler[0].sure, 3.5);
+    assert_eq!(ham(yanitlar[1]).unwrap().tarif.sahneler[0].sure, 3.5);
+    assert_eq!(tek(yanitlar[1]).unwrap().tarif.sahneler[0].sure, OKUNUR_SURE, "okunurluk: en az 5 sn");
     assert_eq!(tek(yanitlar[3]).unwrap().tarif.gorunum, "bina");
     assert_eq!(tek(yanitlar[2]).unwrap().tarif.sahneler[0].efekt, vec!["konfeti".to_string(), "kar".to_string()]);
 }

@@ -1,5 +1,5 @@
 {
- "aciklama": "TAA Vidyo Yapıcı hazır senaryo galerisi: her giriş geçerli bir sahne listesi (Tarif et şeması). Satırlar en çok 7 harf (3 m okunurluk). Sahip: Yusuf; yazan [Claude#ebd691, 2026-11-16]. cargo test her girişi doğrular.",
+ "aciklama": "TAA Vidyo Yapıcı hazır senaryo galerisi: her giriş geçerli bir sahne listesi (Tarif et şeması). Satırlar en çok 7 harf (3 m okunurluk); her sahne 6 sn (/denetle ≥5 sn eşiği, 2026-11-25 [Claude#AI Opus 5.5]). Sahip: Yusuf; yazan [Claude#ebd691, 2026-11-16]. cargo test her girişi doğrular.",
  "surum": 1,
  "senaryolar": [
   {
@@ -24,7 +24,7 @@
       ],
       "palet": "altin-gece",
       "font": "anton",
-      "sure": 3.5
+      "sure": 6
      },
      {
       "metin": [
@@ -38,7 +38,7 @@
       ],
       "palet": "kirmizi-altin",
       "font": "anton",
-      "sure": 4
+      "sure": 6
      },
      {
       "metin": [
@@ -51,7 +51,7 @@
       ],
       "palet": "sicak-beyaz",
       "font": "bebas",
-      "sure": 3.5
+      "sure": 6
      },
      {
       "metin": [
@@ -65,7 +65,7 @@
       ],
       "palet": "altin",
       "font": "anton",
-      "sure": 4
+      "sure": 6
      },
      {
       "metin": [
@@ -80,7 +80,7 @@
       ],
       "palet": "altin-gece",
       "font": "yeseva",
-      "sure": 4
+      "sure": 6
      }
     ],
     "acilis": "perde",
@@ -109,7 +109,7 @@
       ],
       "palet": "kirmizi-altin",
       "font": "anton",
-      "sure": 3.5
+      "sure": 6
      },
      {
       "metin": [
@@ -122,7 +122,7 @@
       ],
       "palet": "altin",
       "font": "anton",
-      "sure": 4
+      "sure": 6
      },
      {
       "metin": [
@@ -136,7 +136,7 @@
       ],
       "palet": "turuncu-gece",
       "font": "bebas",
-      "sure": 3.5
+      "sure": 6
      },
      {
       "metin": [
@@ -149,7 +149,7 @@
       ],
       "palet": "sicak-beyaz",
       "font": "anton",
-      "sure": 3.5
+      "sure": 6
      }
     ],
     "acilis": "fade",
@@ -178,7 +178,7 @@
       ],
       "palet": "sicak-beyaz",
       "font": "yeseva",
-      "sure": 3.5
+      "sure": 6
      },
      {
       "metin": [
@@ -191,7 +191,7 @@
       ],
       "palet": "altin",
       "font": "anton",
-      "sure": 3
+      "sure": 6
      },
      {
       "metin": [
@@ -205,7 +205,7 @@
       ],
       "palet": "altin-gece",
       "font": "yeseva",
-      "sure": 3.5
+      "sure": 6
      },
      {
       "metin": [
@@ -219,7 +219,7 @@
       ],
       "palet": "altin",
       "font": "bebas",
-      "sure": 3.5
+      "sure": 6
      }
     ],
     "acilis": "iris",
@@ -248,7 +248,7 @@
       ],
       "palet": "altin-gece",
       "font": "yeseva",
-      "sure": 4
+      "sure": 6
      },
      {
       "metin": [
@@ -262,7 +262,7 @@
       ],
       "palet": "altin",
       "font": "anton",
-      "sure": 3.5
+      "sure": 6
      },
      {
       "metin": [
@@ -275,7 +275,7 @@
       ],
       "palet": "kirmizi-altin",
       "font": "anton",
-      "sure": 3.5
+      "sure": 6
      },
      {
       "metin": [
@@ -289,7 +289,7 @@
       ],
       "palet": "sicak-beyaz",
       "font": "yeseva",
-      "sure": 4
+      "sure": 6
      }
     ],
     "acilis": "perde",
@@ -319,7 +319,7 @@
       ],
       "palet": "altin-gece",
       "font": "yeseva",
-      "sure": 4.5
+      "sure": 6
      },
      {
       "metin": [
@@ -333,7 +333,7 @@
       ],
       "palet": "pembe-altin",
       "font": "yeseva",
-      "sure": 4
+      "sure": 6
      },
      {
       "metin": [
@@ -346,7 +346,7 @@
       ],
       "palet": "sicak-beyaz",
       "font": "yeseva",
-      "sure": 3.5
+      "sure": 6
      },
      {
       "metin": [
@@ -361,7 +361,7 @@
       ],
       "palet": "altin",
       "font": "yeseva",
-      "sure": 4
+      "sure": 6
      }
     ],
     "acilis": "fade",
@@ -389,7 +389,7 @@
       ],
       "palet": "altin",
       "font": "anton",
-      "sure": 3
+      "sure": 6
      },
      {
       "metin": [
@@ -403,7 +403,7 @@
       ],
       "palet": "sicak-beyaz",
       "font": "anton",
-      "sure": 3.5
+      "sure": 6
      },
      {
       "metin": [
@@ -417,7 +417,7 @@
       ],
       "palet": "altin-gece",
       "font": "bebas",
-      "sure": 3.5
+      "sure": 6
      },
      {
       "metin": [
@@ -431,7 +431,7 @@
       ],
       "palet": "altin",
       "font": "anton",
-      "sure": 3.5
+      "sure": 6
      }
     ],
     "acilis": "slayt",
@@ -460,7 +460,7 @@
       ],
       "palet": "altin-gece",
       "font": "yeseva",
-      "sure": 3.5
+      "sure": 6
      },
      {
       "metin": [
@@ -474,7 +474,7 @@
       ],
       "palet": "sicak-beyaz",
       "font": "yeseva",
-      "sure": 3.5
+      "sure": 6
      },
      {
       "metin": [
@@ -488,7 +488,7 @@
       ],
       "palet": "altin",
       "font": "anton",
-      "sure": 4
+      "sure": 6
      },
      {
       "metin": [
@@ -502,7 +502,7 @@
       ],
       "palet": "altin-gece",
       "font": "bebas",
-      "sure": 4
+      "sure": 6
      }
     ],
     "acilis": "perde",
@@ -532,7 +532,7 @@
       ],
       "palet": "turuncu-gece",
       "font": "anton",
-      "sure": 3.5
+      "sure": 6
      },
      {
       "metin": [
@@ -545,7 +545,7 @@
       ],
       "palet": "kirmizi-altin",
       "font": "anton",
-      "sure": 3.5
+      "sure": 6
      },
      {
       "metin": [
@@ -559,7 +559,7 @@
       ],
       "palet": "altin",
       "font": "anton",
-      "sure": 4
+      "sure": 6
      }
     ],
     "acilis": "fade",
@@ -588,7 +588,7 @@
       ],
       "palet": "altin",
       "font": "anton",
-      "sure": 4
+      "sure": 6
      },
      {
       "metin": [
@@ -603,7 +603,7 @@
       ],
       "palet": "sicak-beyaz",
       "font": "bebas",
-      "sure": 4
+      "sure": 6
      },
      {
       "metin": [
@@ -617,7 +617,7 @@
       ],
       "palet": "altin-gece",
       "font": "anton",
-      "sure": 3.5
+      "sure": 6
      },
      {
       "metin": [
@@ -631,7 +631,7 @@
       ],
       "palet": "altin",
       "font": "bebas",
-      "sure": 3.5
+      "sure": 6
      }
     ],
     "acilis": "perde",
@@ -660,7 +660,7 @@
       ],
       "palet": "altin-gece",
       "font": "anton",
-      "sure": 3.5
+      "sure": 6
      },
      {
       "metin": [
@@ -673,7 +673,7 @@
       ],
       "palet": "altin",
       "font": "anton",
-      "sure": 3.5
+      "sure": 6
      },
      {
       "metin": [
@@ -687,7 +687,7 @@
       ],
       "palet": "kirmizi-altin",
       "font": "anton",
-      "sure": 4
+      "sure": 6
      },
      {
       "metin": [
@@ -701,7 +701,7 @@
       ],
       "palet": "sicak-beyaz",
       "font": "bebas",
-      "sure": 3.5
+      "sure": 6
      }
     ],
     "acilis": "iris",
@@ -730,7 +730,7 @@
       ],
       "palet": "buz-cyan",
       "font": "yeseva",
-      "sure": 4
+      "sure": 6
      },
      {
       "metin": [
@@ -743,7 +743,7 @@
       ],
       "palet": "altin",
       "font": "anton",
-      "sure": 4
+      "sure": 6
      },
      {
       "metin": [
@@ -757,7 +757,7 @@
       ],
       "palet": "sicak-beyaz",
       "font": "yeseva",
-      "sure": 3.5
+      "sure": 6
      }
     ],
     "acilis": "fade",
@@ -786,7 +786,7 @@
       ],
       "palet": "magenta-gece",
       "font": "anton",
-      "sure": 3.5
+      "sure": 6
      },
      {
       "metin": [
@@ -800,7 +800,7 @@
       ],
       "palet": "sicak-beyaz",
       "font": "bebas",
-      "sure": 3.5
+      "sure": 6
      },
      {
       "metin": [
@@ -814,7 +814,7 @@
       ],
       "palet": "altin",
       "font": "anton",
-      "sure": 4
+      "sure": 6
      },
      {
       "metin": [
@@ -828,7 +828,7 @@
       ],
       "palet": "turuncu-gece",
       "font": "anton",
-      "sure": 3.5
+      "sure": 6
      }
     ],
     "acilis": "tv",
@@ -856,7 +856,7 @@
       ],
       "palet": "sicak-beyaz",
       "font": "bebas",
-      "sure": 3
+      "sure": 6
      },
      {
       "metin": [
@@ -870,7 +870,7 @@
       ],
       "palet": "altin",
       "font": "anton",
-      "sure": 4
+      "sure": 6
      },
      {
       "metin": [
@@ -883,7 +883,7 @@
       ],
       "palet": "altin-gece",
       "font": "anton",
-      "sure": 3
+      "sure": 6
      },
      {
       "metin": [
@@ -897,7 +897,7 @@
       ],
       "palet": "sicak-beyaz",
       "font": "yeseva",
-      "sure": 3.5
+      "sure": 6
      }
     ],
     "acilis": "fade",

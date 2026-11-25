@@ -74,7 +74,7 @@ pub fn kullanici_kurallari(k: &Path) -> Vec<Kural> { std::fs::read_to_string(kur
 fn sonuc_json(tarif: Option<&Tarif>, notlar: &[String], anladim: &[String], anlasilmayan: &[String], hatalar: &[String], kat: &Katalog) -> String {
     match tarif {
         Some(t) => {
-            let sahneler: Vec<String> = t.sahneler.iter().map(|s| format!("{{\"satirlar\":{},\"metin\":\"{}\",\"giris\":\"{}\",\"cikis\":\"{}\",\"efekt\":\"{}\",\"palet\":\"{}\",\"font\":\"{}\",\"sure\":{:.1}}}", dizi(&s.metin), kac(&s.metin.join(" / ")), kac(&s.giris), kac(&s.cikis), kac(&s.efekt.join(", ")), kac(&s.palet), kac(&s.font), s.sure)).collect();
+            let sahneler: Vec<String> = t.sahneler.iter().map(|s| format!("{{\"satirlar\":{},\"metin\":\"{}\",\"giris\":\"{}\",\"cikis\":\"{}\",\"efekt\":\"{}\",\"palet\":\"{}\",\"font\":\"{}\",\"sure\":{:.1},\"malzeme\":\"{}\"}}", dizi(&s.metin), kac(&s.metin.join(" / ")), kac(&s.giris), kac(&s.cikis), kac(&s.efekt.join(", ")), kac(&s.palet), kac(&s.font), s.sure, kac(&s.malzeme))).collect();
             format!("{{\"ok\":true,\"senaryo\":\"{}\",\"gorunum\":\"{}\",\"sure\":{:.1},\"acilis\":\"{}\",\"kapanis\":\"{}\",\"sahneler\":[{}],\"notlar\":{},\"anladim\":{},\"anlasilmayan\":{}}}",
                 kac(&senaryo_metni(t)), kac(&t.gorunum), toplam_sure(t), kac(&t.acilis), kac(&t.kapanis), sahneler.join(","), dizi(notlar), dizi(anladim), dizi(anlasilmayan))
         }
@@ -99,15 +99,20 @@ fn adimlar_json(v: &[Adim]) -> String { format!("[{}]", v.iter().map(|a| format!
 fn kaynak_ad(k: &str) -> &'static str { match k { "yapay-zeka" => "Yapay zekâ", "kural" => "Kural", _ => "Şablon" } }
 
 /// Yedek zinciri: (izinliyse) doğrudan yapay zekâ → katı şema doğrulaması → yerel kural/niyet üretici → güvenli şablon. HER ZAMAN ok:true ve geçerli senaryo döner.
+/// `isletme` (isteğe bağlı, 2026-11-25): ayar `taa-isletme`; yoksa varsayılan ad, "" ya da "kapali" → işletme adı sahnesi eklenmez.
 pub fn hazirla(yazi: &str, klasor: &Path, kat: &Katalog, tasiyici: &dyn crate::llm::Tasiyici) -> String {
     let j = json_coz(yazi).ok().filter(|j| matches!(j, Json::Nesne(_)));
+    let isletme: Option<String> = j.as_ref().and_then(|j| j.al("isletme")).and_then(|x| x.yazi()).map(|s| s.chars().take(80).collect());
+    niyet::isletme_ile(isletme.as_deref(), || hazirla_ic(yazi, j, klasor, kat, tasiyici, isletme.as_deref()))
+}
+fn hazirla_ic(yazi: &str, j: Option<Json>, klasor: &Path, kat: &Katalog, tasiyici: &dyn crate::llm::Tasiyici, isletme: Option<&str>) -> String {
     let metin: String = match &j { Some(j) => j.al("metin").and_then(|x| x.yazi()).unwrap_or("").to_string(), None => yazi.to_string() };
     let metin: String = metin.chars().take(MAX_TARIF).collect();
     let b = |k: &str| j.as_ref().and_then(|j| j.al(k)).map(|x| matches!(x, Json::Mantik(true)));
     let cesit = j.as_ref().and_then(|j| j.al("cesit")).and_then(|x| if let Json::Sayi(n) = x { Some(n.max(0.0).min(1000.0) as usize) } else { None }).unwrap_or(0);
     let yz_iste = b("yz").unwrap_or(true);
     let onay = b("onay").unwrap_or(false);
-    IPTAL.store(false, Ordering::Relaxed);
+    // 2026-11-25: IPTAL yalnız yapay zekâya gerçekten gidilecekse sıfırlanır; "Durdur" sonrası gelen yerel (yz:false) istek önceki iptali bozmaz.
     let mut adimlar: Vec<Adim> = vec![];
     let mut yz_onay_gerekli = false;
     let ayar = crate::llm::ayar_oku(klasor);
@@ -119,12 +124,16 @@ pub fn hazirla(yazi: &str, klasor: &Path, kat: &Katalog, tasiyici: &dyn crate::l
             Err(e) => adimlar.push(Adim { ad: "yapay-zeka", durum: "atlandi", mesaj: e.mesaj() }),
             Ok(()) if !(ayar.sorma || onay) => { yz_onay_gerekli = true; adimlar.push(Adim { ad: "yapay-zeka", durum: "onay-bekliyor", mesaj: "Tarifin yapay zekâ hizmetine gönderilmesi için onayınız gerekiyor.".into() }); }
             Ok(()) => {
+                IPTAL.store(false, Ordering::Relaxed);
                 let ek = if cesit > 0 { format!("\n(Öncekinden farklı bir öneri ver; çeşit {cesit}.)") } else { String::new() };
-                match crate::llm::gonder_ile(tasiyici, klasor, &istem_uret(&format!("{metin}{ek}"), kat), &IPTAL) {
+                match crate::llm::gonder_ile(tasiyici, klasor, &istem_uret_ile(&format!("{metin}{ek}"), kat, isletme, false), &IPTAL) {
                     Ok(m) => match dogrula(&m, kat) {
-                        Ok(d) => {
+                        Ok(mut d) => {
                             adimlar.push(Adim { ad: "yapay-zeka", durum: "basarili", mesaj: "Yapay zekâ planı hazırladı.".into() });
-                            return ekle(sonuc_json(Some(&d.tarif), &d.notlar, &[], &[], &[], kat), "yapay-zeka", &[], &adimlar, false);
+                            // model malzeme isteğini atladıysa yerel eşleme ekler (oyun, havai fişek, kar ...)
+                            let mut vars: Vec<String> = vec![];
+                            if let Some((t, v)) = niyet::malzeme_ekle(&d.tarif, &metin, kat) { d.tarif = t; vars = v; }
+                            return ekle(sonuc_json(Some(&d.tarif), &d.notlar, &[], &[], &[], kat), "yapay-zeka", &vars, &adimlar, false);
                         }
                         Err(_) => adimlar.push(Adim { ad: "yapay-zeka", durum: "hata", mesaj: "Yapay zekânın yanıtı video planına uymadı; yerel kurallarla hazırlandı.".into() }),
                     },
@@ -148,7 +157,14 @@ fn ekle(govde: String, kaynak: &str, varsayimlar: &[String], adimlar: &[Adim], y
 pub fn isle(yontem: &str, ad: &str, yazi: &str, klasor: &Path) -> Yanit {
     let kat = Katalog::gercek();
     match (yontem, ad) {
-        ("POST", "istem") => (200, METIN, istem_uret(yazi, &kat)),
+        // gövde düz metin (eski) ya da {"metin":..,"isletme":..} (2026-11-25)
+        ("POST", "istem") => {
+            let j = json_coz(yazi).ok().filter(|j| matches!(j, Json::Nesne(_)) && j.al("metin").is_some());
+            match j {
+                Some(j) => (200, METIN, istem_uret_ile(j.al("metin").and_then(|x| x.yazi()).unwrap_or(""), &kat, j.al("isletme").and_then(|x| x.yazi()), false)),
+                None => (200, METIN, istem_uret(yazi, &kat)),
+            }
+        }
         ("POST", "hazirla") => (200, JSON, hazirla(yazi, klasor, &kat, &crate::llm::UreqTasiyici::default())),
         ("POST", "iptal") => { IPTAL.store(true, Ordering::Relaxed); (200, METIN, "ok".into()) }
         ("POST", "kural-coz") => {

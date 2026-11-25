@@ -418,10 +418,15 @@ pub const ADLAR: &[(&str, &str)] = &[
     ("cerceve-nokta", "Çerçeve: yürüyen LED noktaları"), ("cerceve-neon", "Çerçeve: neon ışıltılı çizgi"), ("cerceve-yildiz", "Çerçeve: köşe yıldızları ve ışıltı"),
     ("cerceve-dalga", "Çerçeve: üstte ve altta dalga"), ("cerceve-isik", "Çerçeve: çevrede dönen ışık kuyruğu"), ("cerceve-altin", "Çerçeve: kalın altın kenar, köşe kareleri"), ("cerceve-serit", "Çerçeve: üst ve alt şerit bant"),
     ("zemin-gradyan", "Zemin: yumuşak nefes alan renk geçişi"), ("zemin-dalga", "Zemin: akan yatay ışık dalgaları"), ("zemin-izgara", "Zemin: LED noktası ızgarası, merkezden dalga"), ("zemin-plazma", "Zemin: yavaş plazma bulutları"),
+    // dalga 3 [Claude#Malzeme Opus 5.5, 2026-11-25]: kış ve premium (malzeme_kis.rs, malzeme_sahne.rs)
+    ("kar-katmanli", "Kış: üç katmanlı rüzgârlı kar"), ("kar-ortusu", "Kış: alt kenarda kar örtüsü"), ("isik-dizisi", "Yılbaşı: üstte sarkan koşan ampuller"),
+    ("altin-toz", "Premium: yükselen altın toz ve pırıltı"), ("isik-huzmesi", "Premium: üstten salınan ışık huzmeleri"), ("vinyet", "Premium: kenarları koyulaştıran derinlik (en son çizilir)"),
+    ("buz-koseler", "Kış: dört köşeden büyüyen kırağı dalları"), ("sis-alt", "Premium: alt yarıda yavaş kayan bantlı sis"),
 ];
 
 /// Ad bilinen bir dekor ise çizer ve true döner.
 pub fn ciz(ad: &str, t: &mut [u8], w: u32, h: u32, z: f32, renk: Renk, tohum: u32) -> bool {
+    if crate::malzeme_kis::efekt(ad, t, w, h, z, tohum) || crate::malzeme_sahne::efekt(ad, t, w, h, z, renk, tohum) || crate::malzeme_ek::efekt(ad, t, w, h, z, renk, tohum) { return true; }
     match ad {
         "cicek-yagmuru" => cicek_yagmuru(t, w, h, z, 9, renk, tohum),
         "papatya" => papatya(t, w, h, z, 7, renk, tohum),

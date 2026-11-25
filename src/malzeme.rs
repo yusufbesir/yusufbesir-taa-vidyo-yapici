@@ -3,6 +3,7 @@
 //! Senaryo dili eki (geriye uyumlu): `malzeme <id> [sure=S] [renk=PALET] [hiz=H] [deger=D] [yon=Y] [metin="..."] [efekt=a,b]`.
 //! Çizim `malzeme_ciz.rs` içindedir; önizleme ve MP4 aynı `senaryo::kare_uret` yolundan geçer.
 //! Sahip: Yusuf. Yazan: [Claude#Malzeme Opus 5.5, yenileme-1.0, 2026-11-18]. Yalnız yazan yapay zekâ ya da Yusuf'un izniyle değişir; silme yok.
+//! Dalga 3 [Claude#Malzeme Opus 5.5, yenileme-1.0, 2026-11-25]: `kis` ve `sahne` kategorileri, 25 yeni kalem, eş anlamlı etiketler.
 use crate::senaryo::Sahne;
 
 /// Sahneye eklenen malzeme ayarı (metin, renk, süre `Sahne` alanlarındadır).
@@ -21,9 +22,12 @@ pub struct Kalem {
     pub canli: bool,
 }
 
+/// Dalga 3 (KARAR-ANIM): `kis` mevsim olarak başta, `sahne` sonda.
 pub const KATEGORILER: &[(&str, &str)] = &[
+    ("kis", "Kış ve Yılbaşı"),
     ("oyun", "Oyun ve Karakter"), ("yazi", "Kayan Yazı"), ("zaman", "Sayaç ve Zaman"), ("kutlama", "Kutlama"), ("hava", "Doğa ve Hava"),
     ("ikon", "Kalp ve İkon"), ("kampanya", "Kampanya Rozeti"), ("yon", "Ok ve Yön"), ("acilis", "Logo ve Geçiş"), ("ses", "Ses ve Ekolayzer"),
+    ("sahne", "Premium Sahne"),
 ];
 pub const YONLER: &[(&str, &str)] = &[("sag", "Sağa"), ("sol", "Sola"), ("yukari", "Yukarı"), ("asagi", "Aşağı")];
 pub const SURE_MIN: f32 = 2.0;
@@ -39,9 +43,40 @@ const fn m(id: &'static str, ad: &'static str, kategori: &'static str, etiketler
 }
 
 pub const KATALOG: &[Kalem] = &[
+    // Kış ve yılbaşı (dalga 3, malzeme_kis.rs / malzeme_parca.rs; KARAR-ANIM 2-3. bölüm)
+    m("kar-katmanli", "Katmanlı Kar", "kis", "kar,kar yagisi,kis,yilbasi,aralik,soguk,karli,noel,ruzgar", "Üç derinlikte rüzgârlı kar; önde yavaş dönen altı kollu iri taneler, isteğe bağlı 3B yazı.", 12.0, "gumus-mavi", Some(""), Some((160.0, 40.0, 400.0, "Tane sayısı")), Some("sag")),
+    m("kar-birikme", "Biriken Kar", "kis", "kar,birikme,kar ortusu,kis,yilbasi,soguk,karli,yigin", "Kar yağarken altta kar örtüsü kabarır; 3B yazı örtünün üstünde durur (döngüsüz).", 12.0, "buz-cyan", Some("KIŞ İNDİRİMİ"), Some((14.0, 5.0, 30.0, "En çok kar yüksekliği (%)")), N),
+    m("cam-agaci", "Çam Ağacı", "kis", "cam agaci,yilbasi,yeni yil,noel,agac,susler,isik dizisi,kis,aralik,kutlama", "Katları alttan oturan çam ağacı, süs topları, koşan ışık dizisi, salınan tepe yıldızı, hediyeler.", 10.0, "kirmizi-altin", Some("MUTLU YILLAR"), Some((18.0, 6.0, 40.0, "Süs sayısı")), N),
+    m("fisek-kabarcik", "Küre Fişek", "kis", "havai fisek,fisek,kure,yilbasi,kutlama,patlama,bayram,gece", "Küre biçiminde patlayan fişekler; izli kıvılcımlar (tam ekran flaş yok).", 10.0, "altin-gece", Some(""), Some((5.0, 1.0, 10.0, "Roket sayısı")), N),
+    m("fisek-sogut", "Söğüt Fişek", "kis", "havai fisek,fisek,sogut,yilbasi,kutlama,altin,sarkan,bayram", "Uzun sarkan altın kollu söğüt fişekleri.", 10.0, "altin-gece", Some(""), Some((4.0, 1.0, 10.0, "Roket sayısı")), N),
+    m("fisek-halka", "Halka Fişek", "kis", "havai fisek,fisek,halka,yilbasi,kutlama,cember,bayram", "Eğik halka biçiminde patlayan fişekler, içte ikinci halka.", 10.0, "altin-gece", Some(""), Some((5.0, 1.0, 10.0, "Roket sayısı")), N),
+    m("fisek-kalp", "Kalp Fişek", "kis", "havai fisek,fisek,kalp,sevgililer,yilbasi,kutlama,ask,dugun", "Kalp biçiminde açılan fişekler; şekil bir saniye okunur.", 10.0, "pembe-altin", Some(""), Some((4.0, 1.0, 10.0, "Roket sayısı")), N),
+    m("fisek-cift", "Çift Patlama", "kis", "havai fisek,fisek,cift,patlama,yilbasi,kutlama,bayram,gosteri", "Önce küre, ardından kıvılcımların üstünde ikinci renkte küçük patlamalar.", 10.0, "altin-gece", Some(""), Some((4.0, 1.0, 10.0, "Roket sayısı")), N),
+    m("yilbasi-senlik", "Yılbaşı Şenliği", "kis", "yilbasi,yeni yil,havai fisek,sehir,kutlama,gece,mutlu yillar,aralik,senlik", "Pencereleri yanan şehir silueti üstünde karışık fişek gösterisi, ortada 3B yazı.", 12.0, "altin-gece", Some("MUTLU YILLAR"), Some((8.0, 3.0, 14.0, "Roket sayısı")), N),
+    m("yilbasi-geri-sayim", "Yılbaşı Geri Sayımı", "kis", "yilbasi,geri sayim,sayac,yeni yil,gece yarisi,kutlama,mutlu yillar,saat", "Rakamlar üstten düşüp oturur, saniye halkası; sıfırda 3B yazı ve fişekler (döngüsüz; süre = başlangıç + 4 sn önerilir).", 14.0, "altin-gece", Some("MUTLU YILLAR"), Some((10.0, 3.0, 60.0, "Başlangıç saniyesi")), N),
+    m("kardan-adam", "Kardan Adam", "kis", "kardan adam,kis,kar,yilbasi,sevimli,atki,soguk,cocuk", "Gölgeli kardan adam el sallar, atkısı dalgalanır, arkada kar yağar.", 10.0, "gumus-mavi", Some("İYİ TATİLLER"), ND, Some("sag")),
+    m("buz-kristali", "Buz Kristali", "kis", "buz,kristal,kar tanesi,kis,soguk,ayaz,simetri,dondurma", "Altı kollu buz kristalleri dallanarak büyür ve yavaşça döner.", 10.0, "buz-cyan", Some(""), Some((5.0, 1.0, 9.0, "Kristal sayısı")), N),
+    m("kis-manzarasi", "Kış Manzarası", "kis", "kis,manzara,dag,kulube,ay,kar,gece,orman,soba", "Ay ışığında dağlar, çam siluetleri, bacası tüten kulübe; katmanlar paralaks kayar, kar yağar.", 12.0, "gumus-mavi", Some("KIŞ"), ND, Some("sag")),
+    m("hediye-yigini", "Hediye Yığını", "kis", "hediye,kutu,yilbasi,noel,surpriz,kampanya,alisveris,yeni yil", "Üç boyutlu hediye kutuları sırayla düşüp sekerek yığılır (döngüsüz).", 8.0, "kirmizi-altin", Some("HEDİYELER"), Some((5.0, 3.0, 7.0, "Kutu sayısı")), N),
+    // kimlik yıla bağlı değil (KARAR-ANIM 11.2): yıl metin parametresidir
+    m("yazi-yil", "Yıl Yazısı", "kis", "2027,yil,yeni yil,yilbasi,mutlu yillar,3b yazi,donen,kutlama,yilbasi yazisi", "Dönen kalın 3B yıl yazısı (metni değiştirin), kar ve ışık dizisi.", 10.0, "kirmizi-altin", Some("2027"), ND, N),
+    // dalga 3 ek paketi (malzeme_ek.rs; KARAR-ANIM Ö2/Ö3)
+    m("kis-suslu-yazi", "Karlı Yazı", "kis", "kar,karli yazi,kis,yilbasi,buz sarkiti,3b yazi,soguk,baslik", "Harflerin üstüne kar örtüsü birikir, alt kenardan buz sarkıtları uzar; arkada kar yağar.", 10.0, "gumus-mavi", Some("KIŞ FIRSATI"), Some((14.0, 4.0, 30.0, "Kar kalınlığı")), N),
+    m("buzlu-cam-yazi", "Buzlu Cam Yazı", "kis", "buz,buzlu cam,kiragi,cam,kis,soguk,yazi,acilis", "Kırağı tutmuş cam panelin buzu soldan sağa silinir, arkasındaki 3B yazı görünür; köşelerde buz dalları (döngüsüz).", 8.0, "buz-cyan", Some("SOĞUK FİYAT"), ND, N),
+    m("aurora", "Kuzey Işıkları", "kis", "aurora,kuzey isiklari,gece,gokyuzu,kis,cam,manzara,premium", "Bantlı tonlarla dalgalanan kuzey ışığı perdeleri, çam siluetleri ve karlı zemin; üstte 3B yazı.", 12.0, "neon-yesil", Some("KUZEY"), ND, N),
+    m("yilbasi-susleri", "Sallanan Süsler", "kis", "yilbasi,sus,yilbasi topu,noel,sarkac,kis,kutlama,dekor", "Üst kenardan iple sarkan çizgili süs topları sarkaç gibi sallanır.", 10.0, "kirmizi-altin", Some("MUTLU YILLAR"), Some((7.0, 5.0, 9.0, "Süs sayısı")), N),
+    m("piksel-kis", "Piksel Kış", "kis", "piksel,pixel art,8 bit,retro,kardan adam,cam,hediye,kis,oyun", "16x16 piksel kardan adam, çam, hediye ve kar tanesi iki şeritte zıt yönde yürür; piksel kar yağar.", 10.0, "gumus-mavi", Some("İYİ TATİLLER"), ND, N),
+    m("piksel-fisek", "Piksel Fişek", "kis", "piksel,pixel art,8 bit,havai fisek,fisek,retro,yilbasi,kutlama", "Izgaraya oturan sekiz yönlü piksel fişek patlamaları.", 10.0, "altin-gece", Some("2027"), ND, N),
+    m("kizak-gecisi", "Kızak Geçişi", "kis", "kizak,ren geyigi,noel,ay,gece,yilbasi,kis,masal", "Dolunayın önünden iki geyikli kızak silueti geçer; çam siluetleri ve kar.", 12.0, "kirmizi-altin", Some("MUTLU YILLAR"), ND, N),
+    m("kar-kuresi", "Kar Küresi", "kis", "kar kuresi,cam kure,hediye,kis,yilbasi,kulube,cam,dekor", "Ahşap altlıklı cam kürede kulübe ve çam; içinde kar döner, altlıkta yazı.", 10.0, "mor-altin", Some("2027"), ND, N),
+    m("mum-isigi", "Mum Işığı", "kis", "mum,alev,yilbasi,sicak,huzur,kis,noel,aksam", "Üç gölgeli mum, salınan katmanlı alevler (ışıma yok), çobanpüskülü süsler.", 10.0, "sicak-beyaz", Some("HUZURLU YILLAR"), ND, N),
+    m("hediye-acilis", "Hediye Açılışı", "kis", "hediye,acilis,surpriz,kutu,yilbasi,kampanya,cekilis,kutlama", "Kutu sallanır, kapak uçar, içinden kıvılcım patlar ve yazı yükselir (döngüsüz).", 6.0, "kirmizi-altin", Some("SÜRPRİZ"), ND, N),
+    m("fisek-yazi", "Fişekli Yazı", "kis", "havai fisek,fisek,yazi,yilbasi,kutlama,acilis,gece,3b yazi", "Üst yarıda karışık fişek gösterisi, altta 3B yazı.", 12.0, "altin-gece", Some("MUTLU YILLAR"), Some((5.0, 2.0, 10.0, "Roket sayısı")), N),
+    m("kis-penceresi", "Kış Penceresi", "kis", "pencere,kis,kar,gece,ay,ev,sicak,kiragi", "Tuğla duvardaki pencereden kar yağan gece görünür; köşelerde kırağı büyür.", 12.0, "gumus-mavi", Some("SICAK FİYATLAR"), ND, N),
+    m("noel-yildizi", "Dönen Noel Yıldızı", "kis", "yildiz,noel,yilbasi,3b,donen,altin,kis,premium", "Gerçek 3B altın yıldız prizması 4 seviyeli düz gölgeyle döner; kar yağar.", 10.0, "altin-gece", Some("YENİ YIL"), ND, N),
     // Oyun ve karakter (özgün karakterler: Yutkun, Kovalayıcılar, Robi, Zıpzıp, Ufocuk, Yılancık)
-    m("yutkun-labirent", "Yutkun Labirentte", "oyun", "yutkun,labirent,oyun,retro,nokta", "Sarı Yutkun yılankavi labirent koridorunda noktaları yutar, renkli Kovalayıcılar peşinde; üstte skor.", 12.0, "gok-mavisi", Some("YUTKUN"), Some((4.0, 2.0, 6.0, "Koridor sayısı")), N),
-    m("yutkun-kovalamaca", "Yutkun Kovalamaca", "oyun", "yutkun,kovalayici,oyun,retro,kovalamaca", "İki büyük koridorda Yutkun ile Kovalayıcılar ileri geri kovalamaca döngüsü.", 10.0, "gok-mavisi", Some("KOVALAMACA"), Some((3.0, 1.0, 4.0, "Kovalayıcı sayısı")), N),
+    m("yutkun-labirent", "Yutkun Labirentte", "oyun", "yutkun,labirent,oyun,retro,yem,pacman,pac-man,arcade,atari,kovalamaca,yemek yiyen,canavar", "Kare gövdeli turuncu Yutkun şeritli labirent koridorunda elmas yemleri yer, kare kafalı robot Kovalayıcılar peşinde; üstte puan.", 12.0, "gok-mavisi", Some("YUTKUN"), Some((4.0, 2.0, 6.0, "Koridor sayısı")), N),
+    m("yutkun-kovalamaca", "Yutkun Kovalamaca", "oyun", "yutkun,kovalayici,oyun,retro,kovalamaca,pacman,pac-man,arcade,labirent,yemek yiyen,robot", "Üç şeritli koridorda Yutkun ile robot Kovalayıcılar ileri geri kovalamaca döngüsü.", 10.0, "gok-mavisi", Some("KOVALAMACA"), Some((3.0, 1.0, 4.0, "Kovalayıcı sayısı")), N),
     m("robi-yuruyus", "Robi Yürüyüşü", "oyun", "robot,piksel,yuruyen,karakter", "Piksel robot Robi zemin çizgisinde yürür, üstte yazı.", 8.0, "buz-cyan", Some("MERHABA"), ND, Some("sag")),
     m("zipzip", "Zıpzıp", "oyun", "piksel,ziplayan,karakter,sevimli", "Sevimli piksel Zıpzıp ekranda zıplayarak gezer, gölgesi büyüyüp küçülür.", 8.0, "limon", Some("HOŞ GELDİNİZ"), ND, N),
     m("ufocuk-istila", "Ufocuk İstilası", "oyun", "uzay,ufo,piksel,retro,oyun", "Sıra sıra piksel Ufocuklar sağa sola yürür, alttaki gemi atış yapar.", 10.0, "neon-yesil", Some("UZAYDAN FIRSAT"), Some((4.0, 1.0, 5.0, "Ufocuk satırı")), N),
@@ -53,6 +88,23 @@ pub const KATALOG: &[Kalem] = &[
     m("harf-harf", "Harf Harf Yazı", "yazi", "daktilo,yazi,imlec", "Yazı harf harf belirir, sonunda yavaş yanıp sönen imleç.", 8.0, "neon-yesil", Some("SİPARİŞLERİNİZİ ALIYORUZ"), ND, N),
     m("dalgali-yazi", "Dalgalı Yazı", "yazi", "dalga,renkli,yazi", "Piksel yazının sütunları dalga gibi süzülür, renkler akar.", 8.0, "gun-batimi", Some("İNDİRİM"), ND, N),
     m("nabiz-yazi", "Nabız Yazı", "yazi", "nabiz,buyuk,yazi", "Büyük piksel yazı yavaşça büyüyüp küçülür (flaş yok).", 8.0, "mercan", Some("AÇILDIK"), ND, N),
+    // 3B / 2B yazı animasyonları (dalga 3, malzeme_sahne.rs; KARAR-ANIM 4. bölüm)
+    m("yazi-3b-don", "Dönen 3B Yazı", "yazi", "3b yazi,donen,ekstrude,kalin,logo,baslik,yazi,derinlik,uc boyut", "Kalın ekstrüde 3B yazı dikey eksende tam tur döner, önde bekler; üzerinden ağır ışık süpürmesi geçer.", 10.0, "altin-gece", Some("TAA"), ND, N),
+    m("yazi-3b-derin", "Derinden Gelen 3B Yazı", "yazi", "3b yazi,yaklasma,zoom,derinlik,giris,baslik,yazi,perspektif", "Yazı uzaktan hızla gelir, geride üç hayalet kopya bırakır, sonra yavaşça salınır (döngüsüz).", 8.0, "buz-cyan", Some("YENİ SEZON"), ND, N),
+    m("harf-kaskad", "Harf Kaskadı", "yazi", "harf harf,kaskad,kinetik,tipografi,yazi,giris,animasyonlu yazi,3b", "Harfler soldan sağa sırayla alttan büyüyerek oturur; sonunda ters sırayla yukarı çıkar.", 8.0, "altin", Some("HOŞ GELDİNİZ"), ND, N),
+    m("harf-dalga", "Harf Dalgası", "yazi", "harf,dalga,kinetik,tipografi,yazi,akan,animasyonlu yazi,3b", "Harfler oturduktan sonra dalga gibi sırayla yükselip alçalır (sürekli).", 8.0, "okyanus", Some("KAMPANYA"), ND, N),
+    m("harf-oynak", "Oynak Harfler", "yazi", "harf,oynak,ziplayan,kinetik,tipografi,eglenceli,yazi,cocuk", "Her harf kendi ritminde küçük zıplar ve yalpalar; aynı anda harflerin üçte biri hareketli.", 8.0, "limon", Some("YENİ ÜRÜNLER"), ND, N),
+    m("yazi-uzun-golge", "Uzun Gölgeli Yazı", "yazi", "uzun golge,golgeli yazi,3b yazi,duz tasarim,baslik,yazi,derinlik,premium", "45 derece sağ alta uzanan kesik uçlu tek tonlu uzun gölge; yazı yüzünde sol üst ışık kenarı.", 8.0, "gun-batimi", Some("YENİ SEZON"), ND, N),
+    m("yazi-kabartma", "Kabartma Yazı", "yazi", "kabartma,oyma,metal,3b yazi,baslik,yazi,premium,logo", "Yüzde ışık ve gölge kenarlarıyla kabartma (oyma) görünümlü 3B yazı.", 8.0, "tek-altin", Some("KALİTE"), ND, N),
+    m("yazi-supurme", "Ağır Işık Süpürmesi", "yazi", "isik supurme,parlak,3b yazi,premium,logo,baslik,yazi,luks", "Yalnız yazı yüzünde eğik geniş ve ince iki ton bandı 3,5 saniyede bir geçer (hale yok).", 8.0, "altin-gece", Some("PREMİUM"), ND, N),
+    m("yazi-yansima", "Yansımalı Yazı", "yazi", "yansima,ayna,su,3b yazi,premium,baslik,yazi,zemin", "3B yazının altında taramalı, su gibi kıpırdayan sönen yansıma.", 8.0, "buz-cyan", Some("YENİ"), ND, N),
+    m("yazi-metal", "Fırçalı Metal Yazı", "yazi", "metal,celik,firca,doku,3b yazi,premium,endustriyel,yazi", "Yatay fırça izli metal dokulu 3B yazı, yüzde yavaş gezen ışık bandı.", 8.0, "gumus-mavi", Some("GÜÇLÜ"), ND, N),
+    m("yazi-ahsap", "Ahşap Yazı", "yazi", "ahsap,tahta,dogal,doku,3b yazi,rustik,mobilya,yazi", "Damarları bükülen ahşap dokulu 3B yazı.", 8.0, "sicak-beyaz", Some("DOĞAL"), ND, N),
+    m("yazi-tarama", "Taramalı Yazı", "yazi", "tarama,cizgili,doku,retro,3b yazi,afis,yazi,grafik", "Çapraz çizgi taramalı yüzlü 3B yazı (afiş görünümü).", 8.0, "mercan", Some("FIRSAT"), ND, N),
+    m("dikis-yazi", "Dikişli Kumaş Yazı", "yazi", "dikis,kumas,tekstil,nakis,ip,el yapimi,yazi,butik", "Kumaş zeminde yazının iç kenarı boyunca kesik dikiş soldan sağa dikilir, iğne ilerler.", 10.0, "mor-altin", Some("BUTİK"), ND, N),
+    m("yazi-bayrak", "Dalgalanan Yazı", "yazi", "bayrak,dalga,dalgalanan,ruzgar,yazi,3b,kumas,akici", "Yazı bayrak gibi dalgalanır; dalga tonu ve sert gölge birlikte kayar.", 8.0, "kirmizi-altin", Some("KAMPANYA"), ND, N),
+    m("kinetik-yazi", "Kinetik Tipografi", "yazi", "kinetik,tipografi,kelime kelime,hareketli yazi,reklam,yazi,vurus,dinamik", "Kelimeler sırayla dört yerleşimle (vuruş, kenardan kayma, çarpışma, kaskad) ekrana gelir; zemin şerit silmeyle değişir.", 8.0, "limon", Some("BUGÜN|BÜYÜK|İNDİRİM|BAŞLADI"), ND, N),
+    m("harf-dus", "Düşen Harfler", "yazi", "harf,dusen,seken,kinetik,tipografi,yazi,yercekimi,giris", "Harfler üstten rastgele sırayla düşer, iki kez seker, oturunca hafifçe sarsılır.", 8.0, "mercan", Some("İNDİRİM"), ND, N),
     // Sayaç ve zaman
     m("geri-sayim", "Geri Sayım", "zaman", "geri sayim,sayac,zaman", "Büyük rakamlarla geri sayım ve çevresinde saniye halkası; sonunda yazı.", 12.0, "altin-gece", Some("BAŞLADI"), Some((10.0, 1.0, 999.0, "Başlangıç saniyesi")), N),
     m("saat-dijital", "Dijital Saat", "zaman", "saat,dijital,zaman,canli", "Saat:dakika büyük, saniye ve tarih altta. Değer -1: videonun üretildiği an.", 10.0, "buz-cyan", N, Some((-1.0, -1.0, 1439.0, "Başlangıç dakikası (-1 şimdi)")), N),
@@ -102,6 +154,22 @@ pub const KATALOG: &[Kalem] = &[
     m("ses-dalgasi", "Ses Dalgası", "ses", "ses,dalga,muzik,sinyal", "Üst üste akan ses dalgaları.", 8.0, "okyanus", N, ND, N),
     m("dairesel-ekolayzer", "Dairesel Ekolayzer", "ses", "ekolayzer,daire,muzik", "Daire çevresinde ışınsal çubuklar; ortada yazı.", 8.0, "mor-isik", Some("MÜZİK"), Some((48.0, 16.0, 96.0, "Çubuk sayısı")), N),
     m("vu-metre", "VU Metre", "ses", "vu,metre,ibre,ses,analog", "İki analog VU metre ibresi müzikle salınır.", 8.0, "sicak-beyaz", N, ND, N),
+    // Premium sahne (dalga 3, malzeme_sahne.rs; KARAR-ANIM 6. bölüm): derinlik, sert gölge, bantlı ton; ışıma/neon yok
+    m("altin-toz", "Altın Toz", "sahne", "altin,toz,premium,luks,parilti,zarif,yazi,vitrin", "Üç derinlikte yükselen altın toz ve pırıltılar önünde altın 3B yazı.", 10.0, "tek-altin", Some("LÜKS"), ND, N),
+    m("isik-huzmesi", "Işık Huzmesi", "sahne", "isik,huzme,sahne,spot,premium,acilis,yazi,gosteri", "Üstten yavaşça salınan ışık huzmeleri altında 3B yazı (sahne ışığı).", 10.0, "mor-altin", Some("GALA"), ND, N),
+    m("izgara-zemin", "Perspektif Izgara", "sahne", "izgara,perspektif,retro,zemin,ufuk,3b,premium,yazi,synthwave", "Öne akan perspektif ızgara zemin, bantlı gökyüzü ve salınan 3B yazı.", 10.0, "mor-isik", Some("GELECEK"), ND, N),
+    m("sahne-karli-isik", "Karlı Sahne Işığı", "sahne", "kar,isik,huzme,kis,premium,yilbasi,sahne,yazi", "Işık huzmeleri içinde iki katmanlı kar ve ortada 3B yazı.", 10.0, "gumus-mavi", Some("KIŞ FIRSATI"), ND, N),
+    m("sivi-metal", "Sıvı Metal", "sahne", "sivi metal,altin,gumus,bakir,akiskan,premium,luks,yazi", "Yedi basamaklı palet rampasıyla akan sıvı metal yüzey; üstünde kabartmalı 3B yazı.", 10.0, "tek-altin", Some("LÜKS"), ND, N),
+    m("sis", "Sisli Sahne", "sahne", "sis,duman,gizem,atmosfer,premium,sahne,yazi,derinlik", "İki katman zıt yöne kayan bantlı sis 3B yazının önünden geçer.", 12.0, "gumus-mavi", Some("GİZEMLİ"), ND, N),
+    m("duman", "Duman", "sahne", "duman,buhar,sis,atmosfer,premium,sahne,yazi,gizem", "Alttan yükselen üç duman sütunu, dönemli gürültüyle döngü güvenli.", 12.0, "sicak-beyaz", Some("YENİ"), ND, N),
+    m("kumas-dalga", "Kadife Dalga", "sahne", "kumas,kadife,bayrak,dalga,tekstil,premium,yazi,perde", "Çizgili kadife yüzey dalgalanır; yazı aynı dalgayla gölgeli kayar.", 10.0, "kirmizi-altin", Some("ŞIK"), ND, N),
+    m("ucboyut-kutu", "Dönen 3B Küp", "sahne", "3b,kup,donen,kutu,nesne,premium,urun,geometri", "Gerçek 3B küp 4 seviyeli düz gölge ve koyu kenarlarla döner; altında yazı.", 10.0, "mor-isik", Some("YENİ ÜRÜN"), ND, N),
+    m("parcacik-girdap", "Parçacık Girdabı", "sahne", "parcacik,girdap,donen,uzay,premium,derinlik,yazi,acilis", "Yazının çevresinde derinlikli parçacık halkası döner; arkadakiler küçük ve sönük.", 10.0, "mor-altin", Some("GALA"), ND, N),
+    m("cam-panel", "Cam Paneller", "sahne", "cam,panel,seffaf,modern,kurumsal,premium,yazi,yansima", "Saydam cam paneller farklı derinlikten kayarak gelir, sert gölge ve eğik yansıma bandı.", 10.0, "buz-cyan", Some("KURUMSAL"), ND, N),
+    m("spot-isik", "Spot Işıkları", "sahne", "spot,isik,sahne,tiyatro,gosteri,premium,yazi,karanlik", "Karanlık sahnede iki spot yazıyı tarar; spot kenarları bantlı, ışıma yok.", 10.0, "altin-gece", Some("SAHNE"), ND, N),
+    m("derin-tunel", "Derin Tünel", "sahne", "tunel,derinlik,perspektif,hiz,retro,premium,yazi,3b", "İç içe çerçeveler kameraya doğru akar; ortada 3B yazı.", 10.0, "mor-isik", Some("HIZLI"), ND, N),
+    m("yildiz-alani", "Yıldız Alanı", "sahne", "uzay,yildiz,hiz,warp,derinlik,premium,yazi,bilim", "Kameraya doğru akan üç boyutlu yıldız alanı (çizgi izli, hale yok).", 10.0, "gok-mavisi", Some("GELECEK"), ND, N),
+    m("sahne-perde", "Sahne Perdesi", "sahne", "perde,tiyatro,kadife,acilis,gala,premium,sahne,yazi", "Kadife sahne perdesi ortadan açılır, arkada ışık huzmeleri altında 3B yazı (döngüsüz).", 8.0, "kirmizi-altin", Some("PERDE"), ND, N),
 ];
 
 pub fn bul(id: &str) -> Option<&'static Kalem> { KATALOG.iter().find(|k| k.id == id) }
@@ -327,7 +395,9 @@ mod t {
         ids.sort(); ids.dedup();
         assert_eq!(ids.len(), KATALOG.len(), "kimlikler tekil olmalı");
         for (kat, _) in KATEGORILER { assert!(KATALOG.iter().filter(|k| k.kategori == *kat).count() >= 4, "{kat} en az 4 malzeme"); }
-        assert_eq!(KATEGORILER.len(), 10);
+        assert_eq!(KATEGORILER.len(), 12);
+        assert!(KATALOG.len() >= 110, "dalga 3: en az 110 malzeme");
+        for k in KATALOG.iter().filter(|k| matches!(k.kategori, "kis" | "sahne")) { assert!(k.etiketler.split(',').count() >= 6, "{}: en az 6 etiket", k.id); }
         for k in KATALOG { assert!(KATEGORILER.iter().any(|c| c.0 == k.kategori), "{}", k.id); assert!(crate::stil::paletli(k.renk).is_some(), "{} palet", k.id); }
     }
     #[test]

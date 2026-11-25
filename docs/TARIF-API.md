@@ -1,7 +1,7 @@
 ---
 description: Tarif et / Yapay zekâ HTTP uçları ve web/ai.js (window.TaaAI) arayüz sözleşmesi.
 sahip: Yusuf
-yazan: "[Claude#AI Opus 5.5, yenileme-1.0, 2026-11-18]"
+yazan: "[Claude#AI Opus 5.5, yenileme-1.0, 2026-11-18]; dalga 3 eki [Claude#AI Opus 5.5, 2026-11-25]"
 kural: Yalnız yazan yapay zekâ ya da Yusuf'un izniyle değişir; silme yok.
 ---
 # Tarif API (yenileme-1.0)
@@ -37,7 +37,7 @@ Yanıt (200, JSON):
 `yz_onay_gerekli: true` → arayüz "Yapay zekâya gönder" düğmesi gösterir, aynı isteği `onay:true` ile yineler.
 
 ## POST /tarif/iptal
-Gövde boş. Süren yapay zekâ isteğini (bekleme/yeniden deneme arasında) durdurur. Yanıt `ok` (text/plain). Zaten başlamış tek HTTP isteği en geç zaman aşımında (45 sn) biter.
+Gövde boş. Süren yapay zekâ isteğini (bekleme/yeniden deneme arasında) durdurur. Yanıt `ok` (text/plain). Zaten başlamış tek HTTP isteği en geç zaman aşımında biter (2026-11-25: deneme başına ≤30 sn, toplam ≤35 sn).
 
 ## Diğer uçlar (önceki sürümden, uyumlu)
 | Uç | İstek | Yanıt |
@@ -66,6 +66,16 @@ window.TaaAI.mount(el, app) -> { hazirla(onay?), uygula(j), goster(j), yanitUygu
 - Tema: yalnız `--bg --panel --panel2 --line --tx --mut --ac --onac --ok --uy`; düğmeler ≥48 px (ana 56 px), yazı 16 px, görünür odak, `prefers-reduced-motion` uyumlu. Sunucu metni yalnız `textContent` ile yazılır.
 - Test: `node tests/ai_test.js`.
 - `TaaAI._ic`: test için saf yardımcılar (kaynakAdi, adimOzeti, hataMetni, istekGovdesi, sahneSatirlari, ORNEKLER).
+
+## Dalga 3 eklemeleri (2026-11-25, yazan [Claude#AI Opus 5.5, yenileme-1.0])
+- **POST /tarif/hazirla** yeni alan `isletme` (isteğe bağlı, en çok 80 karakter): yoksa varsayılan işletme adı; `""` ya da `"kapali"` → işletme adı sahnesi eklenmez; aksi halde o ad (`"A|B"` iki satır). Arayüz bunu `localStorage['taa-isletme']` ayarından gönderir (sunucuya `/ayar` ile kalıcı yazılır).
+- `yz:false` → yapay zekâ atlanır (Durdur sonrası anında yerel sonuç). İptal bayrağı yalnız yapay zekâya gerçekten gidilecekse sıfırlanır; yani Durdur sonrası gelen yerel istek önceki iptali bozmaz.
+- Sahne nesnesine `malzeme` alanı eklendi (boş ya da malzeme kitaplığı kimliği; kimlikler `crate::malzeme::KATALOG`tan dinamik okunur). Doluysa senaryoda `malzeme <id> ...` satırı olur (Malzeme modülünün `senaryo_parcasi` doğrulamasıyla).
+- **Okunurluk**: her sonuç (yapay zekâ, kural, şablon, yapıştırılan yanıt) `okunur_yap`tan geçer: süre ≥5 sn, sahne başına en çok 3 satır, harf ekran yüksekliğinin ≥%5'i (gerekirse dar yazı tipi ya da heceden bölme), sert hareket (yıldırım/flaş/titreme) yumuşatılır, kontrastı 7:1'in altındaki renk en yakın okunur palete çevrilir. Değişiklik notlarda sade Türkçe yazılır. Ham ölçüm için `dogrula_ile(ham, kat, false)`.
+- Tarifte oyun/pacman/labirent/kovalamaca/havai fişek/konfeti/kar/geri sayım/kalp/ok/rozet/ekolayzer/çam/yılbaşı geçerse ve model malzeme koymadıysa yerel eşleme malzeme sahnesi ekler (`niyet::malzeme_ekle`).
+- **POST /tarif/istem** gövdesi düz metin (eski) ya da `{"metin":..,"isletme":..}`. İstem sürüm 2 (bkz. docs/TARIF-ISTEM-OPTIMIZASYON.md).
+- **Bütçe**: yapay zekâya toplam en çok 35 sn (`llm::TOPLAM_BUTCE`; deneme başına kalan süre, kalan <5 sn ise yeniden deneme yok). Arayüz de 35 sn sonra isteği keser (AbortController) ve yerel sonuca geçer.
+- **web/ai.js** `mount` dönüşü: `{ hazirla, durdur, uygula, geriAl, onizle, goster, yanitUygula, panodanUygula, kuraldanCoz, istemKopyala, istemGoster, kurallariYukle, kuralEkle, siteAc, siteEkle, isletmeKaydet, el, durum, alan }`. Adım göstergesi (Yaz → Hazırla → Uygula → Önizle); Hazırla metin kutusunun hemen altında; "Önizle" `TaaApp.geciciOnizle(metin)` (yoksa `onizle`); Uygula'dan sonra "Geri al (önceki senaryoya dön)"; kapalı "Diğer araçlar": işletme adı, İstemi göster, Kuraldan çöz, Panodaki tarifi uygula, Kural listesi/ekle, + Site; "Doğrudan bağlantı"da "Her seferinde sor" (varsayılan açık; "Kaydet ve aç" onayı kalıcı kapatmaz). `.taai-ana` çerçeveli vurgu (dolu değil).
 
 ## UI ajanından beklenen (ISTEK-AI.md)
 `src/arayuz.rs`: `GET /ai.js` → `include_str!("../web/ai.js")`, `text/javascript; charset=utf-8`. `web/index.html`: Yapay zekâ kipinde `<div id="aiPanel"></div>` ve `<script src="/ai.js"></script>` sonrası `TaaAI.mount(document.getElementById('aiPanel'), window.TaaApp)`.

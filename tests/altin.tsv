@@ -1,45 +1,45 @@
-Ekrana "HOŞ GELDİNİZ" yaz, zıplayarak gelsin, altın renkli olsun, 3 saniye sürsün	[HOŞ GELDİNİZ|g=zipla|c=yok|e=|p=altin|f=|3.0] ac=yok kap=yok gor=duz
-önce "AÇILIŞ İNDİRİMİ" kırmızı renkte patlayarak gelsin, sonra "%30 İNDİRİM" mavi ve konfetili olsun	[AÇILIŞ İNDİRİMİ|g=patla|c=yok|e=|p=hex-ff2b2b|f=|4.5] [%30 İNDİRİM|g=belir|c=yok|e=konfeti|p=hex-2f7bff|f=|4.5] ac=yok kap=yok gor=duz
-TERZİ ADEM ALTUN zıpla	[TERZİ ADEM ALTUN|g=zipla|c=yok|e=|p=altin|f=|4.5] ac=yok kap=yok gor=duz
-"BUGÜN" ardından "SİZE ÖZEL" ardından "%25 İNDİRİM"	[BUGÜN|g=belir|c=yok|e=|p=altin|f=|4.5] [SİZE ÖZEL|g=belir|c=yok|e=|p=altin|f=|4.5] [%25 İNDİRİM|g=belir|c=yok|e=|p=altin|f=|4.5] ac=yok kap=yok gor=duz
-%30 indirim yaz, konfeti olsun, iki saniye	[%30/İNDİRİM|g=belir|c=yok|e=konfeti|p=altin|f=|2.0] ac=yok kap=yok gor=duz
-3 taksit imkanı göster, yeşil, yavaşça belir	[3 TAKSİT|g=yavas-belir|c=yok|e=|p=hex-22c55e|f=|4.5] ac=yok kap=yok gor=duz
-Bina üzerinde "YENİ SEZON" yazsın, kar yağsın, çıkışta küçülsün	[YENİ SEZON|g=belir|c=kucul|e=kar|p=altin|f=|4.5] ac=yok kap=yok gor=bina
-"KAPANIŞ SAATİ 19:00" kapanışta fade geçişi olsun	[KAPANIŞ SAATİ 19:00|g=belir|c=yok|e=|p=altin|f=|4.5] ac=yok kap=fade gor=duz
-açılışta perde olsun, "HOŞ GELDİNİZ" belirsin, kapanışta tv gibi kapansın	[HOŞ GELDİNİZ|g=belir|c=yok|e=|p=altin|f=|4.5] ac=perde kap=tv gor=duz
-"DAMATLIK" dönerek gelsin; "TAKIM ELBİSE" soldan gelsin	[DAMATLIK|g=donerek|c=yok|e=|p=altin|f=|4.5] [TAKIM ELBİSE|g=soldan|c=yok|e=|p=altin|f=|4.5] ac=yok kap=yok gor=duz
-Yılbaşı kampanyası yaz, kar yağsın, beyaz, uzun	[YILBAŞI KAMPANYASI|g=belir|c=yok|e=kar|p=beyaz|f=|7.0] ac=yok kap=yok gor=duz
-"CUMA" yaz, şimşek gibi gelsin, magenta renk, kıvılcımlı	[CUMA|g=yildirim|c=yok|e=kivilcim|p=magenta|f=|4.5] ac=yok kap=yok gor=duz
-"1500 TL" ekrana yaz, altın gece, parlasın	[1500 TL|g=belir|c=yok|e=parlama|p=altin-gece|f=|4.5] ac=yok kap=yok gor=duz
-"YAZ İNDİRİMİ" sarı, lobster yazı tipiyle, kayan yıldız	[YAZ İNDİRİMİ|g=belir|c=yok|e=kayan-yildiz|p=sari|f=lobster|4.5] ac=yok kap=yok gor=duz
-önce "MERHABA" sonra "NASILSINIZ" en son "GÖRÜŞÜRÜZ"	[MERHABA|g=belir|c=yok|e=|p=altin|f=|4.5] [NASILSINIZ|g=belir|c=yok|e=|p=altin|f=|4.5] [GÖRÜŞÜRÜZ|g=belir|c=yok|e=|p=altin|f=|4.5] ac=yok kap=yok gor=duz
-"RANDEVU" pembe, 2,5 saniye, kalpler	[RANDEVU|g=belir|c=yok|e=kalp|p=pembe-parilti|f=|2.5] ac=yok kap=yok gor=duz
-"SON GÜN" yazı turuncu, hızlı, çerçeveli	[SON GÜN|g=hizli|c=yok|e=cerceve|p=turuncu|f=|4.5] ac=yok kap=yok gor=duz
-Kırmızı zeminde BÜYÜK İNDİRİM yazsın, zıplasın	[BÜYÜK İNDİRİM|g=zipla|c=yok|e=|p=hex-ff2b2b|f=|4.5] ac=yok kap=yok gor=duz
-"ÜCRETSİZ TADİLAT" yaz, yukarı çıksın	[ÜCRETSİZ TADİLAT|g=belir|c=yukari|e=|p=altin|f=|4.5] ac=yok kap=yok gor=duz
-bina cephesinde "YENİ GELDİ" yaz, havai fişek	[YENİ GELDİ|g=belir|c=yok|e=havai-fisek|p=altin|f=|4.5] ac=yok kap=yok gor=bina
-"İKİNCİ ÜRÜN %50" yazıyı mor yap, daktilo gibi gelsin, 4 saniye	[İKİNCİ ÜRÜN %50|g=daktilo|c=yok|e=|p=hex-a855f7|f=|4.0] ac=yok kap=yok gor=duz
-"OKUL DÖNEMİ" lacivert olsun, balon efekti	[OKUL DÖNEMİ|g=belir|c=yok|e=balon|p=okyanus|f=|4.5] ac=yok kap=yok gor=duz
-"BAYRAM" yeşil, yarım saniye, dönerek gelsin	[BAYRAM|g=donerek|c=yok|e=|p=hex-22c55e|f=|1.5] ac=yok kap=yok gor=duz
-"HAFTA SONU" bir buçuk saniye, alttan gelsin	[HAFTA SONU|g=alttan|c=yok|e=|p=altin|f=|1.5] ac=yok kap=yok gor=duz
-"GELİNLİK" gül kurusu, çiçek yağmuru, el yazısı gibi	[GELİNLİK|g=belir|c=yok|e=cicek-yagmuru|p=gul-kurusu|f=lobster|4.5] ac=yok kap=yok gor=duz
-"TADİLAT" ve "KAPALIYIZ" yaz	[TADİLAT/KAPALIYIZ|g=belir|c=yok|e=|p=altin|f=|4.5] ac=yok kap=yok gor=duz
-kar yağsın ve konfeti olsun, "KIŞ SEZONU" yaz, mavi	[KIŞ SEZONU|g=belir|c=yok|e=kar+konfeti|p=hex-2f7bff|f=|4.5] ac=yok kap=yok gor=duz
-"SEZON SONU" buz mavisi, uzaktan gelsin, sönsün	[SEZON SONU|g=uzaktan|c=sondur|e=|p=buz-cyan|f=|4.5] ac=yok kap=yok gor=duz
-"HOŞ GELDİNİZ" daktilo, altın çerçeve, sinematik	[HOŞ GELDİNİZ|g=sinema|c=yok|e=cerceve-altin|p=altin|f=|4.5] ac=yok kap=yok gor=duz
-"MÜŞTERİLERİMİZE TEŞEKKÜRLER" mercan rengi, sarsılarak gelsin	[MÜŞTERİLERİMİZE TEŞEKKÜRLER|g=sarsil|c=yok|e=|p=mercan|f=|4.5] ac=yok kap=yok gor=duz
-"ÇOCUK GÜNÜ" turkuaz, balonlar uçsun, 5 sn	[ÇOCUK GÜNÜ|g=belir|c=yok|e=balon|p=hex-14d8c4|f=|5.0] ac=yok kap=yok gor=duz
-"%10 NAKİT İNDİRİM" fuşya olsun	[%10 NAKİT İNDİRİM|g=belir|c=yok|e=|p=magenta|f=|4.5] ac=yok kap=yok gor=duz
-"PEŞİN FİYATINA 3 TAKSİT" altın, neon gibi yansın	[PEŞİN FİYATINA 3 TAKSİT|g=neon|c=yok|e=|p=altin|f=|4.5] ac=yok kap=yok gor=duz
-"YENİ ŞUBE AÇILDI" kapıdan gelsin, çift çerçeve	[YENİ ŞUBE AÇILDI|g=kapi|c=yok|e=cift-cerceve|p=altin|f=|4.5] ac=yok kap=yok gor=duz
-"KARGO BEDAVA" yeşil, parçacıklar, ağır ağır gelsin	[KARGO BEDAVA|g=agir|c=yok|e=parcacik|p=hex-22c55e|f=|4.5] ac=yok kap=yok gor=duz
-"7/24 AÇIĞIZ" gümüş, yıldızlı zemin	[7/24 AÇIĞIZ|g=belir|c=yok|e=zemin-yildizli|p=gumus-mavi|f=|4.5] ac=yok kap=yok gor=duz
-"HAFTANIN ÜRÜNÜ" bakır, spiral gelsin, kıvılcım	[HAFTANIN ÜRÜNÜ|g=spiral|c=yok|e=kivilcim|p=bakir|f=|4.5] ac=yok kap=yok gor=duz
-"SON 3 GÜN" kırmızı, nabız gibi, uzun süre	[SON 3 GÜN|g=nabiz|c=yok|e=|p=hex-ff2b2b|f=|7.0] ac=yok kap=yok gor=duz
-"ÖĞRENCİ İNDİRİMİ" nane rengi, yaprak gibi düşsün, yaprak efekti	[ÖĞRENCİ İNDİRİMİ|g=yaprak|c=yok|e=yaprak|p=nane|f=|4.5] ac=yok kap=yok gor=duz
-önce "TAA" altın, sonra "TERZİ ADEM ALTUN" beyaz, çıkışta dağılsın	[TAA|g=belir|c=yok|e=|p=altin|f=|4.5] [TERZİ ADEM ALTUN|g=belir|c=dagil|e=|p=beyaz|f=|4.5] ac=yok kap=yok gor=duz
-"HOŞ GELDİN" ekranda 10 saniye kalsın, yavaş	[HOŞ GELDİN|g=belir|c=yok|e=|p=altin|f=|10.0] ac=yok kap=yok gor=duz
-zıplayarak "MERHABA" yaz	[MERHABA|g=zipla|c=yok|e=|p=altin|f=|4.5] ac=yok kap=yok gor=duz
-"ALT KAT ÇOCUK" lila, yağmur	[ALT KAT ÇOCUK|g=belir|c=yok|e=yagmur|p=mor-isik|f=|4.5] ac=yok kap=yok gor=duz
-"%50" , "İNDİRİM" iki satır olsun	[%50|g=belir|c=yok|e=|p=altin|f=|4.5] [İNDİRİM|g=belir|c=yok|e=|p=altin|f=|4.5] ac=yok kap=yok gor=duz
-Merhaba müşterilerimiz yaz	[MERHABA MÜŞTERİLERİMİZ|g=belir|c=yok|e=|p=altin|f=|4.5] ac=yok kap=yok gor=duz
+Ekrana "HOŞ GELDİNİZ" yaz, zıplayarak gelsin, altın renkli olsun, 3 saniye sürsün	[HOŞ/GELDİNİZ|g=zipla|c=yok|e=|p=altin|f=|5.0] ac=yok kap=yok gor=duz
+önce "AÇILIŞ İNDİRİMİ" kırmızı renkte patlayarak gelsin, sonra "%30 İNDİRİM" mavi ve konfetili olsun	[AÇILIŞ/İNDİRİMİ|g=patla|c=yok|e=|p=turuncu|f=|5.0] [%30/İNDİRİM|g=belir|c=yok|e=konfeti|p=cyan-vurgu|f=|5.0] ac=yok kap=yok gor=duz
+TERZİ ADEM ALTUN zıpla	[TERZİ/ADEM/ALTUN|g=zipla|c=yok|e=|p=altin|f=|5.0] ac=yok kap=yok gor=duz
+"BUGÜN" ardından "SİZE ÖZEL" ardından "%25 İNDİRİM"	[BUGÜN|g=belir|c=yok|e=|p=altin|f=|5.0] [SİZE/ÖZEL|g=belir|c=yok|e=|p=altin|f=|5.0] [%25/İNDİRİM|g=belir|c=yok|e=|p=altin|f=|5.0] ac=yok kap=yok gor=duz
+%30 indirim yaz, konfeti olsun, iki saniye	[%30/İNDİRİM|g=belir|c=yok|e=konfeti|p=altin|f=|5.0] ac=yok kap=yok gor=duz
+3 taksit imkanı göster, yeşil, yavaşça belir	[3 TAKSİT|g=yavas-belir|c=yok|e=|p=hex-22c55e|f=anton|5.0] ac=yok kap=yok gor=duz
+Bina üzerinde "YENİ SEZON" yazsın, kar yağsın, çıkışta küçülsün	[YENİ/SEZON|g=belir|c=kucul|e=kar|p=altin|f=|5.0] ac=yok kap=yok gor=bina
+"KAPANIŞ SAATİ 19:00" kapanışta fade geçişi olsun	[KAPANIŞ/SAATİ/19:00|g=belir|c=yok|e=|p=altin|f=|5.0] ac=yok kap=fade gor=duz
+açılışta perde olsun, "HOŞ GELDİNİZ" belirsin, kapanışta tv gibi kapansın	[HOŞ/GELDİNİZ|g=belir|c=yok|e=|p=altin|f=|5.0] ac=perde kap=tv gor=duz
+"DAMATLIK" dönerek gelsin; "TAKIM ELBİSE" soldan gelsin	[DAMATLIK|g=donerek|c=yok|e=|p=altin|f=anton|5.0] [TAKIM/ELBİSE|g=soldan|c=yok|e=|p=altin|f=|5.0] ac=yok kap=yok gor=duz
+Yılbaşı kampanyası yaz, kar yağsın, beyaz, uzun	[YILBAŞI/KAMPANYASI|g=belir|c=yok|e=kar|p=beyaz|f=anton|7.0] ac=yok kap=yok gor=duz
+"CUMA" yaz, şimşek gibi gelsin, magenta renk, kıvılcımlı	[CUMA|g=belir|c=yok|e=kivilcim|p=mercan|f=|5.0] ac=yok kap=yok gor=duz
+"1500 TL" ekrana yaz, altın gece, parlasın	[1500 TL|g=belir|c=yok|e=parlama|p=altin-gece|f=|5.0] ac=yok kap=yok gor=duz
+"YAZ İNDİRİMİ" sarı, lobster yazı tipiyle, kayan yıldız	[YAZ/İNDİRİMİ|g=belir|c=yok|e=kayan-yildiz|p=sari|f=lobster|5.0] ac=yok kap=yok gor=duz
+önce "MERHABA" sonra "NASILSINIZ" en son "GÖRÜŞÜRÜZ"	[MERHABA|g=belir|c=yok|e=|p=altin|f=anton|5.0] [NASILSINIZ|g=belir|c=yok|e=|p=altin|f=anton|5.0] [GÖRÜŞÜRÜZ|g=belir|c=yok|e=|p=altin|f=anton|5.0] ac=yok kap=yok gor=duz
+"RANDEVU" pembe, 2,5 saniye, kalpler	[RANDEVU|g=belir|c=yok|e=kalp|p=pembe-parilti|f=anton|5.0] ac=yok kap=yok gor=duz
+"SON GÜN" yazı turuncu, hızlı, çerçeveli	[SON GÜN|g=hizli|c=yok|e=cerceve|p=turuncu|f=anton|5.0] ac=yok kap=yok gor=duz
+Kırmızı zeminde BÜYÜK İNDİRİM yazsın, zıplasın	[BÜYÜK/İNDİRİM|g=zipla|c=yok|e=|p=turuncu|f=|5.0] ac=yok kap=yok gor=duz
+"ÜCRETSİZ TADİLAT" yaz, yukarı çıksın	[ÜCRETSİZ/TADİLAT|g=belir|c=yukari|e=|p=altin|f=anton|5.0] ac=yok kap=yok gor=duz
+bina cephesinde "YENİ GELDİ" yaz, havai fişek	[YENİ/GELDİ|g=belir|c=yok|e=havai-fisek|p=altin|f=|5.0] ac=yok kap=yok gor=bina
+"İKİNCİ ÜRÜN %50" yazıyı mor yap, daktilo gibi gelsin, 4 saniye	[İKİNCİ/ÜRÜN/%50|g=daktilo|c=yok|e=|p=mor-isik|f=|5.0] ac=yok kap=yok gor=duz
+"OKUL DÖNEMİ" lacivert olsun, balon efekti	[OKUL/DÖNEMİ|g=belir|c=yok|e=balon|p=okyanus|f=|5.0] ac=yok kap=yok gor=duz
+"BAYRAM" yeşil, yarım saniye, dönerek gelsin	[BAYRAM|g=donerek|c=yok|e=|p=hex-22c55e|f=|5.0] ac=yok kap=yok gor=duz
+"HAFTA SONU" bir buçuk saniye, alttan gelsin	[HAFTA/SONU|g=alttan|c=yok|e=|p=altin|f=|5.0] ac=yok kap=yok gor=duz
+"GELİNLİK" gül kurusu, çiçek yağmuru, el yazısı gibi	[GELİNLİK|g=belir|c=yok|e=cicek-yagmuru|p=gul-kurusu|f=lobster|5.0] ac=yok kap=yok gor=duz
+"TADİLAT" ve "KAPALIYIZ" yaz	[TADİLAT/KAPALIYIZ|g=belir|c=yok|e=|p=altin|f=anton|5.0] ac=yok kap=yok gor=duz
+kar yağsın ve konfeti olsun, "KIŞ SEZONU" yaz, mavi	[KIŞ/SEZONU|g=belir|c=yok|e=kar+konfeti|p=cyan-vurgu|f=|5.0] ac=yok kap=yok gor=duz
+"SEZON SONU" buz mavisi, uzaktan gelsin, sönsün	[SEZON/SONU|g=uzaktan|c=sondur|e=|p=buz-cyan|f=|5.0] ac=yok kap=yok gor=duz
+"HOŞ GELDİNİZ" daktilo, altın çerçeve, sinematik	[HOŞ/GELDİNİZ|g=sinema|c=yok|e=cerceve-altin|p=altin|f=|5.0] ac=yok kap=yok gor=duz
+"MÜŞTERİLERİMİZE TEŞEKKÜRLER" mercan rengi, sarsılarak gelsin	[MÜŞTERİ- LERİMİ-/ZE TEŞEK-/KÜRLER|g=sarsil|c=yok|e=|p=mercan|f=anton|5.0] ac=yok kap=yok gor=duz
+"ÇOCUK GÜNÜ" turkuaz, balonlar uçsun, 5 sn	[ÇOCUK/GÜNÜ|g=belir|c=yok|e=balon|p=hex-14d8c4|f=|5.0] ac=yok kap=yok gor=duz
+"%10 NAKİT İNDİRİM" fuşya olsun	[%10/NAKİT/İNDİRİM|g=belir|c=yok|e=|p=mercan|f=|5.0] ac=yok kap=yok gor=duz
+"PEŞİN FİYATINA 3 TAKSİT" altın, neon gibi yansın	[PEŞİN/FİYATINA/3 TAKSİT|g=neon|c=yok|e=|p=altin|f=anton|5.0] ac=yok kap=yok gor=duz
+"YENİ ŞUBE AÇILDI" kapıdan gelsin, çift çerçeve	[YENİ/ŞUBE/AÇILDI|g=kapi|c=yok|e=cift-cerceve|p=altin|f=|5.0] ac=yok kap=yok gor=duz
+"KARGO BEDAVA" yeşil, parçacıklar, ağır ağır gelsin	[KARGO/BEDAVA|g=agir|c=yok|e=parcacik|p=hex-22c55e|f=|5.0] ac=yok kap=yok gor=duz
+"7/24 AÇIĞIZ" gümüş, yıldızlı zemin	[7/24/AÇIĞIZ|g=belir|c=yok|e=zemin-yildizli|p=gumus-mavi|f=|5.0] ac=yok kap=yok gor=duz
+"HAFTANIN ÜRÜNÜ" bakır, spiral gelsin, kıvılcım	[HAFTANIN/ÜRÜNÜ|g=spiral|c=yok|e=kivilcim|p=bakir|f=anton|5.0] ac=yok kap=yok gor=duz
+"SON 3 GÜN" kırmızı, nabız gibi, uzun süre	[SON 3/GÜN|g=nabiz|c=yok|e=|p=turuncu|f=|7.0] ac=yok kap=yok gor=duz
+"ÖĞRENCİ İNDİRİMİ" nane rengi, yaprak gibi düşsün, yaprak efekti	[ÖĞRENCİ/İNDİRİMİ|g=yaprak|c=yok|e=yaprak|p=nane|f=|5.0] ac=yok kap=yok gor=duz
+önce "TAA" altın, sonra "TERZİ ADEM ALTUN" beyaz, çıkışta dağılsın	[TAA|g=belir|c=yok|e=|p=altin|f=|5.0] [TERZİ/ADEM/ALTUN|g=belir|c=dagil|e=|p=beyaz|f=|5.0] ac=yok kap=yok gor=duz
+"HOŞ GELDİN" ekranda 10 saniye kalsın, yavaş	[HOŞ/GELDİN|g=belir|c=yok|e=|p=altin|f=|10.0] ac=yok kap=yok gor=duz
+zıplayarak "MERHABA" yaz	[MERHABA|g=zipla|c=yok|e=|p=altin|f=anton|5.0] ac=yok kap=yok gor=duz
+"ALT KAT ÇOCUK" lila, yağmur	[ALT KAT/ÇOCUK|g=belir|c=yok|e=yagmur|p=mor-isik|f=|5.0] ac=yok kap=yok gor=duz
+"%50" , "İNDİRİM" iki satır olsun	[%50|g=belir|c=yok|e=|p=altin|f=|5.0] [İNDİRİM|g=belir|c=yok|e=|p=altin|f=|5.0] ac=yok kap=yok gor=duz
+Merhaba müşterilerimiz yaz	[MERHABA/MÜŞTERİLERİMİZ|g=belir|c=yok|e=|p=altin|f=saira-dar|5.0] ac=yok kap=yok gor=duz

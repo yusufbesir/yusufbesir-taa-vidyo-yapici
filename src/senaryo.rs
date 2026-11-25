@@ -561,6 +561,7 @@ pub fn kare_uret(s: &Senaryo, hz: &[Hazir], t: f32, no: u32) -> Vec<u8> {
     if sh.efekt.iter().any(|e| e == "cerceve") { efekt::kosan_cerceve(&mut k, w, h, t, z.vurgu, (w / 70).max(6), (w / 25).max(10)); }
     if sh.efekt.iter().any(|e| e == "cift-cerceve") { efekt::cift_cerceve(&mut k, w, h, z.vurgu, (w / 240).max(3), (w / 22).max(12)); }
     if sh.efekt.iter().any(|e| e == "pirilti") { efekt::piriltilar(&mut k, w, h, t, 18, Renk(255, 255, 255), idx as u32 + 1); }
+    for e in &sh.efekt { crate::malzeme_sahne::son_efekt(e, &mut k, w, h); } // dalga 3: vinyet içerikten sonra
     let (kapat_basla, acik_bitis) = (toplam - ka, ac);
     let normal = tv::Tup { sv: 1.0, sh: 1.0, flas: 0.0, parlak: 0.985 + 0.015 * (no as f32 * 0.9).sin(), gurultu: 0.0 };
     if s.acilis == Gecis::Tv && t < acik_bitis { return tv::tup(&k, w, h, tv::acilis(t), no); }
