@@ -316,7 +316,7 @@ fn yazi_kutusu(id: &str) -> Option<(f32, f32)> {
         "rozet-indirim" => (440.0, 300.0), "rozet-firsat" => (700.0, 280.0), "logo-perde" | "logo-iris" | "logo-parlama" => (800.0, 560.0),
         // dalga 3: 3B (TTF maske) yazılı malzemeler
         "yazi-3b-don" | "yazi-3b-derin" => (820.0, 560.0), "yazi-yil" => (820.0, 420.0), "altin-toz" | "isik-huzmesi" | "sahne-karli-isik" => (800.0, 480.0), "izgara-zemin" => (820.0, 380.0),
-        "kar-katmanli" | "kar-birikme" | "kis-manzarasi" => (800.0, 380.0), "yilbasi-senlik" | "yilbasi-geri-sayim" => (820.0, 400.0),
+        "kar-katmanli" | "kar-birikme" | "kis-manzarasi" | "kis-derinlik" => (800.0, 380.0), "yilbasi-senlik" | "yilbasi-geri-sayim" => (820.0, 400.0),
         _ => return crate::malzeme_ek::yazi_kutusu(id),
     })
 }
@@ -743,8 +743,11 @@ pub fn ciz(m: &MalzemeAyar, metin: &str, z: &Hazir, k: &mut [u8], w: u32, h: u32
                     let bas = i as f32 / n as f32 * 1.2;
                     let lt = yt - bas;
                     if lt < 0.0 { continue; }
-                    let x = wf * (0.15 + 0.7 * hash(tohum));
-                    let tepe = hf * (0.15 + 0.3 * hash(tohum + 1));
+                    // dalga 5: yarıçap en kısa kenarın %30'u ile sınırlı, merkez yarıçap + kenar payı içinde (kenarda kırpılma yok)
+                    let rmax = (330.0 * u).min(0.30 * wf.min(hf));
+                    let kenar = 0.04 * wf.min(hf);
+                    let x = (rmax + kenar) + ((wf - 2.0 * (rmax + kenar)).max(0.0)) * hash(tohum);
+                    let tepe = (hf * (0.15 + 0.3 * hash(tohum + 1))).clamp(rmax + kenar, (hf - rmax - kenar).max(rmax + kenar));
                     let rk = RENKLER[(hash(tohum + 2) * 6.0) as usize % 6];
                     if lt < 0.8 {
                         let y = hf + (tepe - hf) * anim::yumusak(lt / 0.8);
@@ -752,7 +755,7 @@ pub fn ciz(m: &MalzemeAyar, metin: &str, z: &Hazir, k: &mut [u8], w: u32, h: u32
                         tv.daire(x, y, 9.0 * u, BEYAZ, 1.0);
                     } else if lt < 2.4 {
                         let e = (lt - 0.8) / 1.6;
-                        let rr = 330.0 * u * (1.0 - (1.0 - e).powi(3));
+                        let rr = rmax * (1.0 - (1.0 - e).powi(3));
                         let sol = (1.0 - e).powf(0.7);
                         for p in 0..30 {
                             let a = p as f32 / 30.0 * TAU + hash(tohum + 9) * 0.5;

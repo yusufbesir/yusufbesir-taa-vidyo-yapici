@@ -24,6 +24,14 @@ fn tablo(t: Tur) -> (usize, f32, f32, f32, f32, usize, f32) {
     }
 }
 
+/// Patlamanın merkezden en uzak noktası (px, olc=1): v0/k (kalpte v0·17). Çift için ikinci patlama dahil.
+/// Dalga 5 [Claude#vidyo-yenileme-bd2f6a, 2026-11-26]: sol kenarda kırpılma — merkez ve yarıçap kadraja sığdırılır.
+pub fn erisim(t: Tur) -> f32 {
+    let (_, v0, k, ..) = tablo(t);
+    let v = if t == Tur::Kalp { v0 * 17.0 } else { v0 };
+    (v / k).max(if t == Tur::Cift { 290.0 } else { 0.0 })
+}
+
 pub fn tur_ad(t: Tur) -> &'static str { match t { Tur::Kure => "kure", Tur::Sogut => "sogut", Tur::Halka => "halka", Tur::Kalp => "kalp", Tur::Cift => "cift" } }
 
 /// Toplamalı nokta/disk (255'e kırpma). r < 1,5 ise tek piksel.
@@ -151,8 +159,16 @@ pub fn gosteri(tv: &mut Tuval, z: f32, adet: usize, tur_sec: &dyn Fn(usize) -> T
             // altın oran tabakalaması ardışık roketleri ekrana yayar, küçük hash sapması düzenliliği kırar
             let baz = hash(tohum ^ (tur_no.rem_euclid(97) as u32).wrapping_mul(7919));
             let xp = (baz + j as f32 * 0.618_034 + 0.2 * (hash(ts + 2) - 0.5)).rem_euclid(1.0);
-            let tx = wf * (0.15 + 0.7 * xp);
-            let ty = hf * (ust + (alt - ust) * hash(ts + 3));
+            // kadraj güvenliği: yarıçap ekranın en kısa kenarının %30'unu aşmaz; merkez, yarıçap + kenar payı içinde kalır
+            let kenar = 0.04 * wf.min(hf);
+            let r1 = erisim(t) * olc;
+            let esk = (0.30 * wf.min(hf) / r1).min(1.0);
+            let olc_p = olc * esk;
+            let r = r1 * esk;
+            let (xl, xh) = (r + kenar, (wf - r - kenar).max(r + kenar));
+            let (yl, yh) = (r + kenar, (hf - r - kenar).max(r + kenar));
+            let tx = xl + (xh - xl) * xp;
+            let ty = (hf * (ust + (alt - ust) * hash(ts + 3))).clamp(yl, yh);
             let rk = renkler[(hash(ts + 4) * renkler.len() as f32) as usize % renkler.len()];
             let rk2 = renkler[(hash(ts + 5) * renkler.len() as f32) as usize % renkler.len()];
             let lt = zz - tj;
@@ -165,7 +181,7 @@ pub fn gosteri(tv: &mut Tuval, z: f32, adet: usize, tur_sec: &dyn Fn(usize) -> T
                 tv.cizgi(x, y, x, y + 16.0 * olc, 5.0 * olc, Renk(255, 225, 170), 0.9);
                 for q in 1..7 { ekle(tv, x, y + q as f32 * 14.0 * olc, 2.6 * olc, Renk(255, 190, 120), 0.5 * (1.0 - q as f32 / 7.0)); }
             } else {
-                patlama(tv, t, tx, ty, lt - yuk, rk, rk2, ts, olc);
+                patlama(tv, t, tx, ty, lt - yuk, rk, rk2, ts, olc_p);
             }
         }
     }
@@ -190,6 +206,30 @@ mod t {
             assert!(n > 150, "{}: {n}", tur_ad(t));
             let (_, b) = tuval_say(&|tv| patlama(tv, t, 190.0, 300.0, 0.4, Renk(255, 200, 40), Renk(0, 200, 255), 3, 0.4));
             assert!(a == b, "{} deterministik değil", tur_ad(t));
+        }
+    }
+    /// Dalga 5: hiçbir patlama sol/sağ/üst kenara değmez (tüm çözünürlüklerde); söğüt yalnız dikeyde sarkabilir.
+    #[test]
+    fn patlamalar_kadraj_icinde() {
+        let renkler = [Renk(255, 205, 60), Renk(80, 200, 255), Renk(255, 80, 120)];
+        for (w, h) in [(380u32, 720u32), (950, 1800), (720, 380), (1900, 950), (600, 1920), (1920, 1080), (1080, 1920)] {
+            for t in [Tur::Kure, Tur::Sogut, Tur::Halka, Tur::Kalp, Tur::Cift] {
+                let mut kenar_isik = 0usize;
+                let mut toplam_isik = 0usize;
+                let mut z = 0.0f32;
+                while z < 9.0 {
+                    let mut b = vec![0u8; (w * h * 3) as usize];
+                    { let mut tv = Tuval { t: &mut b, w, h }; gosteri(&mut tv, z, 6, &|_| t, &renkler, 41, 0.2, 0.46); }
+                    toplam_isik += b.chunks(3).filter(|p| p[0] > 30 || p[1] > 30 || p[2] > 30).count();
+                    for y in 0..h as usize {
+                        for x in [0usize, w as usize - 1] { let i = (y * w as usize + x) * 3; if b[i] > 30 || b[i + 1] > 30 || b[i + 2] > 30 { kenar_isik += 1; } }
+                    }
+                    for x in 0..w as usize { let i = x * 3; if b[i] > 30 || b[i + 1] > 30 || b[i + 2] > 30 { kenar_isik += 1; } }
+                    z += 0.25;
+                }
+                assert!(toplam_isik > 2000, "{}x{} {}: patlama çizilmiyor ({toplam_isik})", w, h, tur_ad(t));
+                assert_eq!(kenar_isik, 0, "{}x{} {}: {kenar_isik} kenar pikseli yanıyor (kırpılma)", w, h, tur_ad(t));
+            }
         }
     }
     #[test]

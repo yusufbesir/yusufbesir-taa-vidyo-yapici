@@ -559,7 +559,7 @@ pub fn ciz(m: &MalzemeAyar, yazi_s: &str, z: &Hazir, tv: &mut Tuval, yerel: f32,
                 let lt = (tt - bas).rem_euclid(per * 2.0);
                 let tur = ((tt - bas) / (per * 2.0)).floor() as i32;
                 let ts = j * 37 + tur.rem_euclid(50) as u32 * 5;
-                let (mx, my) = ((wf * (0.2 + 0.6 * hash(ts)) / hc).floor() * hc, (hf * (0.15 + 0.35 * hash(ts + 1)) / hc).floor() * hc);
+                let (mx, my) = ((wf * (0.27 + 0.46 * hash(ts)) / hc).floor() * hc, (hf * (0.15 + 0.35 * hash(ts + 1)) / hc).floor() * hc);
                 let rk = parca_renk(ts);
                 if lt < 0.7 {
                     let y = ((hf + (my - hf) * (lt / 0.7)) / hc).floor() * hc;

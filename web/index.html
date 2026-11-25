@@ -476,7 +476,7 @@ TAKSİT</textarea>
               <span id="tarifSiteler" class="sira" style="margin:0"></span>
             </div>
             <p class="mut" style="margin:0">Yapay zekâya yalnız yukarıdaki tarif ve program katalog adları gider. Müşteri adı, telefon, adres gibi kişisel bilgi yazmayın.</p>
-            <div id="panoOneri" class="sira" style="margin:0" hidden><button type="button" class="btn ana" id="panoUygula">Panodaki tarifi uygula</button><span class="mut">Panoda geçerli bir sahne listesi bulundu.</span></div>
+            <div id="panoOneri" class="sira" style="margin:0"><button type="button" class="btn ana" id="panoUygula">Panodaki tarifi uygula</button><span class="mut">Sohbet sitesinden kopyaladığınız yanıtı tek tıkla uygular.</span></div>
             <label class="mut" for="tarifYanit">Yapay zekâdan gelen yanıtı buraya yapıştırın</label>
             <textarea id="tarifYanit" rows="3" spellcheck="false" placeholder="Yanıt { ile başlayan sahne listesi (JSON) olur; kod çiti ve açıklama yazısı olsa da bulunur."></textarea>
             <div class="sira" style="margin:0"><button type="button" class="btn ana" id="tarifUygula">Yanıtı uygula</button></div>
@@ -1382,22 +1382,12 @@ $('#tarifDogrudan').onclick = async () => {
   if (j.baglanti) { tarifMesaj(j.hatalar[0] + ' İstemi kopyalayıp elle de yapıştırabilirsiniz.', 'tarifHata'); return; }
   tarifGoster(j, 'yanit');
 };
-// ───────── Pano algılama: yalnız pencere odaktayken ve Tarif et açıkken; yalnız geçerli sahne listesi varsa ÖNERİR, kendiliğinden uygulamaz; pano saklanmaz ─────────
-let panoIz = '', panoMetin = '';
-const kisaIz = t => t.length + ':' + [...t].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7);
-async function panoBak() {
-  if (!$('#tarifKart').open || $('#tarifKart').hidden || aktifKip !== 'yz' || !document.hasFocus()) return;
-  let t = ''; try { t = await navigator.clipboard.readText(); } catch (e) { return; }
-  if (!t || t.length > 64000 || !t.includes('{') || !t.includes('sahneler')) return;
-  const iz = kisaIz(t); if (iz === panoIz) return; panoIz = iz;
-  const j = await (await api('/tarif/uygula', t)).json();
-  if (!j.ok) return;
-  panoMetin = t; t = '';
-  $('#panoOneri').hidden = false; $('#panoUygula').textContent = `Panodaki tarifi uygula (${j.sahneler.length} sahne, ${j.sure} sn)`;
-}
-$('#panoUygula').onclick = () => { $('#tarifYanit').value = panoMetin; panoMetin = ''; $('#panoOneri').hidden = true; $('#tarifUygula').click(); };
-window.addEventListener('focus', panoBak);
-$('#tarifKart').addEventListener('toggle', panoBak);
+// ───────── Pano: kendiliğinden OKUNMAZ (açılışta izin istenmez). Yalnız kullanıcı "Panodaki tarifi uygula" düğmesine basınca okunur; izin ilk bu kullanımda istenir; pano saklanmaz ─────────
+$('#panoUygula').onclick = async () => {
+  let t = ''; try { t = await navigator.clipboard.readText(); } catch (e) { tarifMesaj('Pano okunamadı; yanıtı aşağıdaki kutuya elle yapıştırın.', 'tarifHata'); return; }
+  if (!t || t.length > 64000 || !t.includes('{') || !t.includes('sahneler')) { tarifMesaj('Panoda geçerli bir sahne listesi yok; yanıtı kopyalayıp tekrar deneyin.', 'tarifHata'); return; }
+  $('#tarifYanit').value = t; t = ''; $('#tarifUygula').click();
+};
 llmYukle();
 
 // ───────── Yapay zekâya yazdır: bulunabilirlik, istem göster, her ekrandan erişim ─────────
@@ -1516,7 +1506,6 @@ function kipSec(ad, o) {
   if (degisti && !o.ilk) imzaOynat();
   if (ad === 'hazir' && $('#hazirSekmeMal').getAttribute('aria-selected') === 'true') malzemeBagla();
   if (ad === 'hazir' && $('#hazirSekmeDon').getAttribute('aria-selected') === 'true') donusturBagla();
-  if (ad === 'yz' && typeof panoBak === 'function') panoBak();
   if (o.odak) setTimeout(() => { const el = document.querySelector(o.odak); if (el && el.offsetParent) el.focus(); }, 60);
 }
 

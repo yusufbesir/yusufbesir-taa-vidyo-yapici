@@ -26,6 +26,8 @@ pub fn kar(a: Renk, b: Renk, k: f32) -> Renk { let k = k.clamp(0.0, 1.0); Renk((
 /// 3 ton kuralı: (yüz, gölge ×0,62, ışık beyaza %35).
 pub fn uc_ton(r: Renk) -> (Renk, Renk, Renk) { (r, kos(r, 0.62), kar(r, Renk(255, 255, 255), 0.35)) }
 fn fr(x: f32) -> f32 { x - x.floor() }
+/// Dönem `per` sn olan sallanma için 0..1 faz.
+fn z_ham(tt: f32, per: f32) -> f32 { fr(tt / per.max(0.5)) }
 fn yumusak(t: f32) -> f32 { anim::yumusak(t) }
 
 /// 1B değer gürültüsü (0..1), yumuşak aradeğer.
@@ -390,6 +392,51 @@ fn manzara(tv: &mut Tuval, z: f32, yon: f32, tohum: u32) {
 
 // ---------------------------------------------------------------- ana yönlendirici
 /// Kış kalemlerini çizer; id bu modüle ait değilse false.
+/// Karlı çam dalı (dalga 5 [Claude#vidyo-yenileme-bd2f6a, 2026-11-26], GPT-6.1 Sol önerisi 2: kar başlıkları + temas gölgesi).
+/// (kx, ky) dal kökü, `aci` yön (rad, 0 = sağa, π/2 = aşağı), `sal` ± sallanma (rad). Ön plan: koyu iğneler, üstte kar başlığı,
+/// kar başlığının altında açık-koyu temas gölgesi, dalın altında yumuşak gölge. Kareler arası durum yok.
+fn karli_dal(tv: &mut Tuval, kx: f32, ky: f32, aci: f32, boy: f32, u: f32, sal: f32, tohum: u32) {
+    let a0 = aci + sal;
+    let n = 16usize;
+    let (dx, dy) = (a0.cos(), a0.sin());
+    let gov = |i: usize| (i as f32 + 1.0) / n as f32;
+    // 1) dalın altına gölge şeridi
+    for i in 0..n {
+        let k = gov(i);
+        let (px, py) = (kx + dx * boy * k, ky + dy * boy * k + (k * k) * 40.0 * u);
+        tv.daire(px + 8.0 * u, py + 22.0 * u, (34.0 - 18.0 * k) * u, Renk(2, 6, 14), 0.30);
+    }
+    // 2) gövde ve iğne öbekleri (uzaktan yakına: kalınlık azalır)
+    let (mut ox, mut oy) = (kx, ky);
+    for i in 0..n {
+        let k = gov(i);
+        let (px, py) = (kx + dx * boy * k, ky + dy * boy * k + (k * k) * 40.0 * u);
+        tv.cizgi(ox, oy, px, py, (22.0 - 15.0 * k) * u, Renk(40, 30, 24), 1.0);
+        for s in [-1.0f32, 1.0] {
+            for j in 0..3u32 {
+                let h = hash(tohum + i as u32 * 13 + j * 5 + if s > 0.0 { 101 } else { 0 });
+                let ia = a0 + s * (0.75 + 0.55 * h) + (j as f32 - 1.0) * 0.12;
+                let il = (95.0 + 70.0 * h) * (1.0 - 0.55 * k) * u;
+                let (ex, ey) = (px + ia.cos() * il, py + ia.sin() * il);
+                let ton = if j == 1 { Renk(30, 92, 66) } else { Renk(16, 56, 46) };
+                tv.cizgi(px, py, ex, ey, (9.0 - 4.0 * k) * u, ton, 1.0);
+                // üstte kalan iğne uçlarında küçük kar
+                if ey < py + il * 0.3 { tv.daire(ex, ey - 3.0 * u, (8.0 - 3.0 * k) * u, KAR_GOLGE, 0.9); tv.daire(ex, ey - 6.0 * u, (7.0 - 3.0 * k) * u, KAR, 1.0); }
+            }
+        }
+        ox = px; oy = py;
+    }
+    // 3) gövde üstünde kar başlıkları: önce temas gölgesi (koyu-mavi), sonra kar
+    for i in 0..n {
+        let k = gov(i);
+        let (px, py) = (kx + dx * boy * k, ky + dy * boy * k + (k * k) * 40.0 * u);
+        let r = (30.0 - 14.0 * k) * u * (0.8 + 0.4 * hash(tohum + 400 + i as u32));
+        tv.elips(px, py - 5.0 * u, r * 1.45, r * 0.62, a0, Renk(70, 92, 140), 0.85);
+        tv.elips(px, py - 10.0 * u, r * 1.4, r * 0.58, a0, KAR_GOLGE, 1.0);
+        tv.elips(px - 1.0 * u, py - 14.0 * u, r * 1.3, r * 0.5, a0, KAR, 1.0);
+    }
+}
+
 pub fn ciz(m: &MalzemeAyar, yazi: &str, z: &Hazir, tv: &mut Tuval, yerel: f32, sure: f32) -> bool {
     let (wf, hf) = (tv.w as f32, tv.h as f32);
     let u = (wf / 950.0).min(hf / 1800.0);
@@ -509,6 +556,19 @@ pub fn ciz(m: &MalzemeAyar, yazi: &str, z: &Hazir, tv: &mut Tuval, yerel: f32, s
             manzara(tv, tt, yon, 81);
             kar_katmanli(tv, tt, sure_z, 160, yon, 0b111, 83);
             if !yazi.is_empty() { yazi_3b(tv, z, yazi, cx, hf * 0.3, wf * 0.86, 1.0, 0.0, u); }
+        }
+        "kis-derinlik" => {
+            // dalga 5: dört derinlik düzlemi — uzak dağ/çam/kulübe (manzara, paralaks), orta kar, ön karlı dallar (hafif sallanır), en ön iri kar
+            let yon = if m.yon == "sol" { -1.0 } else { 1.0 };
+            let per = sure_z / (sure_z / 10.0).round().max(1.0);
+            let sal = |faz: f32, g: f32| g * (TAU * z_ham(tt, per) + faz).sin();
+            manzara(tv, tt, yon, 91);
+            kar_katmanli(tv, tt, sure_z, (dv.round() as usize).clamp(40, 400), yon, 0b011, 93);
+            if !yazi.is_empty() { yazi_3b(tv, z, yazi, cx, hf * 0.3, wf * 0.86, 1.0, 0.0, u); }
+            karli_dal(tv, -30.0 * u, hf * 0.035, 0.16, wf * 0.85, u, sal(0.0, 0.03), 211);
+            karli_dal(tv, wf + 30.0 * u, hf * 0.58, PI - 0.28, wf * 0.95, u, sal(2.1, 0.03), 223);
+            karli_dal(tv, -30.0 * u, hf * 0.9, -0.2, wf * 0.7, u, sal(4.0, 0.03), 239);
+            kar_katmanli(tv, tt, sure_z, 40, yon, 0b100, 95);
         }
         "hediye-yigini" => {
             kar_tumsegi(tv, cx, hf * 0.9, wf * 0.66, hf * 0.05);

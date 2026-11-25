@@ -146,7 +146,7 @@ pub fn havai_fisek(t: &mut [u8], w: u32, h: u32, z: f32, n: u32, renk: Renk, toh
         let r = |j: u32| hash(tohum * 1100 + k * 7 + j);
         let period = 2.4 + r(0) * 1.2;
         let u = ((z + r(1) * period) % period) / period; // 0..1
-        let (cx, cy) = (w as f32 * (0.2 + 0.6 * r(2)), h as f32 * (0.2 + 0.4 * r(3)));
+        let (cx, cy) = (w as f32 * (0.3 + 0.4 * r(2)), h as f32 * (0.2 + 0.4 * r(3)));
         let ton = [renk, Renk(255, 120, 150), Renk(120, 200, 255), Renk(255, 220, 90)][k as usize % 4];
         if u < 0.3 { // yükselen iz
             let p = u / 0.3; let y = h as f32 - (h as f32 - cy) * p;

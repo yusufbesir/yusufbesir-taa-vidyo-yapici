@@ -1,0 +1,31 @@
+Eksik olan yeni nesnelerden çok **malzeme hissi, nesnelerin birbirine gölge düşürmesi ve iki ekranın ortak koreografisi**. Öncelik sıram:
+
+1. **İki ekranlı derinlik sahnesi — Orta.** Ön plana karlı dallar, ortaya ağaç, arkaya uzak köy siluetleri koyun; katmanları farklı hızlarda kaydırın. Fiziksel ekran aralığını kompozisyonda boşluk sayın, ana yazıyı bölmeyin.  
+   **Parametreler:** 3–5 katman, kayma 5–20 px/sn, ekranlar arası zaman farkı.
+
+2. **Karın nesnelerle etkileşimi — Orta.** Dalların, harflerin ve hediyelerin üstünde sabit kar başlıkları; altlarında koyu temas gölgeleri çizin. Ara sıra küçük bir kar parçasını koparıp düşürmek mevcut birikme efektini zenginleştirir.  
+   **Parametreler:** kar kalınlığı, gölge mesafesi/opaklığı, kopma aralığı 6–15 sn.
+
+3. **Mat süsler, kurdele ve kumaş — Kolay/orta.** Küre süsleri önceden hesaplanan açık-koyu renk geçişiyle, kurdeleleri üst üste binen şeritlerle çizin. Sabit ince doku ve örtüşme gölgeleri ekleyin; dokuyu her karede rastgele yenilemeyin.  
+   **Parametreler:** süs çapı, doku kontrastı, gölge yönü, salınım dönemi 8–12 sn.
+
+4. **Kinetik tipografi + harf harf giriş — Kolay.** Harf maskelerini önbelleğe alın; her harfi gecikmeli konum, ölçek ve opaklık eğrisiyle yerleştirin. Hareket sonunda uzun bir sabit okuma süresi bırakın.  
+   **Parametreler:** giriş 0,8–1,5 sn, harf gecikmesi 80–150 ms, kayma 20–60 px, bekleme 3–5 sn.
+
+5. **Ağır yazı dalgası — Kolay.** Her harfin yüksekliğini `A·sin(k·x−ω·t)` ile değiştirin; harfin kendi biçimini koruyun. Sinüs değerlerini tabloya alıp harf başına bir kez hesaplayın.  
+   **Parametreler:** genlik 6–15 px, dönem 5–8 sn, dalga boyu 600–1200 px.
+
+6. **Işık süpürme + zemin yansıması — Kolay/orta.** Harf maskesi içinde geniş, düşük kontrastlı bir bandı gezdirerek yüzey rengini değiştirin. Yansıma için maskeyi dikey ters çevirip sıkıştırın; uzaklaştıkça opaklığını azaltın.  
+   **Parametreler:** geçiş 4–8 sn, bant genişliği, renk farkı, yansıma opaklığı %8–15.
+
+7. **Ekstrüde yazıya pah ve ağır dönüş — Orta.** Mevcut ekstrüzyona, maskenin aşındırılmış hâliyle farkından üretilen bir kenar şeridi ekleyin. Ön yüzü ve derinlik katmanlarını küçük açılarla eğerek düşük maliyetli **2,5B** dönüş sağlayın.  
+   **Parametreler:** pah 2–5 px, derinlik 12–30 px, açı ±5°, dönem 8–12 sn.
+
+8. **Dikiş / kumaş ipi yazı — Orta.** Seçili kelimeler için elle tanımlanmış harf yollarını kısa, yuvarlak uçlu çizgilerle dikin. Yol uzunluğuna göre aşamalı açılma uygulayın; ipin altına ince koyu gölge koyun.  
+   **Parametreler:** ip kalınlığı 6–10 px, dikiş aralığı, açılma 3–6 sn, gölge 2–3 px.
+
+Ortak uygulama: statik katmanları ve maskeleri bir kez üretin, yalnız nesne sınırları içinde çizin. Harf maskesi ve dönüşüm ayrımı için [FreeType teknik açıklaması](https://freetype.org/freetype2/docs/tutorial/step1.html) referans alınabilir; algoritmayı Rust’ta kendiniz uygulayabilirsiniz. Son birleşik kareye mevcut %45 parlaklık ölçütünüzü uygulayın; tekrarlayan parlaklık değişimleri ≤1 Hz kalsın. İnce dokuların 40 metreden okunmasını beklemeyin.
+
+Yerel ortak kural dosyalarına erişim reddedildi; yanıtı mesajınızdaki kurallara göre hazırladım.
+
+aday not: İki dikey LED için öncelik; ortak sahne derinliği, temas gölgeleri ve önbellekli harf maskeleriyle yavaş tipografi önerildi; henüz kullanıcı kararı değil. (kaynak: bu görev ve yanıt)

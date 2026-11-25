@@ -91,3 +91,7 @@ Galeri: arama kutusu (Türkçe harf duyarsız), kategori çipleri (adetli), temb
 - `cargo test --release --test malzeme_testleri` (her malzeme: senaryo üretir/ayrıştırılır, 950x1800 render, boş/tek renk değil, deterministik; parametre sınırları; bozuk istek 400; küçük PNG; eski senaryolar; `node tests/malzeme_test.js`).
 - Dalga 3: `dalga3_kare_butcesi` (bütçe), `dalga3_flas_ve_parlaklik` (ardışık karelerde ortalama parlaklık farkı ≤ %20; kış/sahne ve kinetik yazıda kare ortalaması ≤ %45); birim testler: uzun gölge, dönemli gürültü, döngü güvenli açısal hız, kar döngü dikişi, vinyet, malzeme sahnesinde "8-10 harf" önerisi çıkmaması.
 - Görsel denetim: `MALZEME_CIKTI=klasör ... --test malzeme_testleri -- --ignored kontak` tüm malzemelerin ızgara PNG'sini yazar. `MALZEME_KARE="id@t,id@t"` ile seçili tam boy kareler de yazılır.
+
+## Dalga 5 (1.0.1, 2026-11-26; yazan: [Claude#vidyo-yenileme-bd2f6a])
+- Havai fişek kadraj güvenliği: yarıçap en kısa kenarın %30'u ile sınırlı, merkez yarıçap + %4 kenar payı içinde (malzeme_parca::gosteri, malzeme_ciz havai-fisek-gosteri, dekor::havai_fisek, piksel-fisek). Test: patlamalar_kadraj_icinde (7 çözünürlük × 5 tür).
+- Yeni malzeme `kis-derinlik` (Kış Derinlik Sahnesi): arkada paralaks manzara, önde karlı çam dalları (kar başlığı + temas gölgesi, hafif sallanma), en önde iri kar. Öneri kaynağı: GPT-6.1 Sol (tasarim/yenileme/ekip/codex-yanit-2026-11-26.txt).
