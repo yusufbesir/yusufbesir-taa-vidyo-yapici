@@ -337,6 +337,14 @@ fn manzara(tv: &mut Tuval, z: f32, yon: f32, tohum: u32) {
         if i + 1 < bantlar.len() { let mut x = 0.0; while x < wf { tv.dikd(x, y0 + bh - 4.0, x + 2.0, y0 + bh - 2.0, bantlar[i + 1], 1.0); tv.dikd(x + 2.0, y0 + bh - 2.0, x + 4.0, y0 + bh, bantlar[i + 1], 1.0); x += 4.0; } }
     }
     tv.dikd(0.0, hf * 0.62, wf, hf, bantlar[4], 1.0);
+    // dalga 4 [Claude#MAL-FIX]: düz bantlı gök boş kalıyordu; 90 sabit yıldız (3 boy), %20'si 0,5 Hz yumuşak nabız
+    for i in 0..90u32 {
+        let (sx, sy) = (hash(tohum + 300 + i) * wf, hash(tohum + 700 + i) * hf * 0.45);
+        let b = hash(tohum + 1100 + i);
+        let r = (1.2 + 2.3 * b * b) * u;
+        let al = if i % 5 == 0 { 0.55 + 0.45 * (0.5 + 0.5 * (TAU * 0.5 * z + b * TAU).sin()) } else { 0.5 + 0.5 * b };
+        if r < 1.5 { tv.px(sx as i32, sy as i32, Renk(235, 240, 255), al); } else { tv.daire(sx, sy, r, Renk(235, 240, 255), al); }
+    }
     // ay (kraterli)
     let (mx, my, mr) = (wf * 0.74, hf * 0.12, 70.0 * u);
     tv.daire(mx, my, mr, Renk(225, 225, 210), 1.0);
@@ -413,7 +421,7 @@ pub fn ciz(m: &MalzemeAyar, yazi: &str, z: &Hazir, tv: &mut Tuval, yerel: f32, s
         }
         "fisek-kabarcik" | "fisek-sogut" | "fisek-halka" | "fisek-kalp" | "fisek-cift" => {
             let t = match m.id.as_str() { "fisek-sogut" => Tur::Sogut, "fisek-halka" => Tur::Halka, "fisek-kalp" => Tur::Kalp, "fisek-cift" => Tur::Cift, _ => Tur::Kure };
-            parca::gosteri(tv, tt, (dv.round() as usize).clamp(1, 10), &|_| t, &FISEK, 41, 0.12, 0.42);
+            parca::gosteri(tv, tt, (dv.round() as usize).clamp(1, 10), &|_| t, &FISEK, 41, 0.2, 0.46);
             if !yazi.is_empty() { piksel_3b(tv, yazi, cx, hf * 0.8, wf * 0.9, 30.0 * u, Renk(255, 248, 230)); }
         }
         "yilbasi-senlik" => {
@@ -458,16 +466,18 @@ pub fn ciz(m: &MalzemeAyar, yazi: &str, z: &Hazir, tv: &mut Tuval, yerel: f32, s
                 tv.halka(cx, cy, rr, 36.0 * u, Renk(30, 40, 70), 1.0);
                 tv.yay(cx, cy, rr, 36.0 * u, -PI / 2.0, 1.0 - f, z.vurgu, 1.0);
                 // yeni rakam üstten düşüp geri eğrisiyle oturur; eskisi alta kayıp söner
-                let k = anim::geri((f / 0.35).min(1.0));
+                // dalga 4 [Claude#MAL-FIX]: kontakta eski ve yeni rakam üst üste binip karışıyordu; eski rakam 0,18 sn'de
+                // hızla aşağı çıkar, yeni rakam 0,12 sn gecikmeyle düşer (aynı anda tam görünür iki rakam yok).
+                let k = anim::geri(((f - 0.12) / 0.33).clamp(0.0, 1.0));
                 let dy = (1.0 - k) * -420.0 * u;
-                if f < 0.3 && n + 1 <= bas.ceil() as i64 {
+                if f < 0.18 && n + 1 <= bas.ceil() as i64 {
                     let eski = (n + 1).to_string();
-                    let e = f / 0.3;
+                    let e = f / 0.18;
                     let h = ((rr * 1.3) / (eski.len() as f32 * 6.0 - 1.0)).min(60.0 * u);
                     tv.piksel_yazi(&eski, cx, cy + e * 380.0 * u, h, kos(Renk(255, 248, 230), 1.0 - e), 1.0 - e);
                 }
                 let s = n.to_string();
-                piksel_3b(tv, &s, cx, cy + dy, rr * 1.3, 60.0 * u, Renk(255, 248, 230));
+                if f >= 0.12 { piksel_3b(tv, &s, cx, cy + dy, rr * 1.3, 60.0 * u, Renk(255, 248, 230)); }
             } else {
                 parca::gosteri(tv, -kalan + 1.2, 4, &|j| if j % 2 == 0 { Tur::Kure } else { Tur::Cift }, &FISEK, 63, 0.1, 0.3);
                 yazi_3b(tv, z, yazi, cx, cy, wf * 0.88, anim::geri((-kalan / 0.6).min(1.0)), 0.0, u);

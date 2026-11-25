@@ -12,13 +12,15 @@ const TAU: f32 = std::f32::consts::TAU;
 pub enum Tur { Kure, Sogut, Halka, Kalp, Cift }
 
 /// (adet, v0 px/sn @950, k, g px/sn², ömür L sn, iz kopya N, yarıçap px)
+/// Dalga 4 [Claude#MAL-FIX Opus 5.5, 2026-11-25]: 950x1800 kontak denetiminde patlamalar ekranın ~%30'unda kalıyordu
+/// ("hafif kaçan"); kıvılcım sayısı ~1,6×, hız ~1,3×, yarıçap +1,5 px, söğüt ömrü uzatıldı.
 fn tablo(t: Tur) -> (usize, f32, f32, f32, f32, usize, f32) {
     match t {
-        Tur::Kure => (110, 560.0, 2.2, 160.0, 1.7, 4, 4.0),
-        Tur::Sogut => (60, 320.0, 1.1, 260.0, 2.8, 12, 3.4),
-        Tur::Halka => (48, 470.0, 2.4, 120.0, 1.5, 3, 4.5),
-        Tur::Kalp => (56, 30.0, 2.6, 60.0, 1.8, 3, 4.5),
-        Tur::Cift => (40, 480.0, 2.2, 150.0, 1.2, 3, 4.0),
+        Tur::Kure => (170, 720.0, 2.2, 170.0, 1.9, 4, 5.5),
+        Tur::Sogut => (96, 420.0, 1.1, 260.0, 3.2, 12, 4.8),
+        Tur::Halka => (78, 620.0, 2.4, 120.0, 1.7, 3, 6.0),
+        Tur::Kalp => (84, 40.0, 2.6, 60.0, 2.0, 3, 6.0),
+        Tur::Cift => (64, 620.0, 2.2, 150.0, 1.3, 3, 5.5),
     }
 }
 
@@ -112,12 +114,12 @@ pub fn patlama(tv: &mut Tuval, t: Tur, cx: f32, cy: f32, tau: f32, renk: Renk, i
                 let (px, py) = konum(birim(t, i, n, tohum), 0.55);
                 for j in 0..12 {
                     let u = birim(Tur::Kure, j, 12, tohum ^ (i as u32 * 977));
-                    let s = 170.0 * olc * (1.0 - (-2.6 * t2).exp()) / 2.6;
+                    let s = 230.0 * olc * (1.0 - (-2.6 * t2).exp()) / 2.6;
                     let a = 1.0 - (t2 / 0.9).powi(2);
                     for m in 0..3 {
                         let tt = (t2 - m as f32 * 0.03).max(0.0);
                         let s2 = s * (1.0 - (-2.6 * tt).exp()) / (1.0 - (-2.6 * t2).exp()).max(1e-3);
-                        ekle(tv, px + u.0 * s2, py + u.1 * s2 + 0.5 * 120.0 * olc * tt * tt, 3.2 * olc * (1.0 - m as f32 * 0.25), ikinci, a * (1.0 - m as f32 * 0.3));
+                        ekle(tv, px + u.0 * s2, py + u.1 * s2 + 0.5 * 120.0 * olc * tt * tt, 4.5 * olc * (1.0 - m as f32 * 0.25), ikinci, a * (1.0 - m as f32 * 0.3));
                     }
                 }
             }
@@ -145,7 +147,11 @@ pub fn gosteri(tv: &mut Tuval, z: f32, adet: usize, tur_sec: &dyn Fn(usize) -> T
             let t = tur_sec(j);
             let tj = j as f32 * aralik + hash(ts) * aralik * 0.5 + 0.1;
             let yuk = 0.9 + 0.4 * hash(ts + 1);
-            let tx = wf * (0.15 + 0.7 * hash(ts + 2));
+            // dalga 4 [Claude#MAL-FIX]: saf hash ardışık roketleri aynı yarıya topluyordu (kontakta hepsi solda);
+            // altın oran tabakalaması ardışık roketleri ekrana yayar, küçük hash sapması düzenliliği kırar
+            let baz = hash(tohum ^ (tur_no.rem_euclid(97) as u32).wrapping_mul(7919));
+            let xp = (baz + j as f32 * 0.618_034 + 0.2 * (hash(ts + 2) - 0.5)).rem_euclid(1.0);
+            let tx = wf * (0.15 + 0.7 * xp);
             let ty = hf * (ust + (alt - ust) * hash(ts + 3));
             let rk = renkler[(hash(ts + 4) * renkler.len() as f32) as usize % renkler.len()];
             let rk2 = renkler[(hash(ts + 5) * renkler.len() as f32) as usize % renkler.len()];

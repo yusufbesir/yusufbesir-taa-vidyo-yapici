@@ -1,0 +1,1 @@
+{"surum":1,"ekran":"dikey","gorunum":"duz","sahneler":[{"metin":["İNDİRİM","VAR","GELİN"],"giris":"belir","cikis":"sondur","efekt":[],"palet":"kirmizi-altin","font":"anton","sure":6,"malzeme":""},{"metin":["ÖRNEK","TERZİ"],"giris":"belir","cikis":"sondur","efekt":[],"palet":"altin-gece","font":"anton","sure":6,"malzeme":""}],"acilis":"fade","kapanis":"fade"}

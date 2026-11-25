@@ -2,6 +2,7 @@
 //! çekmece anahtarları, modül yuvaları (aiMount, malzemeMount, window.TaaApp), korunan JS id'leri, gömülü uç noktalar.
 //! Sahip: Yusuf. Yazan: [Claude#UI Opus 5.5, yenileme-1.0, 2026-11-18]. Yalnız UI ajanı ya da Yusuf'un izniyle değişir; silme yok.
 //! Çalıştırma: tasarim/yenileme/kilitli-cargo.sh test --release --test arayuz_ui
+//! Dalga 4 [Claude#SEC-FIX Opus 5.5, yenileme-1.0, 2026-11-25]: innerHTML kaçış taraması, ana sayfa CSP/nosniff, kabuksuz açma, varsayılan Düz görünüm.
 
 const SAYFA: &str = include_str!("../web/index.html");
 const SUNUCU: &str = include_str!("../src/arayuz.rs");
@@ -260,6 +261,75 @@ fn oynatici_ve_donusturucu_yuvalari() {
     assert!(SAYFA[ai..ai + 200].contains("id=\"aiAdimYuva\""), "aiAdimYuva aiMount'un ilk çocuğu olmalı");
     for id in ["oynaticiAc", "hazirSekmeDon", "donusturMount", "aiAdimYuva", "senaryoBildirim", "senaryoGeri", "geciciSerit", "isikNeden"] {
         assert_eq!(SAYFA.matches(&format!("id=\"{id}\"")).count(), 1, "id=\"{id}\" tam 1 kez olmalı");
+    }
+}
+
+// ---------- Dalga 4 [Claude#SEC-FIX Opus 5.5, yenileme-1.0, 2026-11-25]: güvenlik denetimi bulguları ----------
+
+/// innerHTML'e giden her `${...}` ya esc(...) ile kaçışlı, ya iç içe şablon (içindekiler ayrıca taranır), ya da aşağıdaki
+/// bilinen güvenli kalıplardan biri (sabit liste, sayı, sayfanın kendi sabitleri). Yeni bir ham ifade eklenirse test kırılır.
+#[test]
+fn innerhtml_yalniz_kacisli_veri() {
+    const GUVENLI: &[&str] = &[
+        "x.acik ? ' — ' + esc(x.acik) : ''", "rgbSayi(p.yuz)", "rgbSayi(p.zemin)", "rgbSayi(p.vurgu)", "k === 'tum' ? ' sec' : ''", "k", "t",
+        "sinif || 'mut'", "bulunmaEki(a)", "j.sahneler.length", "j.acilis !== 'yok' ? ', açılış: ' + esc(j.acilis) : ''",
+        "j.kapanis !== 'yok' ? ', kapanış: ' + esc(j.kapanis) : ''", "j.gorunum === 'bina' ? ', görünüm: bina' : ''", "sah",
+        "r.kaynak === 'benim' ? ' <span class=\"chip\">benim</span>' : ''", "k === hazirSuz ? ' sec' : ''", "hazirOnizleme(x.tarif)", "i + 1", "i",
+        // KIPLER sayfanın kendi sabiti (sunucu verisi değil)
+        "k.ad", "k.tus", "k.baslik", "simgeSvg(k.simge)",
+    ];
+    let mut tarandi = 0;
+    let mut bas = 0;
+    while let Some(j) = SAYFA[bas..].find("innerHTML") {
+        let i = bas + j;
+        bas = i + 9;
+        let geri = SAYFA[bas..].trim_start();
+        if !geri.starts_with('=') || geri.starts_with("==") { continue; }
+        let son = SAYFA[i..].find(";\n").map(|k| i + k).unwrap_or(SAYFA.len());
+        let st = &SAYFA[i..son];
+        tarandi += 1;
+        let b = st.as_bytes();
+        let mut k = 0;
+        while let Some(p) = st[k..].find("${") {
+            let a = k + p + 2;
+            let (mut d, mut e) = (1, a);
+            while e < b.len() && d > 0 { if b[e] == b'{' { d += 1 } else if b[e] == b'}' { d -= 1 } e += 1; }
+            let ifade = st[a..e - 1].trim();
+            let kacisli = ifade.starts_with("esc(") && ifade.ends_with(')');
+            assert!(kacisli || ifade.contains('`') || GUVENLI.contains(&ifade), "innerHTML'e kaçışsız veri: ${{{ifade}}}\nbağlam: {}", &st[..st.len().min(160)]);
+            k = a;
+        }
+    }
+    assert!(tarandi >= 30, "innerHTML ataması bulunamadı ({tarandi})");
+    // /bilgi verisinin geçtiği bilinen alanlar kaçışlı
+    for s in ["data-ad=\"${esc(x.ad)}\" title=\"${esc(x.acik)}\"", "${esc(sablon.baslik)}", "<h4>${esc(k)}</h4>", "data-sab=\"${esc(s.ad)}\">${esc(s.baslik)}",
+              "<b>${esc(r.baslik)}</b><span>${esc(r.aciklama)}</span>", "<option>${esc(o)}</option>", "<span>${esc(x.mesaj)}</span>", "→ ${esc(adlar[r.k] || r.k)}"] {
+        assert!(SAYFA.contains(s), "kaçış yok: {s}");
+    }
+    // esc işlev bildirimi (hoisting): /bilgi kurulumundan önce çağrılsa da tanımlı
+    assert!(SAYFA.contains("function esc(s) {") && !SAYFA.contains("const esc ="));
+}
+
+#[test]
+fn ana_sayfa_guvenlik_basliklari() {
+    for s in ["X-Content-Type-Options: nosniff", "Content-Security-Policy: {SAYFA_CSP}", "fn yanit_sayfa(", "(\"GET\", \"/\") => yanit_sayfa(",
+              "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; connect-src 'self'; frame-src 'self'; base-uri 'none'; form-action 'none'"] {
+        assert!(SUNUCU.contains(s), "sunucu: {s} yok");
+    }
+    // kabuk ile açma yok
+    assert!(!SUNUCU.contains("\"cmd\"") && !SUNUCU.contains("\"/c\", \"start\""), "cmd /c start kalmamalı");
+    assert!(SUNUCU.contains("crate::donustur::sistemde_ac(p)"));
+    // sayfa dış kaynak yüklemez (CSP ile uyumlu)
+    assert!(!SAYFA.contains("<script src=\"http") && !SAYFA.contains("@import") && !SAYFA.contains("new Function("));
+}
+
+#[test]
+fn varsayilan_duz_ve_kisa_ekran_sutunu() {
+    // açılışta Düz (localStorage'daki eski "karsi" açılışı ele geçirmez); 1366x768'de araç satırı dikey sütun (kare ≈270x515)
+    assert!(SAYFA.contains("let gorunum = 'duz';") && !SAYFA.contains("localStorage.getItem('taa-gorunum')"));
+    assert!(SAYFA.contains("data-g=\"duz\" class=\"sec\">Düz</button>"));
+    for s in ["@media (min-width:1200px) and (max-height:900px){", ".onizle{display:grid;grid-template-columns:208px minmax(0,1fr)", ".sarac{grid-column:1;grid-row:1/3;flex-direction:column"] {
+        assert!(css().contains(s), "kısa ekran: {s} yok");
     }
 }
 

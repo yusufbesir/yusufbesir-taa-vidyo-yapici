@@ -44,7 +44,7 @@ const fn m(id: &'static str, ad: &'static str, kategori: &'static str, etiketler
 
 pub const KATALOG: &[Kalem] = &[
     // Kış ve yılbaşı (dalga 3, malzeme_kis.rs / malzeme_parca.rs; KARAR-ANIM 2-3. bölüm)
-    m("kar-katmanli", "Katmanlı Kar", "kis", "kar,kar yagisi,kis,yilbasi,aralik,soguk,karli,noel,ruzgar", "Üç derinlikte rüzgârlı kar; önde yavaş dönen altı kollu iri taneler, isteğe bağlı 3B yazı.", 12.0, "gumus-mavi", Some(""), Some((160.0, 40.0, 400.0, "Tane sayısı")), Some("sag")),
+    m("kar-katmanli", "Katmanlı Kar", "kis", "kar,kar yagisi,kis,yilbasi,aralik,soguk,karli,noel,ruzgar", "Üç derinlikte rüzgârlı kar; önde yavaş dönen altı kollu iri taneler, isteğe bağlı 3B yazı.", 12.0, "gumus-mavi", Some(""), Some((240.0, 40.0, 400.0, "Tane sayısı")), Some("sag")),
     m("kar-birikme", "Biriken Kar", "kis", "kar,birikme,kar ortusu,kis,yilbasi,soguk,karli,yigin", "Kar yağarken altta kar örtüsü kabarır; 3B yazı örtünün üstünde durur (döngüsüz).", 12.0, "buz-cyan", Some("KIŞ İNDİRİMİ"), Some((14.0, 5.0, 30.0, "En çok kar yüksekliği (%)")), N),
     m("cam-agaci", "Çam Ağacı", "kis", "cam agaci,yilbasi,yeni yil,noel,agac,susler,isik dizisi,kis,aralik,kutlama", "Katları alttan oturan çam ağacı, süs topları, koşan ışık dizisi, salınan tepe yıldızı, hediyeler.", 10.0, "kirmizi-altin", Some("MUTLU YILLAR"), Some((18.0, 6.0, 40.0, "Süs sayısı")), N),
     m("fisek-kabarcik", "Küre Fişek", "kis", "havai fisek,fisek,kure,yilbasi,kutlama,patlama,bayram,gece", "Küre biçiminde patlayan fişekler; izli kıvılcımlar (tam ekran flaş yok).", 10.0, "altin-gece", Some(""), Some((5.0, 1.0, 10.0, "Roket sayısı")), N),

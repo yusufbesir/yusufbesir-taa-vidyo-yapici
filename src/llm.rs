@@ -2,6 +2,7 @@
 //! Yenileme [Claude#AI Opus 5.5, yenileme-1.0, 2026-11-18]: Tasiyici arayüzü (sahte sunucuyla test), net zaman aşımı, en çok 2 yeniden deneme (üstel bekleme),
 //! iptal, yanıt boyutu sınırı, sade Türkçe hata kodları (sır sızdırmaz). Yalnız yazan yapay zekâ ya da Yusuf'un izniyle değişir; silme yok.
 //! Dalga 3 [Claude#AI Opus 5.5, yenileme-1.0, 2026-11-25]: toplam yapay zekâ bütçesi 35 sn (TOPLAM_BUTCE; denemeler kalan süreyle sınırlı).
+//! Dalga 4 [Claude#AI Opus 5.5, yenileme-1.0, 2026-11-25]: şifreli anahtar çıktı klasöründen %LOCALAPPDATA%\TAA Vidyo Yapici'ye taşındı (kopyala-doğrula; eski dosya bırakılır).
 //! Güvenlik: anahtar Windows DPAPI (kullanıcı kapsamı) ile şifrelenir, düz dosyaya/günlüğe/arayüze yazılmaz, arayüze geri gösterilmez.
 //! Yalnız tarif metni ve katalog adları gönderilir; adresler sabit sağlayıcı adresleri ya da kullanıcının https adresidir; yönlendirme izlenmez.
 use crate::tarif::*;
@@ -23,7 +24,35 @@ pub struct Ayar { pub acik: bool, pub saglayici: String, pub model: String, pub 
 impl Default for Ayar { fn default() -> Self { Ayar { acik: false, saglayici: "chatgpt".into(), model: "gpt-4o-mini".into(), adres: String::new(), sorma: false } } }
 
 fn ayar_dosyasi(k: &Path) -> std::path::PathBuf { k.join("tarif-llm.json") }
-fn anahtar_dosyasi(k: &Path) -> std::path::PathBuf { k.join("tarif-llm.anahtar") }
+// ───────── Şifreli anahtarın yeri ─────────
+// Dalga 4 [Claude#AI Opus 5.5, yenileme-1.0, 2026-11-25] (güvenlik denetimi #6, düşük): şifreli anahtar eskiden çıktı klasöründeydi
+// (videolarla birlikte kopyalanabilir/paylaşılabilir). Yeni yer kullanıcıya özel %LOCALAPPDATA%\TAA Vidyo Yapici.
+// Göç: yeni dosya yoksa eski dosya KOPYALANIR, içerik doğrulanır; eski dosya silinmez (kalıcı silme yok kuralı; taşıma kararı Yusuf'un).
+/// Gizli dosyaların klasörü. Testte `k` altında ayrı klasör (gerçek kullanıcı anahtarına dokunulmaz). LOCALAPPDATA yoksa eski yer (k).
+fn gizli_klasor(k: &Path) -> std::path::PathBuf {
+    #[cfg(test)] { k.join("yerel-gizli") }
+    #[cfg(not(test))] { match std::env::var_os("LOCALAPPDATA") { Some(d) if !d.is_empty() => std::path::PathBuf::from(d).join("TAA Vidyo Yapici"), _ => k.to_path_buf() } }
+}
+fn eski_anahtar_dosyasi(k: &Path) -> std::path::PathBuf { k.join("tarif-llm.anahtar") }
+/// Eski yerdeki anahtarı yeni yere kopyalar (yalnız yeni dosya hiç yoksa; "Anahtarı kaldır" sonrası boş yeni dosya göçü durdurur).
+/// Kopya geri okunup karşılaştırılır; uyuşmazsa yeni dosya kullanılmaz (geçici dosya bırakılır, eski yer okunmaya devam eder).
+fn anahtar_goc(eski: &Path, yeni: &Path) -> bool {
+    if yeni.exists() || eski == yeni { return true; }
+    let Ok(icerik) = std::fs::read(eski) else { return false };
+    if icerik.is_empty() { return false; }
+    let Some(ust) = yeni.parent() else { return false };
+    if std::fs::create_dir_all(ust).is_err() { return false; }
+    let gecici = ust.join("tarif-llm.anahtar.tasiniyor");
+    if std::fs::write(&gecici, &icerik).is_err() { return false; }
+    if std::fs::read(&gecici).ok().as_deref() != Some(&icerik[..]) { return false; }
+    std::fs::rename(&gecici, yeni).is_ok()
+}
+fn yeni_anahtar_dosyasi(k: &Path) -> std::path::PathBuf { gizli_klasor(k).join("tarif-llm.anahtar") }
+/// Okuma yeri: göç başarılıysa (ya da yeni dosya zaten varsa) yeni yer; aksi halde eski dosya varsa o. Yazma her zaman yeni yere yapılır.
+fn anahtar_dosyasi(k: &Path) -> std::path::PathBuf {
+    let (eski, yeni) = (eski_anahtar_dosyasi(k), yeni_anahtar_dosyasi(k));
+    if anahtar_goc(&eski, &yeni) { yeni } else if eski.exists() { eski } else { yeni }
+}
 
 pub fn model_gecerli(m: &str) -> bool { !m.is_empty() && m.len() <= 64 && m.chars().all(|c| c.is_ascii_alphanumeric() || matches!(c, '.' | '_' | ':' | '-')) }
 pub fn adres_ozel_gecerli(a: &str) -> bool { crate::tarif_http::adres_gecerli(a) && !a.contains('#') && !a.contains('?') && a.len() <= 200 }
@@ -43,7 +72,7 @@ pub fn ayar_yaz(k: &Path, a: &Ayar) -> Result<(), String> {
     if !SAGLAYICILAR.iter().any(|x| x.0 == a.saglayici) { return Err("Bilinmeyen sağlayıcı.".into()); }
     if !a.model.is_empty() && !model_gecerli(&a.model) { return Err("Model adı yalnız harf, rakam, nokta, tire, alt çizgi ve iki nokta içerebilir (en çok 64).".into()); }
     if a.saglayici == "ozel" && !adres_ozel_gecerli(&a.adres) { return Err("Adres https:// ile başlamalı, sorgu içermemeli ve IP adresi olmamalı.".into()); }
-    let g = format!("{{\"aciklama\":\"TAA Vidyo Yapıcı Tarif et doğrudan LLM ayarı (anahtar burada DEĞİL; tarif-llm.anahtar DPAPI ile şifrelidir). Sahip: kullanıcı.\",\"acik\":{},\"sorma\":{},\"saglayici\":\"{}\",\"model\":\"{}\",\"adres\":\"{}\"}}\n", a.acik, a.sorma, a.saglayici, a.model, a.adres.replace(['"', '\\'], ""));
+    let g = format!("{{\"aciklama\":\"TAA Vidyo Yapıcı Tarif et doğrudan LLM ayarı (anahtar burada DEĞİL; DPAPI ile şifreli tarif-llm.anahtar kullanıcının LOCALAPPDATA klasöründe, TAA Vidyo Yapici altında). Sahip: kullanıcı.\",\"acik\":{},\"sorma\":{},\"saglayici\":\"{}\",\"model\":\"{}\",\"adres\":\"{}\"}}\n", a.acik, a.sorma, a.saglayici, a.model, a.adres.replace(['"', '\\'], ""));
     std::fs::create_dir_all(k).map_err(|e| e.to_string())?;
     let gecici = k.join("tarif-llm.json.tmp");
     std::fs::write(&gecici, g).and_then(|_| std::fs::rename(&gecici, ayar_dosyasi(k))).map_err(|e| e.to_string())
@@ -88,8 +117,9 @@ pub fn anahtar_kaydet(k: &Path, anahtar: &str, bag: &str) -> Result<(), String> 
     if a.len() < 8 || a.len() > 400 || !a.chars().all(|c| c.is_ascii_graphic()) { return Err("Anahtar geçersiz görünüyor (8-400 karakter, boşluksuz).".into()); }
     let sifreli = dpapi::koru(format!("{bag}
 {a}").as_bytes()).ok_or("Anahtar şifrelenemedi (Windows kullanıcı şifreleme hizmeti gerekli); kaydedilmedi.")?;
-    std::fs::create_dir_all(k).map_err(|e| e.to_string())?;
-    std::fs::write(anahtar_dosyasi(k), hex_yaz(&sifreli)).map_err(|e| e.to_string())
+    let yeni = yeni_anahtar_dosyasi(k);
+    if let Some(ust) = yeni.parent() { std::fs::create_dir_all(ust).map_err(|e| e.to_string())?; }
+    std::fs::write(yeni, hex_yaz(&sifreli)).map_err(|e| e.to_string())
 }
 pub fn anahtar_var(k: &Path, a: &Ayar) -> bool { anahtar_oku(k, &bag(a)).is_some() }
 fn anahtar_oku(k: &Path, bag: &str) -> Option<String> {
@@ -101,7 +131,13 @@ fn anahtar_oku(k: &Path, bag: &str) -> Option<String> {
     Some(anahtar.to_string())
 }
 /// Anahtarı kaldırır: dosya silinmez, içi boş yazılır (kalıcı silme yok kuralı; boş dosya anahtar sayılmaz).
-pub fn anahtar_kaldir(k: &Path) -> Result<(), String> { if anahtar_dosyasi(k).exists() { std::fs::write(anahtar_dosyasi(k), "").map_err(|e| e.to_string()) } else { Ok(()) } }
+/// Dalga 4: yeni yerdeki boş dosya, eski yerdeki (göç öncesi) dosyanın yeniden kopyalanmasını da durdurur; eski dosyaya dokunulmaz.
+pub fn anahtar_kaldir(k: &Path) -> Result<(), String> {
+    let yeni = yeni_anahtar_dosyasi(k);
+    if !yeni.exists() && !eski_anahtar_dosyasi(k).exists() { return Ok(()); }
+    if let Some(ust) = yeni.parent() { std::fs::create_dir_all(ust).map_err(|e| e.to_string())?; }
+    std::fs::write(yeni, "").map_err(|e| e.to_string())
+}
 
 // ───────── İstek / yanıt ─────────
 fn kac(s: &str) -> String { s.chars().filter(|c| !c.is_control() || *c == '\n').flat_map(|c| match c { '"' => vec!['\\', '"'], '\\' => vec!['\\', '\\'], '\n' => vec!['\\', 'n'], c => vec![c] }).collect() }
@@ -453,5 +489,32 @@ mod testler {
         assert!(anahtar_kaydet(&k, "kısa", &bag(&a)).is_err());
         anahtar_kaldir(&k).unwrap();
         assert!(!anahtar_var(&k, &a), "kaldırılan anahtar kullanılamaz");
+    }
+    /// Dalga 4 (güvenlik #6): anahtar çıktı klasörüne yazılmaz; eski yerdeki anahtar yeni yere kopyalanır, eski dosya silinmez.
+    #[cfg(windows)]
+    #[test]
+    fn anahtar_gizli_klasorde_ve_goc() {
+        let k = gecici("goc");
+        let a = Ayar::default();
+        // yeni kayıt çıktı klasörüne düşmez
+        anahtar_kaydet(&k, "sk-test-0123456789", &bag(&a)).unwrap();
+        assert!(!eski_anahtar_dosyasi(&k).exists(), "anahtar çıktı klasörüne yazılmamalı");
+        assert!(yeni_anahtar_dosyasi(&k).exists() && yeni_anahtar_dosyasi(&k) != eski_anahtar_dosyasi(&k));
+        // eski sürümden kalan anahtar: göç ettirilir, eski dosya yerinde kalır
+        let k2 = gecici("goc-eski");
+        let sifreli = std::fs::read(yeni_anahtar_dosyasi(&k)).unwrap();
+        std::fs::write(eski_anahtar_dosyasi(&k2), &sifreli).unwrap();
+        assert!(!yeni_anahtar_dosyasi(&k2).exists());
+        assert!(anahtar_var(&k2, &a), "eski yerdeki anahtar okunabilmeli");
+        assert_eq!(std::fs::read(yeni_anahtar_dosyasi(&k2)).unwrap(), sifreli, "kopya doğrulanmış olmalı");
+        assert_eq!(std::fs::read(eski_anahtar_dosyasi(&k2)).unwrap(), sifreli, "eski dosya silinmemeli/değişmemeli");
+        // kaldırınca eski dosyadan yeniden göç olmaz; eski dosyaya yine dokunulmaz
+        anahtar_kaldir(&k2).unwrap();
+        assert!(!anahtar_var(&k2, &a));
+        assert_eq!(std::fs::read(eski_anahtar_dosyasi(&k2)).unwrap(), sifreli);
+        // boş eski dosya göç ettirilmez
+        let k3 = gecici("goc-bos");
+        std::fs::write(eski_anahtar_dosyasi(&k3), "").unwrap();
+        assert!(!anahtar_var(&k3, &a) && !yeni_anahtar_dosyasi(&k3).exists());
     }
 }

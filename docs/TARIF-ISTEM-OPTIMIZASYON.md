@@ -1,7 +1,7 @@
 ---
 description: Yapay zekâ istemi optimizasyonu (dalga 3). 31 gerçek mağaza talebiyle GPT-6.1 Sol ve Gemini 3.8 Flash üzerinde önce/sonra ölçüm, hata sınıfları ve istem sürüm 2 kararları.
 sahip: Yusuf
-yazan: "[Claude#AI Opus 5.5, yenileme-1.0, 2026-11-25]"
+yazan: "[Claude#AI Opus 5.5, yenileme-1.0, 2026-11-25]; dalga 4 eki [Claude#AI-FIX Opus 5.5, 2026-11-25]"
 kural: Yalnız yazan yapay zekâ ya da Yusuf'un izniyle değişir; silme yok.
 ---
 # İstem optimizasyonu (2026-11-25)
@@ -32,6 +32,9 @@ Sahibin şikâyeti: "istemler çok alakasız sonuç veriyor". Ölçüm, asıl so
 | v2en-gem | 14 | %100 | %100 | %100 | %100 | %100 | %86 | %100 |
 | v2en-sol | 31 | %100 | %100 | %100 | %100 | %100 | %90 | %100 |
 | **v21tr-sol** (uygulamada) | 31 | %100 | %100 | %100 | %100 | %100 | %94 | %100 |
+| yerel yol (anahtar yokken, dalga 4) | 31 | %100* | %100* | %100 | %90 | %100 | %81 | %100* |
+
+**Ölçüm yalnız LLM yolu içindir.** Yukarıdaki model satırları yalnız yapay zekâ (LLM) yanıtlarını ölçer; uygulamada anahtar yoksa (varsayılan) çalışan yerel yol (niyet şablonu → kural → güvenli şablon) bu yanıtlardan geçmez. "yerel yol" satırı aynı 31 talep ve aynı ölçütlerle dalga 4'te ayrıca hesaplandı (`yerel_yol_olcum`, işletme adı "Örnek Terzi"). *Yerel yol tarifi doğrulamadan geçerek ürettiği için şema/ad her zaman geçer; "ham" sütunu program hattıyla aynıdır. Yerel yolda kalan alakasızlar: "kumaş çeşitlerimiz yenilendi" (KUMAŞ sözcüğü "kumaş-ser" giriş animasyonu sanılıp düşüyor), "yılbaşına geri sayım" (MUTLU YILLAR iki kez; geri sayım sayıları malzemede), "ok işaretiyle girişi göster" (görsel isteği metin sanılıyor). Satır kısalığı hataları uzun tek sözcüklerdir (ELBİSELERDE, GÖMLEKLERDE); program hattı bunları dar yazı tipi ya da heceden bölmeyle /denetle uyarısız yapar.
 
 Görsel istekler (havai fişek, kar, pacman, kalp, geri sayım, ekolayzer, ok): sürüm 2'de bunlara `malzeme` alanı konuldu. Oranlar: v2tr-sol 7/7, v2en-sol 7/7, v2tr-gem 4/4, v2en-gem 2/2. Sürüm 1'de malzeme alanı yoktu.
 
@@ -54,4 +57,5 @@ Görsel istekler (havai fişek, kar, pacman, kalp, geri sayım, ekolayzer, ok): 
 - Gemini kotası doldu (agy: "Individual quota reached", yaklaşık 5 gün sonra sıfırlanacak). Bu yüzden Gemini grupları eksik: v1-gem 12/31, v2tr-gem 20/31, v2en-gem 14/31. v21tr Gemini'de denenmedi.
 - Sürüm 2 ölçümünün bir kısmı, Malzeme ajanının kış paketi kataloğa eklenmeden önceki istem dosyalarıyla yapıldı. Kural metni aynıydı; yalnız katalog listesi büyüdü.
 - Alakalılık ölçütü sözcüğe dayalı ve kaba bir ölçüt. Enjeksiyon için yasak sözcük (`!`) desteği eklendi. Genel konu dışılık elle gözden geçirilmeli.
-- Yanıtlar ve istem dosyaları oturumun scratchpad klasöründe kaldı; depoya konmadı. Komutlar yukarıda, yeniden üretilebilir.
+- ~~Yanıtlar ve istem dosyaları oturumun scratchpad klasöründe kaldı; depoya konmadı.~~ **Pasif, 2026-11-25 (dalga 4); yerine:** yanıtlar (217 dosya; 47'si boş = Gemini kotası) ve güncel istem dosyaları (v1, v2tr, v2en, v21tr × 31) sırsız biçimde `tests/istem-olcum/` altında (bkz. oradaki BENIOKU.md). `istem_yanitlarini_degerlendir` `YANIT_DIZIN` verilmezse bu klasörü okur; dalga 4'te yeniden çalıştırıldı ve tablo birebir aynı çıktı.
+- Dalga 4 yerel yol düzeltmeleri (Fable bulguları): talimat/ilgisiz talep ekrana yazılmaz (güvenli şablon, yapay zekâya da gönderilmez), talepte olmayan İNDİRİM/FIRSAT/BÜYÜK yazılmaz, "son N gün/saat" tanınır, havai fişek istenince kar görseli eklenmez, "öğle arası … kapalıyız" artık "AÇIĞIZ" yazmaz. Test: `yerel_yol_dogrulugu` (20 talep).

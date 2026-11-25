@@ -1,0 +1,1 @@
+{"surum":1,"ekran":"dikey","gorunum":"duz","sahneler":[{"metin":["←","GİRİŞ","SOLDA"],"giris":"soldan","cikis":"sondur","efekt":[],"palet":"sicak-beyaz","font":"anton","sure":7,"malzeme":"ok-nabiz"},{"metin":["ÖRNEK","TERZİ"],"giris":"belir","cikis":"sondur","efekt":[],"palet":"sicak-beyaz","font":"anton","sure":6,"malzeme":""}],"acilis":"fade","kapanis":"fade"}

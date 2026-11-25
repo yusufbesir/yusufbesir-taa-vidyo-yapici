@@ -1,6 +1,6 @@
 // web/ai.js mantık testi (Node, DOM'suz sahte ortam). Çalıştırma: node tests/ai_test.js
 // Sahip: Yusuf. Yazan: [Claude#AI Opus 5.5, yenileme-1.0, 2026-11-18]; dalga 3 ek [Claude#AI Opus 5.5, 2026-11-25]: adım göstergesi, Geri al, Durdur→yerel,
-// geçici önizleme, Diğer araçlar, işletme adı ayarı, Her seferinde sor. Yalnız yazan yapay zekâ ya da Yusuf'un izniyle değişir; silme yok.
+// geçici önizleme, Diğer araçlar, işletme adı ayarı, Her seferinde sor; dalga 4: bulunma eki, anlaşılmayan uyarısı. Yalnız yazan yapay zekâ ya da Yusuf'un izniyle değişir; silme yok.
 'use strict';
 const assert = require('assert');
 const path = require('path');
@@ -118,7 +118,12 @@ const bekle = () => new Promise(r => setTimeout(r, 0));
   assert.ok(cipler.length >= 6, 'örnek çipler');
   cipler[0].tikla();
   assert.strictEqual(p.alan.value, ic.ORNEKLER[0], 'çip metni doldurur');
-  assert.ok(hepsi(el, d => d.tagName === 'BUTTON' && /’de aç$/.test(d.textContent)).length === 2, 'site düğmeleri');
+  assert.ok(hepsi(el, d => d.tagName === 'BUTTON' && /'de aç$/.test(d.textContent)).length === 2, 'site düğmeleri');
+  // dalga 4: doğru bulunma eki (TaaApp.bulunmaEki yoksa yerel kural)
+  assert.strictEqual(ic.bulunmaEki('DeepSeek'), "'te"); assert.strictEqual(ic.bulunmaEki('Claude'), "'da");
+  assert.strictEqual(ic.bulunmaEki('ChatGPT'), "'de"); assert.strictEqual(ic.bulunmaEki('Gemini'), "'de");
+  assert.strictEqual(ic.bulunmaEki('Kimi'), "'de"); assert.strictEqual(ic.bulunmaEki('Copilot'), "'ta");
+  assert.strictEqual(ic.bulunmaEki('X', { bulunmaEki: () => "'ta" }), "'ta", 'TaaApp.bulunmaEki önceliklidir');
 
   // ağ hatası → sade mesaj, çökme yok
   await p.hazirla(false);
@@ -131,6 +136,8 @@ const bekle = () => new Promise(r => setTimeout(r, 0));
   const rozet = bul(sonuc, d => d.attrs.class === 'taai-rozet');
   assert.strictEqual(rozet.textContent, 'Kural'); assert.strictEqual(rozet.attrs['data-k'], 'kural');
   assert.ok(/İNDİRİM/.test(sonuc.textContent) && /Sona işletme adını/.test(sonuc.textContent) && /falan/.test(sonuc.textContent));
+  const anl = bul(sonuc, d => /taai-anlasilmayan/.test(d.attrs.class || ''));
+  assert.ok(anl && /taai-uyari/.test(anl.attrs.class) && /anlayamadım/.test(anl.textContent), 'anlaşılmayan sözcük görünür uyarı olmalı');
   assert.strictEqual(adimlar[2].attrs['aria-current'], 'step', 'hazırlandı → Uygula adımı');
   // Önizle: senaryoyu değiştirmeden geçici önizleme
   bul(sonuc, metinli('Önizle')).tikla();

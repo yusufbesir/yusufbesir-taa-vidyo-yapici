@@ -1,0 +1,1 @@
+{"surum":1,"ekran":"dikey","gorunum":"duz","sahneler":[{"metin":[],"giris":"","cikis":"sondur","efekt":[],"palet":"neon-yesil","font":"","sure":8,"malzeme":"ekolayzer"},{"metin":["ÖRNEK","TERZİ"],"giris":"belir","cikis":"sondur","efekt":[],"palet":"neon-yesil","font":"anton","sure":6,"malzeme":""}],"acilis":"fade","kapanis":"fade"}

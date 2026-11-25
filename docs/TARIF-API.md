@@ -1,7 +1,7 @@
 ---
 description: Tarif et / Yapay zekâ HTTP uçları ve web/ai.js (window.TaaAI) arayüz sözleşmesi.
 sahip: Yusuf
-yazan: "[Claude#AI Opus 5.5, yenileme-1.0, 2026-11-18]; dalga 3 eki [Claude#AI Opus 5.5, 2026-11-25]"
+yazan: "[Claude#AI Opus 5.5, yenileme-1.0, 2026-11-18]; dalga 3 eki [Claude#AI Opus 5.5, 2026-11-25]; dalga 4 eki [Claude#AI-FIX Opus 5.5, 2026-11-25]"
 kural: Yalnız yazan yapay zekâ ya da Yusuf'un izniyle değişir; silme yok.
 ---
 # Tarif API (yenileme-1.0)
@@ -76,6 +76,12 @@ window.TaaAI.mount(el, app) -> { hazirla(onay?), uygula(j), goster(j), yanitUygu
 - **POST /tarif/istem** gövdesi düz metin (eski) ya da `{"metin":..,"isletme":..}`. İstem sürüm 2 (bkz. docs/TARIF-ISTEM-OPTIMIZASYON.md).
 - **Bütçe**: yapay zekâya toplam en çok 35 sn (`llm::TOPLAM_BUTCE`; deneme başına kalan süre, kalan <5 sn ise yeniden deneme yok). Arayüz de 35 sn sonra isteği keser (AbortController) ve yerel sonuca geçer.
 - **web/ai.js** `mount` dönüşü: `{ hazirla, durdur, uygula, geriAl, onizle, goster, yanitUygula, panodanUygula, kuraldanCoz, istemKopyala, istemGoster, kurallariYukle, kuralEkle, siteAc, siteEkle, isletmeKaydet, el, durum, alan }`. Adım göstergesi (Yaz → Hazırla → Uygula → Önizle); Hazırla metin kutusunun hemen altında; "Önizle" `TaaApp.geciciOnizle(metin)` (yoksa `onizle`); Uygula'dan sonra "Geri al (önceki senaryoya dön)"; kapalı "Diğer araçlar": işletme adı, İstemi göster, Kuraldan çöz, Panodaki tarifi uygula, Kural listesi/ekle, + Site; "Doğrudan bağlantı"da "Her seferinde sor" (varsayılan açık; "Kaydet ve aç" onayı kalıcı kapatmaz). `.taai-ana` çerçeveli vurgu (dolu değil).
+
+## Dalga 4 düzeltmeleri (2026-11-25, yazan [Claude#AI-FIX Opus 5.5, yenileme-1.0])
+- **Talimat/ilgisiz talep** (`niyet::talimat_mi`, `niyet::soru_ya_da_ilgisiz`): "önceki talimatları unut…", "şiir yaz", "Ignore previous instructions" gibi tarifler ekrana YAZILMAZ; yerel yol güvenli HOŞ GELDİNİZ + işletme adı şablonu döner (`kaynak:"sablon"`, nedeni `varsayimlar`da). Talimat içeren tarif yapay zekâya hiç gönderilmez (`adimlar`: yapay-zeka `atlandi`, "Tarifte talimat var"). Soru/ilgisiz konu yalnız hiçbir mağaza niyeti bulunamazsa şablona düşer. Tırnak içindeki metin de talimat içeriyorsa yazılmaz. `POST /tarif/kural-coz` (eski "Kuraldan çöz", metni aynen yazar) bu denetimi yapmaz.
+- **Sadakat**: talepte geçmeyen İNDİRİM/FIRSAT/BÜYÜK yazılmaz (oran yoksa ve "büyük" yazılmamışsa yalnız "İNDİRİM"; "fırsat"/"kampanya" yazılmışsa o sözcük). "son 3 gün", "son iki saat", "son hafta", "son gün" tanınır (sayı yazıldığı gibi). "yılbaşı kampanyası" → YILBAŞI / KAMPANYASI. Havai fişek, kar, çam gibi belirli görsel istenince genel yılbaşı (kar) görseli eklenmez; kar efekti yalnız kar/kış istenince.
+- **web/ai.js**: site düğmeleri doğru ekle ("DeepSeek'te aç", "Claude'da aç"; `TaaApp.bulunmaEki`, yoksa aynı kural yerelde). `anlasilmayan` doluysa sonuç kartında görünür uyarı (`.taai-uyari.taai-anlasilmayan`). `TaaAI._ic.bulunmaEki` eklendi.
+- **Anahtar yeri** (güvenlik #6): şifreli anahtar `%LOCALAPPDATA%\TAA Vidyo Yapici\tarif-llm.anahtar`. Eski yerdeki (çıktı klasörü) dosya ilk okumada kopyalanır ve doğrulanır; eski dosya silinmez. Ayar dosyası (`tarif-llm.json`, sır içermez) çıktı klasöründe kalır.
 
 ## UI ajanından beklenen (ISTEK-AI.md)
 `src/arayuz.rs`: `GET /ai.js` → `include_str!("../web/ai.js")`, `text/javascript; charset=utf-8`. `web/index.html`: Yapay zekâ kipinde `<div id="aiPanel"></div>` ve `<script src="/ai.js"></script>` sonrası `TaaAI.mount(document.getElementById('aiPanel'), window.TaaApp)`.

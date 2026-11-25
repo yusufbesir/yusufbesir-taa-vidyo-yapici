@@ -4,11 +4,16 @@
 //! sabit listeden adlar girer. Kaynak yalnız izinli köklerden (çıktı klasörü ve kullanıcı klasörleri),
 //! yalnız video/resim uzantısıyla ve boyut sınırıyla kabul edilir. Ayrıntı: docs/DONUSTURUCU.md.
 //! Sahip Yusuf; yazan [Claude#Dönüştürücü Opus 5.5, yenileme-1.0, 2026-11-25]; yalnız yazan yapay zekâ ya da Yusuf'un izniyle değişir; silme yok.
+//! Dalga 4 [Claude#SEC-FIX Opus 5.5, yenileme-1.0, 2026-11-25]: girişte `-protocol_whitelist file,pipe` ve uzantıdan zorlanan
+//! demuxer (`-f mov|matroska|avi|gif|image2`; içerik koklama yok, m3u8 içerikli .mp4 açılmaz); önizleme aynı anda tek ve 25 sn
+//! zaman aşımlı (süreç öldürülür); eşzamanlı dönüştürme arka plan işinin iptal/süreç/durum kaydına dokunmaz (test yalıtımı);
+//! kaynak listesinde uzak masaüstü alt klasörleri dışarıda, çıktı klasörü en üstte.
 use std::io::{BufRead, BufReader, Read};
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Mutex;
+use std::time::{Duration, Instant};
 
 pub const W: u32 = 950;
 pub const H: u32 = 1800;
@@ -244,7 +249,17 @@ pub fn kaynak_dogrula(yol: &str, kokler: &[PathBuf]) -> Result<PathBuf, String> 
     Ok(t)
 }
 
-/// Köklerdeki (en çok bir alt klasör derinliği) video/resim dosyaları; yeniden eskiye, en çok 300.
+/// Varsayılan olarak taranmayan alt klasörler (uzak masaüstü ve ekran kaydı araçlarının kendi kayıtları; küçük harf).
+pub const DISLANAN_ALT: &[&str] = &["rustdesk", "anydesk", "teamviewer", "parsec", "chrome remote desktop", "remote desktop", "uzak masaüstü", "splashtop", "nomachine"];
+
+/// Alt klasör adı dışlanacak mı (yalnız kök altındaki klasörlerde uygulanır; kökün kendisi hep taranır).
+pub fn alt_dislanir(ad: &str) -> bool {
+    let a = ad.trim().to_lowercase();
+    DISLANAN_ALT.iter().any(|d| a == *d || a.starts_with(&format!("{d} ")) || a.starts_with(&format!("{d}-")) || a.starts_with(&format!("{d}_")))
+}
+
+/// Köklerdeki (en çok bir alt klasör derinliği) video/resim dosyaları; en çok 300. İlk kök (program çıktı klasörü)
+/// dosyaları en üstte, sonra yeniden eskiye. Uzak masaüstü alt klasörleri (RustDesk vb.) taranmaz.
 pub fn kaynak_listesi(kokler: &[PathBuf]) -> Vec<(PathBuf, u64)> {
     let mut v: Vec<(PathBuf, u64, std::time::SystemTime)> = vec![];
     fn tara(k: &Path, derinlik: u32, v: &mut Vec<(PathBuf, u64, std::time::SystemTime)>) {
@@ -252,7 +267,10 @@ pub fn kaynak_listesi(kokler: &[PathBuf]) -> Vec<(PathBuf, u64)> {
         for e in rd.flatten().take(2000) {
             let p = e.path();
             let Ok(m) = e.metadata() else { continue };
-            if m.is_dir() { if derinlik > 0 { tara(&p, derinlik - 1, v); } continue; }
+            if m.is_dir() {
+                if derinlik > 0 && !alt_dislanir(&e.file_name().to_string_lossy()) { tara(&p, derinlik - 1, v); }
+                continue;
+            }
             let ext = uzanti(&p);
             let sinir = if RESIM_UZANTI.contains(&ext.as_str()) { RESIM_MAX } else if VIDEO_UZANTI.contains(&ext.as_str()) { VIDEO_MAX } else { continue };
             if m.len() == 0 || m.len() > sinir { continue; }
@@ -260,8 +278,11 @@ pub fn kaynak_listesi(kokler: &[PathBuf]) -> Vec<(PathBuf, u64)> {
         }
     }
     for k in kokler { tara(k, 1, &mut v); }
-    v.sort_by(|a, b| b.2.cmp(&a.2));
-    v.dedup_by(|a, b| a.0 == b.0);
+    let oncelik = kokler.first().cloned();
+    let ust = |p: &Path| oncelik.as_ref().map(|o| p.parent() == Some(o.as_path())).unwrap_or(false);
+    v.sort_by(|a, b| ust(&b.0).cmp(&ust(&a.0)).then(b.2.cmp(&a.2)));
+    let mut gorulen = std::collections::HashSet::new();
+    v.retain(|x| gorulen.insert(x.0.clone()));
     v.into_iter().take(300).map(|(p, n, _)| (p, n)).collect()
 }
 
@@ -282,8 +303,34 @@ pub fn sure_ayikla(cikti: &str) -> Option<f32> {
 }
 
 pub fn sure_oku(ff: &Path, kaynak: &Path) -> Option<f32> {
-    let o = komut(ff).args(["-hide_banner", "-i"]).arg(kaynak).stdout(Stdio::null()).stderr(Stdio::piped()).output().ok()?;
+    let mut a: Vec<String> = vec!["-hide_banner".into(), "-nostdin".into()];
+    a.extend(giris_guvenlik(kaynak));
+    a.push("-i".into());
+    let o = komut(ff).args(a).arg(kaynak).stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::piped()).output().ok()?;
     sure_ayikla(&String::from_utf8_lossy(&o.stderr))
+}
+
+/// Uzantıya göre zorlanan ffmpeg demuxer'ı (içerik koklanmaz: .mp4 içine konmuş m3u8/HLS listesi ya da başka biçim açılmaz).
+pub fn zorunlu_bicim(kaynak: &Path) -> Option<&'static str> {
+    match uzanti(kaynak).as_str() {
+        "mp4" | "mov" | "m4v" => Some("mov"),
+        "mkv" | "webm" => Some("matroska"),
+        "avi" => Some("avi"),
+        "gif" => Some("gif"),
+        "png" | "jpg" | "jpeg" | "bmp" | "webp" => Some("image2"),
+        _ => None,
+    }
+}
+
+/// `-i`'den hemen önce gelen güvenlik argümanları: yalnız yerel dosya/boru protokolü ve uzantıdan zorlanan biçim.
+/// image2'de dosya adı kalıp olarak yorumlanmaz (`%d`, `*` gibi karakterler başka dosyaları okutmasın).
+pub fn giris_guvenlik(kaynak: &Path) -> Vec<String> {
+    let mut v: Vec<String> = vec!["-protocol_whitelist".into(), "file,pipe".into()];
+    if let Some(f) = zorunlu_bicim(kaynak) {
+        v.extend(["-f".into(), f.into()]);
+        if f == "image2" { v.extend(["-pattern_type".into(), "none".into()]); }
+    }
+    v
 }
 
 /// Etkin süre: resimde süre (yoksa 5 sn); videoda kalan süre ile istenen sürenin küçüğü.
@@ -302,8 +349,9 @@ fn giris(a: &Ayar, kaynak: &Path, resim: bool, sure: Option<f32>, palet: Option<
         if a.baslangic > 0.0 { v.extend(["-ss".into(), format!("{:.3}", a.baslangic)]); }
         if let Some(s) = sure { v.extend(["-t".into(), format!("{s:.3}")]); }
     }
+    v.extend(giris_guvenlik(kaynak));
     v.push("-i".into()); v.push(kaynak.display().to_string());
-    if let Some(p) = palet { v.push("-i".into()); v.push(p.display().to_string()); }
+    if let Some(p) = palet { v.extend(giris_guvenlik(p)); v.push("-i".into()); v.push(p.display().to_string()); }
     v
 }
 
@@ -333,19 +381,76 @@ pub fn onizleme_argumanlari(a: &Ayar, kaynak: &Path, resim: bool, t: f32, palet:
 fn palet_dosyasi(ad: &str) -> Result<Option<PathBuf>, String> {
     let Some(r) = palet_renkleri(ad) else { return Ok(None) };
     let p = std::env::temp_dir().join(format!("taa-donustur-palet-{ad}.png"));
-    std::fs::write(&p, palet_png(r)).map_err(|e| format!("palet yazılamadı: {e}"))?;
+    let b = palet_png(r);
+    // İçerik aynıysa yeniden yazma: eşzamanlı iki iş aynı dosyayı yazarken biri yarım dosya okumasın.
+    if std::fs::read(&p).ok().as_deref() != Some(b.as_slice()) {
+        let g = std::env::temp_dir().join(format!("taa-donustur-palet-{ad}-{}-{}.png", std::process::id(), SAYAC.fetch_add(1, Ordering::Relaxed)));
+        std::fs::write(&g, &b).map_err(|e| format!("palet yazılamadı: {e}"))?;
+        if std::fs::rename(&g, &p).is_err() { let _ = std::fs::remove_file(&g); if std::fs::read(&p).ok().as_deref() != Some(b.as_slice()) { return Err("palet yazılamadı".into()); } }
+    }
     Ok(Some(p))
 }
 fn palet_gerekli(a: &Ayar) -> bool { matches!(a.tur.as_str(), "piksel" | "retro8bit") }
 
-/// Tek kare PNG üretir. `t`: başlangıçtan itibaren saniye.
-pub fn onizle(a: &Ayar, kaynak: &Path, t: f32, kucuk: bool) -> Result<Vec<u8>, String> {
+/// Önizleme ffmpeg süresi sınırı: aşılırsa süreç öldürülür.
+pub const ONIZLE_SURE: Duration = Duration::from_secs(25);
+/// Önizleme sırası için en uzun bekleme (aynı anda tek önizleme; sonraki istek sıraya girer).
+pub const ONIZLE_BEKLE: Duration = Duration::from_secs(30);
+pub const MESGUL: &str = "önizleme meşgul: başka bir önizleme sürüyor, biraz sonra yeniden deneyin";
+static ONIZLE_KILIT: Mutex<()> = Mutex::new(());
+static ONIZLE_ESZ: AtomicUsize = AtomicUsize::new(0);
+static ONIZLE_EN_COK: AtomicUsize = AtomicUsize::new(0);
+
+/// Süreç boyunca görülen en yüksek eşzamanlı önizleme ffmpeg sayısı (tek olmalı; test için).
+pub fn onizle_en_cok_esz() -> usize { ONIZLE_EN_COK.load(Ordering::SeqCst) }
+
+/// Tek kare PNG üretir. `t`: başlangıçtan itibaren saniye. Aynı anda tek ffmpeg; 25 sn'de bitmezse öldürülür.
+pub fn onizle(a: &Ayar, kaynak: &Path, t: f32, kucuk: bool) -> Result<Vec<u8>, String> { onizle_sinirli(a, kaynak, t, kucuk, ONIZLE_SURE) }
+
+/// `onizle` ile aynı; zaman sınırı verilebilir (test).
+pub fn onizle_sinirli(a: &Ayar, kaynak: &Path, t: f32, kucuk: bool, sinir: Duration) -> Result<Vec<u8>, String> {
     let ff = crate::ffmpeg::bul().ok_or_else(|| crate::ffmpeg::YOK_MESAJI.to_string())?;
+    // Sıra: kilidi en çok ONIZLE_BEKLE bekle (zehirlenmiş kilit de kullanılabilir; içinde paylaşılan veri yok).
+    let bas = Instant::now();
+    let _kilit = loop {
+        match ONIZLE_KILIT.try_lock() {
+            Ok(k) => break k,
+            Err(std::sync::TryLockError::Poisoned(p)) => break p.into_inner(),
+            Err(std::sync::TryLockError::WouldBlock) => {
+                if bas.elapsed() > ONIZLE_BEKLE { return Err(MESGUL.into()); }
+                std::thread::sleep(Duration::from_millis(25));
+            }
+        }
+    };
+    let n = ONIZLE_ESZ.fetch_add(1, Ordering::SeqCst) + 1;
+    ONIZLE_EN_COK.fetch_max(n, Ordering::SeqCst);
+    let sonuc = onizle_calistir(&ff, a, kaynak, t, kucuk, sinir);
+    ONIZLE_ESZ.fetch_sub(1, Ordering::SeqCst);
+    sonuc
+}
+
+fn onizle_calistir(ff: &Path, a: &Ayar, kaynak: &Path, t: f32, kucuk: bool, sinir: Duration) -> Result<Vec<u8>, String> {
     let palet = if palet_gerekli(a) { palet_dosyasi(&a.palet)? } else { None };
-    let o = komut(&ff).args(onizleme_argumanlari(a, kaynak, resim_mi(kaynak), t, palet.as_deref(), kucuk)).stdin(Stdio::null()).stdout(Stdio::piped()).stderr(Stdio::piped()).output().map_err(|e| format!("ffmpeg başlatılamadı: {e}"))?;
-    if o.stdout.starts_with(b"\x89PNG") { return Ok(o.stdout); }
-    let e = String::from_utf8_lossy(&o.stderr);
-    Err(format!("önizleme üretilemedi{}", e.lines().last().map(|l| format!(": {l}")).unwrap_or_default()))
+    let mut c = komut(ff).args(onizleme_argumanlari(a, kaynak, resim_mi(kaynak), t, palet.as_deref(), kucuk)).stdin(Stdio::null()).stdout(Stdio::piped()).stderr(Stdio::piped()).spawn().map_err(|e| format!("ffmpeg başlatılamadı: {e}"))?;
+    // Borular ayrı iş parçacıklarında boşaltılır (büyük PNG'de ffmpeg yazarken tıkanmasın).
+    let mut out = c.stdout.take();
+    let mut err = c.stderr.take();
+    let o_ip = std::thread::spawn(move || { let mut b = vec![]; if let Some(o) = out.as_mut() { let _ = o.read_to_end(&mut b); } b });
+    let e_ip = std::thread::spawn(move || { let mut s = String::new(); if let Some(e) = err.as_mut() { let _ = e.read_to_string(&mut s); } s });
+    let bas = Instant::now();
+    let zaman_asimi = loop {
+        match c.try_wait() {
+            Ok(Some(_)) => break false,
+            Ok(None) if bas.elapsed() >= sinir => { let _ = c.kill(); let _ = c.wait(); break true; }
+            Ok(None) => std::thread::sleep(Duration::from_millis(20)),
+            Err(_) => { let _ = c.kill(); let _ = c.wait(); break false; }
+        }
+    };
+    let stdout = o_ip.join().unwrap_or_default();
+    let stderr = e_ip.join().unwrap_or_default();
+    if zaman_asimi { return Err(format!("önizleme zaman aşımına uğradı ({} sn); daha kısa ya da küçük bir kaynak deneyin", sinir.as_secs().max(1))); }
+    if stdout.starts_with(b"\x89PNG") { return Ok(stdout); }
+    Err(format!("önizleme üretilemedi{}", stderr.lines().filter(|l| !l.trim().is_empty()).last().map(|l| format!(": {l}")).unwrap_or_default()))
 }
 
 // ---- İlerlemeli iş (tek seferde bir iş) ----
@@ -377,22 +482,27 @@ pub fn cikti_yolu(klasor: &Path, kaynak: &Path, tur: &str) -> PathBuf {
     p
 }
 
-/// ffmpeg'i çalıştırır; `-progress` satırlarından kare sayısını okur. İptalde süreç öldürülür.
-fn calistir(ff: &Path, args: &[String], ilerleme: bool) -> Result<(), String> {
+/// ffmpeg'i çalıştırır. `arka` true ise (arayüzün tek arka plan işi) süreç ortak kayda yazılır, `-progress` satırlarından
+/// kare sayısı durum kaydına işlenir ve iptal bayrağına uyulur; false ise (eşzamanlı çağrı: test/örnek üretimi) hiçbir
+/// ortak kayda dokunulmaz, böylece aynı anda süren arka plan işinin iptali bu süreci öldürmez (ve tersi).
+fn calistir(ff: &Path, args: &[String], ilerleme: bool, arka: bool) -> Result<(), String> {
     let mut c = komut(ff).args(args).stdin(Stdio::null()).stdout(Stdio::piped()).stderr(Stdio::piped()).spawn().map_err(|e| format!("ffmpeg başlatılamadı: {e}"))?;
     let out = c.stdout.take();
     let mut err = c.stderr.take();
-    *COCUK.lock().unwrap() = Some(c);
-    if IPTAL.load(Ordering::Relaxed) { iptal(); }
+    let mut yerel = None;
+    if arka {
+        *COCUK.lock().unwrap() = Some(c);
+        if IPTAL.load(Ordering::Relaxed) { iptal(); }
+    } else { yerel = Some(c); }
     let hata_ip = std::thread::spawn(move || { let mut s = String::new(); if let Some(e) = err.as_mut() { let _ = e.read_to_string(&mut s); } s });
     if let Some(o) = out {
         for satir in BufReader::new(o).lines().map_while(Result::ok) {
-            if ilerleme { if let Some(k) = satir.strip_prefix("frame=").and_then(|x| x.trim().parse::<u64>().ok()) { durum_yaz(|d| d.kare = k.min(d.toplam.max(k))); } }
+            if ilerleme && arka { if let Some(k) = satir.strip_prefix("frame=").and_then(|x| x.trim().parse::<u64>().ok()) { durum_yaz(|d| d.kare = k.min(d.toplam.max(k))); } }
         }
     }
-    let durum = COCUK.lock().unwrap().take().map(|mut c| c.wait());
+    let durum = if arka { COCUK.lock().unwrap().take().map(|mut c| c.wait()) } else { yerel.take().map(|mut c| c.wait()) };
     let hata = hata_ip.join().unwrap_or_default();
-    if IPTAL.load(Ordering::Relaxed) { return Err("iptal edildi".into()); }
+    if arka && IPTAL.load(Ordering::Relaxed) { return Err("iptal edildi".into()); }
     match durum {
         Some(Ok(s)) if s.success() => Ok(()),
         _ => Err(format!("dönüştürme başarısız{}", hata.lines().filter(|l| !l.trim().is_empty()).last().map(|l| format!(": {l}")).unwrap_or_default())),
@@ -415,7 +525,7 @@ pub fn baslat(a: Ayar, kaynak: PathBuf, klasor: &Path) -> Result<PathBuf, String
     IPTAL.store(false, Ordering::Relaxed);
     let cikis2 = cikis.clone();
     std::thread::spawn(move || {
-        let sonuc = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| is_yap(&ff, &a, &kaynak, resim, sure, &cikis2))).unwrap_or_else(|_| Err("dönüştürme beklenmedik şekilde durdu".into()));
+        let sonuc = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| is_yap(&ff, &a, &kaynak, resim, sure, &cikis2, true))).unwrap_or_else(|_| Err("dönüştürme beklenmedik şekilde durdu".into()));
         durum_yaz(|d| {
             d.calisiyor = false;
             match sonuc { Ok(m) => { d.mesaj = m; d.asama = "bitti".into(); d.kare = d.toplam; } Err(e) => { d.hata = true; d.mesaj = e; d.asama = "durdu".into(); } }
@@ -424,35 +534,38 @@ pub fn baslat(a: Ayar, kaynak: PathBuf, klasor: &Path) -> Result<PathBuf, String
     Ok(cikis)
 }
 
-/// Eşzamanlı dönüştürme (iptal bayrağını sıfırlar). Testler ve örnek üretimi için; arayüz `baslat` kullanır.
+/// Eşzamanlı dönüştürme. Testler ve örnek üretimi için; arayüz `baslat` kullanır. Arka plan işinin iptal bayrağına,
+/// süreç kaydına ve durumuna dokunmaz (paralel koşuda iki yol birbirini iptal etmez).
 pub fn donustur_esz(ff: &Path, a: &Ayar, kaynak: &Path, resim: bool, sure: f32, cikis: &Path) -> Result<String, String> {
-    IPTAL.store(false, Ordering::Relaxed);
-    is_yap(ff, a, kaynak, resim, sure, cikis)
+    is_yap(ff, a, kaynak, resim, sure, cikis, false)
 }
 
-fn is_yap(ff: &Path, a: &Ayar, kaynak: &Path, resim: bool, sure: f32, cikis: &Path) -> Result<String, String> {
+static SAYAC: AtomicUsize = AtomicUsize::new(0);
+
+fn is_yap(ff: &Path, a: &Ayar, kaynak: &Path, resim: bool, sure: f32, cikis: &Path, arka: bool) -> Result<String, String> {
+    let asama = |m: &str| if arka { let m = m.to_string(); durum_yaz(|d| d.asama = m); };
     let gecici_dir = std::env::temp_dir();
-    let kimlik = format!("{}-{}", std::process::id(), std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis()).unwrap_or(0));
+    let kimlik = format!("{}-{}-{}", std::process::id(), std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis()).unwrap_or(0), SAYAC.fetch_add(1, Ordering::Relaxed));
     // Palet: sabitse hazır PNG; otomatikse önce kaynaktan 1. geçişle üretilir (bellek dostu).
     let mut palet = if palet_gerekli(a) { palet_dosyasi(&a.palet)? } else { None };
     let mut gecici_palet = None;
     if palet_gerekli(a) && palet.is_none() {
-        durum_yaz(|d| d.asama = "palet çıkarılıyor".into());
+        asama("palet çıkarılıyor");
         let pp = gecici_dir.join(format!("taa-donustur-{kimlik}-palet.png"));
         let fps = if a.tur == "retro8bit" { a.fps.min(15) } else { a.fps };
         let g = format!("[0:v]fps={fps},{}[f];[f]scale={}:{}:flags=area,palettegen=max_colors={}:reserve_transparent=0[v]", sigdir_zinciri(a.sigdir), W / a.blok, H / a.blok, a.renk);
         let mut args = giris(a, kaynak, resim, Some(sure), None);
         args.extend(["-filter_complex".into(), g, "-map".into(), "[v]".into(), "-frames:v".into(), "1".into(), "-y".into(), pp.display().to_string()]);
-        calistir(ff, &args, false)?;
+        calistir(ff, &args, false, arka)?;
         palet = Some(pp.clone());
         gecici_palet = Some(pp);
     }
-    durum_yaz(|d| d.asama = "dönüştürülüyor".into());
+    asama("dönüştürülüyor");
     let gecici = gecici_dir.join(format!("taa-donustur-{kimlik}.mp4"));
-    let r = calistir(ff, &video_argumanlari(a, kaynak, resim, sure, palet.as_deref(), &gecici), true);
+    let r = calistir(ff, &video_argumanlari(a, kaynak, resim, sure, palet.as_deref(), &gecici), true, arka);
     if let Some(p) = gecici_palet { let _ = std::fs::remove_file(p); } // programın kendi geçici dosyası
     if let Err(e) = r { let _ = std::fs::remove_file(&gecici); return Err(e); }
-    durum_yaz(|d| d.asama = "kaydediliyor".into());
+    asama("kaydediliyor");
     if std::fs::rename(&gecici, cikis).is_err() {
         std::fs::copy(&gecici, cikis).map_err(|e| format!("çıktı kaydedilemedi: {e}"))?;
         let _ = std::fs::remove_file(&gecici);
@@ -573,6 +686,49 @@ mod t {
         assert!(v.contains(&"-an".to_string()) && v.contains(&"libx264".to_string()));
         let r = onizleme_argumanlari(&a, Path::new(r"C:\r.png"), true, 1.0, None, true);
         assert!(!r.contains(&"-loop".to_string()) && r.contains(&"image2pipe".to_string()));
+    }
+
+    /// Dalga 4 [Claude#SEC-FIX]: her `-i`'den önce protokol beyaz listesi ve uzantıdan zorlanan biçim.
+    #[test]
+    fn giriste_protokol_ve_bicim_zorlanir() {
+        let a = ayar_coz(&al(&[("tur", "piksel"), ("palet", "retro16")])).unwrap();
+        for (k, f) in [(r"C:\v.mp4", "mov"), (r"C:\v.MOV", "mov"), (r"C:\v.m4v", "mov"), (r"C:\v.webm", "matroska"), (r"C:\v.mkv", "matroska"), (r"C:\v.avi", "avi"), (r"C:\v.gif", "gif"), (r"C:\r.jpg", "image2")] {
+            let p = Path::new(k);
+            let v = video_argumanlari(&a, p, resim_mi(p), 2.0, Some(Path::new(r"C:\p.png")), Path::new(r"C:\o.mp4"));
+            let girisler: Vec<usize> = v.iter().enumerate().filter(|(_, x)| *x == "-i").map(|(i, _)| i).collect();
+            assert_eq!(girisler.len(), 2, "{k}");
+            let i = girisler[0];
+            let on = &v[..i];
+            let w = on.iter().rposition(|x| x == "-protocol_whitelist").expect("whitelist yok");
+            assert_eq!(on[w + 1], "file,pipe", "{k}");
+            let fi = on.iter().rposition(|x| x == "-f").expect("-f yok");
+            assert_eq!(on[fi + 1], f, "{k}");
+            if f == "image2" { assert!(on.windows(2).any(|x| x[0] == "-pattern_type" && x[1] == "none"), "{k}: kalıp kapalı olmalı"); }
+            // palet girdisi de aynı korumayla
+            let ikinci = &v[i + 2..girisler[1]];
+            assert!(ikinci.windows(2).any(|x| x[0] == "-protocol_whitelist" && x[1] == "file,pipe") && ikinci.windows(2).any(|x| x[0] == "-f" && x[1] == "image2"), "{k}: {ikinci:?}");
+            let o = onizleme_argumanlari(&a, p, resim_mi(p), 0.0, None, false);
+            let oi = o.iter().position(|x| x == "-i").unwrap();
+            assert!(o[..oi].windows(2).any(|x| x[0] == "-f" && x[1] == f), "{k} önizleme");
+        }
+        assert_eq!(zorunlu_bicim(Path::new("x.m3u8")), None);
+    }
+
+    #[test]
+    fn uzak_masaustu_alt_klasorleri_dislanir() {
+        for d in ["RustDesk", "rustdesk", "AnyDesk", "TeamViewer", "RustDesk Kayıtları", "Parsec"] { assert!(alt_dislanir(d), "{d}"); }
+        for d in ["Tatil", "TAA Vidyo Yapıcı", "Rusty", "Ekran kayıtları"] { assert!(!alt_dislanir(d), "{d}"); }
+        let kok = std::env::temp_dir().join(format!("taa-donustur-liste-{}", std::process::id()));
+        let cikti = kok.join("cikti");
+        let video = kok.join("Videos");
+        for k in [&cikti, &video.join("RustDesk"), &video.join("Tatil")] { std::fs::create_dir_all(k).unwrap(); }
+        std::fs::write(cikti.join("eski.mp4"), b"x").unwrap();
+        std::thread::sleep(std::time::Duration::from_millis(30));
+        std::fs::write(video.join("RustDesk").join("uzak.mp4"), b"x").unwrap();
+        std::fs::write(video.join("Tatil").join("yeni.mp4"), b"x").unwrap();
+        let kokler = vec![cikti.canonicalize().map(sade).unwrap(), video.canonicalize().map(sade).unwrap()];
+        let l: Vec<String> = kaynak_listesi(&kokler).iter().map(|(p, _)| p.file_name().unwrap().to_string_lossy().to_string()).collect();
+        assert_eq!(l, vec!["eski.mp4".to_string(), "yeni.mp4".to_string()], "çıktı klasörü en üstte, RustDesk dışarıda");
     }
 
     #[test]

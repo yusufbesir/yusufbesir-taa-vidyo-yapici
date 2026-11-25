@@ -2,6 +2,7 @@
 //! Dış bağımlılık yok. Yalnız bu bilgisayardan erişilir (Host ve X-LED denetimi).
 //! 1.0 (yenileme-1.0, 2026-11-18) [Claude#UI Opus 5.5]: web/ai.js, web/malzeme.js ve web/yazi/*.woff2 gömülü uç noktaları eklendi. Sahip: Yusuf; değişiklik yalnız UI ajanı ya da Yusuf'un izniyle.
 //! Dalga 3 (2026-11-25) [Claude#UI Opus 5.5]: /oynatici, /oynatici.js, /oynatici.css, /cikis, /donustur.js gömülü; /oynatici/ ve /donustur/ modül yuvaları.
+//! Dalga 4 (2026-11-25) [Claude#SEC-FIX Opus 5.5]: ana sayfada CSP + nosniff (tüm yanıtlarda nosniff), son video kabuksuz açılır (explorer).
 use crate::{png, uret};
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
@@ -148,15 +149,26 @@ fn rastgele_jeton() -> String {
 fn cerez_jeton_var(cerez: &str, jeton: &str) -> bool {
     cerez.split(';').filter_map(|p| p.trim().strip_prefix("taa-oturum=")).any(|v| v.len() == jeton.len() && v.bytes().zip(jeton.bytes()).fold(0u8, |a, (x, y)| a | (x ^ y)) == 0)
 }
+/// Dalga 4 [Claude#SEC-FIX Opus 5.5, yenileme-1.0, 2026-11-25]: ana sayfa içerik güvenlik ilkesi. Dış kaynak yok; satır içi betik/stil
+/// sayfanın kendi yapısı gereği açık; resim/medya için data: ve blob: (dönüştürücü PNG'leri, klip önizlemesi); açılış iframe'leri 'self'.
+pub const SAYFA_CSP: &str = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; connect-src 'self'; frame-src 'self'; base-uri 'none'; form-action 'none'";
+
 fn yanit_cerezli(s: &mut TcpStream, tur: &str, govde: &[u8], jeton: &str) {
-    let b = format!("HTTP/1.1 200 OK\r\nContent-Type: {tur}\r\nContent-Length: {}\r\nCache-Control: no-store\r\nSet-Cookie: taa-oturum={jeton}; HttpOnly; SameSite=Strict; Path=/\r\nConnection: close\r\n\r\n", govde.len());
+    let b = format!("HTTP/1.1 200 OK\r\nContent-Type: {tur}\r\nContent-Length: {}\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nContent-Security-Policy: {SAYFA_CSP}\r\nReferrer-Policy: no-referrer\r\nSet-Cookie: taa-oturum={jeton}; HttpOnly; SameSite=Strict; Path=/\r\nConnection: close\r\n\r\n", govde.len());
+    let _ = s.write_all(b.as_bytes());
+    let _ = s.write_all(govde);
+}
+
+/// Ana sayfa (çerezsiz yeniden yükleme): CSP + nosniff.
+fn yanit_sayfa(s: &mut TcpStream, govde: &[u8]) {
+    let b = format!("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: {}\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nContent-Security-Policy: {SAYFA_CSP}\r\nReferrer-Policy: no-referrer\r\nConnection: close\r\n\r\n", govde.len());
     let _ = s.write_all(b.as_bytes());
     let _ = s.write_all(govde);
 }
 
 fn yanit(s: &mut TcpStream, kod: u16, tur: &str, govde: &[u8]) {
-    let ad = match kod { 200 => "OK", 400 => "Bad Request", 401 => "Unauthorized", 403 => "Forbidden", 404 => "Not Found", 409 => "Conflict", _ => "Error" };
-    let b = format!("HTTP/1.1 {kod} {ad}\r\nContent-Type: {tur}\r\nContent-Length: {}\r\nCache-Control: no-store\r\nConnection: close\r\n\r\n", govde.len());
+    let ad = match kod { 200 => "OK", 400 => "Bad Request", 401 => "Unauthorized", 403 => "Forbidden", 404 => "Not Found", 409 => "Conflict", 503 => "Service Unavailable", _ => "Error" };
+    let b = format!("HTTP/1.1 {kod} {ad}\r\nContent-Type: {tur}\r\nContent-Length: {}\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nConnection: close\r\n\r\n", govde.len());
     let _ = s.write_all(b.as_bytes());
     let _ = s.write_all(govde);
 }
@@ -200,13 +212,9 @@ fn son_video_yolu(dosya: &str) -> Option<PathBuf> {
     let kok = cikti_klasoru();
     if tam.parent().map(|x| x == kok.as_path()).unwrap_or(false) && tam.is_file() { Some(tam) } else { None }
 }
-#[cfg(windows)]
-fn son_video_ac(p: &std::path::Path) {
-    use std::os::windows::process::CommandExt;
-    let _ = std::process::Command::new("cmd").args(["/c", "start", "", &p.display().to_string()]).creation_flags(0x0800_0000).spawn();
-}
-#[cfg(not(windows))]
-fn son_video_ac(p: &std::path::Path) { let _ = std::process::Command::new("xdg-open").arg(p).spawn(); }
+/// Son videoyu varsayılan oynatıcıda açar. Dalga 4 [Claude#SEC-FIX]: kabuk (`cmd /c start`) yok; explorer'a tek argüman
+/// (donustur::sistemde_ac ile aynı yol), dosya adındaki `&`, `^`, `%` gibi karakterler komut olarak yorumlanamaz.
+fn son_video_ac(p: &std::path::Path) { crate::donustur::sistemde_ac(p); }
 
 fn klasor_ac(k: &std::path::Path) {
     #[cfg(windows)]
@@ -235,7 +243,7 @@ fn isle(mut s: TcpStream, o: Arc<Ortak>) {
         return crate::oynatici_http::isle_akis(&mut s, &yontem, &yol, &bas, &govde, &uretim);
     }
     match (yontem.as_str(), yolu.as_str()) {
-        ("GET", "/") => yanit(&mut s, 200, "text/html; charset=utf-8", SAYFA.as_bytes()),
+        ("GET", "/") => yanit_sayfa(&mut s, SAYFA.as_bytes()),
         ("GET", "/ayar") => yanit(&mut s, 200, "application/json; charset=utf-8", crate::ayar::json_yaz(&crate::ayar::oku(&crate::ayar::varsayilan_yol())).as_bytes()),
         ("POST", "/ayar") => match crate::ayar::istek_coz(&yazi) {
             Some((k, v)) => match crate::ayar::degistir(&crate::ayar::varsayilan_yol(), &k, v.as_deref()) { Ok(()) => yanit(&mut s, 200, metin, b"ok"), Err(e) => yanit(&mut s, 400, metin, e.as_bytes()) },

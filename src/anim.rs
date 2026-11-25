@@ -128,10 +128,15 @@ pub fn kare3d_kirpmali(t: &mut [u8], m: &Maske, yuz: Renk, yan: Renk, p: &Poz, k
             }
         }
     };
+    // dalga 4 [Claude#MAL-FIX Opus 5.5, 2026-11-25]: izdüşüm 0,55 → 0,95 (derinlik ~2 kat okunur), yan yüz 4 kademeli
+    // basamaklı ton (arka ×0,30 → ön ×0,85) + öne yakın ince açık kenar: koyu zeminde ekstrüzyon kaybolmasın.
+    let izd = 0.95;
     for k in (1..=kat).rev() {
         let f = k as f32 / kat as f32; // 1=arka (koyu) → 0=ön
-        let par = (0.35 + 0.35 * (1.0 - f)) * p.parlak;
-        katman(k as f32 * kayma * 0.55, k as f32 * ust * 0.55, [yan.0 as f32 * par, yan.1 as f32 * par, yan.2 as f32 * par]);
+        let kademe = ((1.0 - f) * 4.0).floor().min(3.0) / 3.0;
+        let mut par = (0.30 + 0.55 * kademe) * p.parlak;
+        if k == 1 && kat > 3 { par = (par * 1.25).min(1.0); }
+        katman(k as f32 * kayma * izd, k as f32 * ust * izd, [yan.0 as f32 * par, yan.1 as f32 * par, yan.2 as f32 * par]);
     }
     let pr = p.parlak;
     katman(0.0, 0.0, [yuz.0 as f32 * pr, yuz.1 as f32 * pr, yuz.2 as f32 * pr]);

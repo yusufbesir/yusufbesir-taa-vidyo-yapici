@@ -4,7 +4,9 @@
      Değişiklik kuralı: yalnız UI ajanı ya da Yusuf'un izniyle; mevcut JS id'leri, TORBA ve KALICI-AYAR blokları korunur; silme yok.
      Bağlayıcı tasarım: tasarim/yenileme/karar-fable-tur2.md (temalar, çekmece) ve karar-fable-tur1.md 2. bölüm (yerleşim, kipler).
      Dalga 3 [Claude#UI Opus 5.5, yenileme-1.0, 2026-11-25]: TaaApp.geciciOnizle/geciciOnizleKapat, önizleme kutusu ölçümü, senaryo değişti bildirimi,
-     48 px hedefler, Oynatıcı girişi (/oynatici), Hazır > Dönüştürücü sekmesi (#donusturMount, /donustur.js), #aiAdimYuva. -->
+     48 px hedefler, Oynatıcı girişi (/oynatici), Hazır > Dönüştürücü sekmesi (#donusturMount, /donustur.js), #aiAdimYuva.
+     Dalga 4 [Claude#SEC-FIX Opus 5.5, yenileme-1.0, 2026-11-26; DALGA4.md sahipliğiyle]: /bilgi ve sunucu verisi innerHTML'e yalnız esc() ile
+     (esc işlev bildirimi), açılışta görünüm her zaman Düz, kısa ekranda (≤900 px yükseklik) araç satırı sahnenin solunda dikey sütun. -->
 <html lang="tr">
 <head>
 <meta charset="utf-8">
@@ -217,6 +219,17 @@ html[data-tema="eslik"] .sahne{background:var(--panel)}
 #sim.uzak{filter:none;opacity:.9}
 .onizle:fullscreen{background:#05060a;padding:16px}
 .onizle:fullscreen .sarac,.onizle:fullscreen figcaption{color:#e6e6e6}
+/* (Dalga 4, karar 2.4) kısa ekranda (1366x768 gibi) araç satırı sahnenin solunda dikey sütun olur: üstteki 58 px'lik satır kare yüksekliğine
+   katılır (kare ≈270x515). Sahne genişliği iki kareye fazlasıyla yettiği için hiçbir denetim gizlenmez ya da menüye inmez. */
+@media (min-width:1200px) and (max-height:900px){
+.onizle{display:grid;grid-template-columns:208px minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
+.sarac{grid-column:1;grid-row:1/3;flex-direction:column;align-items:stretch;justify-content:flex-start;overflow-x:hidden;overflow-y:auto;padding:10px 0 10px 12px;border-right:1px solid var(--ayrac)}
+.sarac .seg{display:flex}.sarac .seg button{flex:1;padding:0 8px}
+.sarac .neden{max-width:none}.sarac .bosluk{display:none}
+.onizle>.gecici{grid-column:2;grid-row:1}
+.onizle>.sahneler{grid-column:2;grid-row:2;padding-top:8px}
+.onizle:fullscreen{display:flex}.onizle:fullscreen .sarac{flex-direction:row;align-items:center;border-right:0}
+}
 /* Kadraj imzası: sahnenin dört köşe işareti */
 .kose{display:none;position:absolute;width:18px;height:18px;border:0 solid var(--ac);pointer-events:none}
 html[data-tema="kadraj"] .kose{display:block}
@@ -780,7 +793,7 @@ function ilkSahne(m) {
 }
 
 /* ---- arayüz kurulumu ---- */
-function secenek(sel, liste) { sel.innerHTML = liste.map(x => `<option value="${x.ad}">${x.ad}${x.acik ? ' — ' + x.acik : ''}</option>`).join(''); }
+function secenek(sel, liste) { sel.innerHTML = liste.map(x => `<option value="${esc(x.ad)}">${esc(x.ad)}${x.acik ? ' — ' + esc(x.acik) : ''}</option>`).join(''); }
 function esle() {
   const s = ilkSahne(sen.value);
   document.querySelectorAll('.stil').forEach(e => e.classList.toggle('sec', !sablon && e.dataset.ad === stil));
@@ -804,7 +817,7 @@ function sablonDoldur() {
   return m;
 }
 function sablonEtiketi() {
-  $('#sablonEtiket').innerHTML = sablon ? `<span class="etiketSablon">Şablon: ${sablon.baslik}<button id="sablonKapat" title="Şablondan çık">✕</button></span> <span class="mut">her satır bir yazı alanı</span>` : '';
+  $('#sablonEtiket').innerHTML = sablon ? `<span class="etiketSablon">Şablon: ${esc(sablon.baslik)}<button id="sablonKapat" title="Şablondan çık">✕</button></span> <span class="mut">her satır bir yazı alanı</span>` : '';
 }
 async function sablonSec(ad) {
   const ham = await (await api('/sablon/' + ad)).text();
@@ -827,14 +840,14 @@ let animFiltre = 'tum';
 function animCiz() {
   const a = $('#ara').value.trim().toLowerCase();
   const l = bilgi.girisler.filter(x => (animFiltre === 'tum' || (animFiltre === 'vurgu' ? x.ad.startsWith('vurgu-') : animFiltre === 'sirali' ? x.ad.startsWith('tek-tek-') : !x.ad.startsWith('vurgu-') && !x.ad.startsWith('tek-tek-'))) && (!a || (x.ad + ' ' + x.acik).toLowerCase().includes(a)));
-  $('#animListe').innerHTML = l.map(x => `<span class="chip" data-ad="${x.ad}" title="${x.acik}">${x.ad}</span>`).join('') || '<span class="bos">Sonuç yok</span>';
+  $('#animListe').innerHTML = l.map(x => `<span class="chip" data-ad="${esc(x.ad)}" title="${esc(x.acik)}">${esc(x.ad)}</span>`).join('') || '<span class="bos">Sonuç yok</span>';
   $('#animSay').textContent = `${bilgi.girisler.length} giriş`;
   esle();
 }
 function sablonListesi() {
   const gr = {};
   for (const s of bilgi.sablonlar) (gr[s.kategori] = gr[s.kategori] || []).push(s);
-  $('#sablonlar').innerHTML = Object.entries(gr).map(([k, l]) => `<h4>${k}</h4><div class="chips">${l.map(s => `<span class="chip" data-sab="${s.ad}">${s.baslik}</span>`).join('')}</div>`).join('');
+  $('#sablonlar').innerHTML = Object.entries(gr).map(([k, l]) => `<h4>${esc(k)}</h4><div class="chips">${l.map(s => `<span class="chip" data-sab="${esc(s.ad)}">${esc(s.baslik)}</span>`).join('')}</div>`).join('');
 }
 
 async function sablonKaydet() {
@@ -853,12 +866,14 @@ async function baslat() {
   $('#surum').textContent = (bilgi.surum ? 'v' + bilgi.surum : 'sürüm bilinmiyor') + (bilgi.ffmpeg ? '' : ' · ffmpeg bulunamadı'); $('#surum2').textContent = $('#surum').textContent;
   // (Fable 19) stil adı Türkçe karakterli açıklamadan ("Gösterişli: ...") alınır; ad yalnız iç anahtardır
   const stilAdi = s => (String(s.acik || '').split(':')[0].trim()) || (s.ad[0].toUpperCase() + s.ad.slice(1));
-  $('#stiller').innerHTML = bilgi.stiller.map(s => `<button type="button" class="stil" data-ad="${s.ad}" title="${s.acik}">${stilAdi(s)}</button>`).join('');
+  $('#stiller').innerHTML = bilgi.stiller.map(s => `<button type="button" class="stil" data-ad="${esc(s.ad)}" title="${esc(s.acik)}">${esc(stilAdi(s))}</button>`).join('');
   const renk = ad => bilgi.paletler.find(p => p.ad === ad);
-  $('#renkler').innerHTML = OZET_RENK.map(renk).filter(Boolean).map(p => `<button class="nokta" data-ad="${p.ad}" title="${p.acik}" style="background:rgb(${p.yuz})"></button>`).join('');
-  $('#paletler').innerHTML = bilgi.paletler.map(p => `<div class="pal" data-ad="${p.ad}" title="${p.ad} — ${p.acik}" style="background:rgb(${p.zemin});color:rgb(${p.yuz})">Aa<i style="background:rgb(${p.vurgu})"></i></div>`).join('');
-  $('#fontlar').innerHTML = bilgi.fontlar.map(f => `<span class="chip" data-ad="${f.ad}" title="${f.acik}">${f.ad}</span>`).join('');
-  const chip = f => `<span class="chip" data-ad="${f.ad}" title="${f.acik}">${f.ad}</span>`;
+  // renk üçlüleri yalnız sayı olarak yazılır (rgbSayi), diğer alanlar esc()
+  const rgbSayi = v => (Array.isArray(v) ? v : []).slice(0, 3).map(n => Math.max(0, Math.min(255, Number(n) | 0))).join(',');
+  $('#renkler').innerHTML = OZET_RENK.map(renk).filter(Boolean).map(p => `<button class="nokta" data-ad="${esc(p.ad)}" title="${esc(p.acik)}" style="background:rgb(${rgbSayi(p.yuz)})"></button>`).join('');
+  $('#paletler').innerHTML = bilgi.paletler.map(p => `<div class="pal" data-ad="${esc(p.ad)}" title="${esc(p.ad)} — ${esc(p.acik)}" style="background:rgb(${rgbSayi(p.zemin)});color:rgb(${rgbSayi(p.yuz)})">Aa<i style="background:rgb(${rgbSayi(p.vurgu)})"></i></div>`).join('');
+  $('#fontlar').innerHTML = bilgi.fontlar.map(f => `<span class="chip" data-ad="${esc(f.ad)}" title="${esc(f.acik)}">${esc(f.ad)}</span>`).join('');
+  const chip = f => `<span class="chip" data-ad="${esc(f.ad)}" title="${esc(f.acik)}">${esc(f.ad)}</span>`;
   $('#cerceveler').innerHTML = bilgi.efektler.filter(f => cerceveMi(f.ad)).map(chip).join('');
   $('#zeminler').innerHTML = bilgi.efektler.filter(f => f.ad.startsWith('zemin-')).map(chip).join('');
   $('#efektler').innerHTML = bilgi.efektler.filter(f => !cerceveMi(f.ad) && !f.ad.startsWith('zemin-')).map(chip).join('');
@@ -866,8 +881,8 @@ async function baslat() {
   $('#animGrup').innerHTML = [['tum', 'Tümü'], ['giris', 'Giriş'], ['sirali', 'Satır satır'], ['vurgu', 'Vurgu']].map(([k, t]) => `<span class="chip${k === 'tum' ? ' sec' : ''}" data-g="${k}">${t}</span>`).join('');
   secenek($('#giris'), bilgi.girisler); secenek($('#cikis'), bilgi.cikislar);
   secenek($('#acilis'), bilgi.gecisler); secenek($('#kapanis'), bilgi.gecisler);
-  $('#ornek').innerHTML = '<option value="">Örnek senaryo…</option>' + bilgi.ornekler.map(o => `<option>${o}</option>`).join('');
-  $('#rehberListe').innerHTML = bilgi.rehber.map(r => `<button data-reh="${r.ad}"><b>${r.baslik}</b><span>${r.aciklama}</span></button>`).join('');
+  $('#ornek').innerHTML = '<option value="">Örnek senaryo…</option>' + bilgi.ornekler.map(o => `<option>${esc(o)}</option>`).join('');
+  $('#rehberListe').innerHTML = bilgi.rehber.map(r => `<button data-reh="${esc(r.ad)}"><b>${esc(r.baslik)}</b><span>${esc(r.aciklama)}</span></button>`).join('');
   sablonListesi(); animCiz();
   await kur();
 }
@@ -922,7 +937,7 @@ const oneriGetir = debounce(async () => {
     let dugme = '';
     if (/çıkış animasyonu yok/.test(x.mesaj)) dugme = '<button class="btn" data-fix="cikis">Uygula</button>';
     else if (/Açılış ve kapanış/.test(x.mesaj)) dugme = '<button class="btn" data-fix="gecis">Uygula</button>';
-    return `<div class="oneri ${x.seviye}"><span>${x.mesaj.replace(/</g, '&lt;')}</span>${dugme}</div>`;
+    return `<div class="oneri ${esc(x.seviye)}"><span>${esc(x.mesaj)}</span>${dugme}</div>`;
   }).join('');
   if (!l.length) kutu.hidden = true;
 }, 500);
@@ -967,7 +982,8 @@ $('#geciciKapat').onclick = geciciOnizleKapat;
    Bina derinliği YOKTUR: bina 2B kabul edilir, yalnız E-5'e bakan ön yüz çizilir. Üstten görünüm yalnız ön yüz çizgisini (30 m), ekranları ve logo konumunu gösterir; yan/arka yüz ve derinlik çizilmez.
    Hepsi metre cinsinden ayarlanabilir (saklanır). */
 const bina = $('#bina');
-let gorunum = (() => { try { const g = localStorage.getItem('taa-gorunum'); return g === 'karsi' || g === 'ust' || g === 'foto' ? 'karsi' : 'duz'; } catch (e) { return 'duz'; } })();
+// (Dalga 4, karar 2.4) açılışta görünüm her zaman "Düz": eski oturumdan kalan "Bina karşıdan" seçimi açılışı ele geçirmez (ikinci tık gerekmez)
+let gorunum = 'duz';
 const BINA_VARSAYILAN = {gen: 31, yuk: 35, ew: 10, eh: 30, ealt: 3, logo: 6, logoy: 18, orta: 8, kat: 5.5, yuz: 'alt'};
 const BINA = Object.assign({}, BINA_VARSAYILAN);
 try { Object.assign(BINA, JSON.parse(localStorage.getItem('taa-bina4') || '{}')); } catch (e) { /* varsayılan */ }
@@ -1193,7 +1209,8 @@ async function rehberOynat(ad, dugme) {
 }
 // ───────── Tarif et ─────────
 // İki yol, tek şema: (A) istemi yapay zekâya götür, yanıtı yapıştır; (B) çevrimdışı kural motoru. Önizleme güncellenir; video yalnız "Videoyu yap" ile üretilir.
-const esc = s => String(s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+// (Dalga 4, SEC-FIX) esc işlev bildirimi: yukarı taşınır (hoisting), /bilgi kurulumundan önce de tanımlı; sunucu/kullanıcı verisi innerHTML'e yalnız esc() ile girer
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c])); }
 let tarifOnceki = null, tarifKatalog = null;
 async function panoyaYaz(m) {
   try { await navigator.clipboard.writeText(m); return true; } catch (e) {
@@ -1266,7 +1283,7 @@ async function tarifGoster(j, kaynak) {
     return;
   }
   tarifOnizle(j);
-  const sah = j.sahneler.map((s, i) => `<div class="tarifSahne"><b>Sahne ${i + 1}</b> “${esc(s.metin)}” <span class="mut">giriş: ${esc(s.giris)} · çıkış: ${esc(s.cikis)}${s.efekt ? ' · efekt: ' + esc(s.efekt) : ''} · renk: ${esc(s.palet)}${s.font ? ' · yazı: ' + esc(s.font) : ''} · ${s.sure} sn</span></div>`).join('');
+  const sah = j.sahneler.map((s, i) => `<div class="tarifSahne"><b>Sahne ${i + 1}</b> “${esc(s.metin)}” <span class="mut">giriş: ${esc(s.giris)} · çıkış: ${esc(s.cikis)}${s.efekt ? ' · efekt: ' + esc(s.efekt) : ''} · renk: ${esc(s.palet)}${s.font ? ' · yazı: ' + esc(s.font) : ''} · ${esc(s.sure)} sn</span></div>`).join('');
   const liste = (b, l, sinif) => l && l.length ? `<p class="${sinif || 'mut'}"><b>${b}</b></p><ul>${l.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '';
   let ogret = '';
   if (j.anlasilmayan && j.anlasilmayan.length) {
@@ -1276,7 +1293,7 @@ async function tarifGoster(j, kaynak) {
       <select id="ogrHedef" aria-label="Karşılığı"></select>
       <button class="btn" id="ogret">Bunu kural olarak öğret</button></div>`;
   }
-  k.innerHTML = `<p><b>Önizleme güncellendi</b> — ${j.sahneler.length} sahne, toplam ${j.sure} sn${j.acilis !== 'yok' ? ', açılış: ' + esc(j.acilis) : ''}${j.kapanis !== 'yok' ? ', kapanış: ' + esc(j.kapanis) : ''}${j.gorunum === 'bina' ? ', görünüm: bina' : ''}</p>${sah}` +
+  k.innerHTML = `<p><b>Önizleme güncellendi</b> — ${j.sahneler.length} sahne, toplam ${esc(j.sure)} sn${j.acilis !== 'yok' ? ', açılış: ' + esc(j.acilis) : ''}${j.kapanis !== 'yok' ? ', kapanış: ' + esc(j.kapanis) : ''}${j.gorunum === 'bina' ? ', görünüm: bina' : ''}</p>${sah}` +
     liste('Şunu anladım:', j.anladim) + liste('Değiştirilenler:', j.notlar, 'tarifUyari') + ogret +
     '<div class="sira"><button class="btn" id="tarifGeri">Önceki senaryoya dön</button></div><p class="mut">Beğendiyseniz alttaki “Videoyu yap”a basın; onayınız olmadan video üretilmez.</p>';
   $('#tarifGeri').onclick = () => { if (senGeri) { senaryoGeriDon(false); tarifMesaj('Önceki senaryoya dönüldü.'); } else if (tarifOnceki !== null) { sen.value = tarifOnceki; elleDuzenlendi = true; degisti(); tarifMesaj('Önceki senaryoya dönüldü.'); } };
@@ -1324,7 +1341,7 @@ async function kuralListeYukle(zorla) {
   const adlar = {giris: 'giriş', cikis: 'çıkış', efekt: 'efekt', palet: 'renk', font: 'yazı tipi', gecis: 'geçiş', gorunum: 'görünüm'};
   const l = kuralVeri.filter(r => !a || r.h.includes(a) || r.i.some(x => x.toLowerCase().includes(a)));
   $('#kuralSay').textContent = `${kuralVeri.reduce((t, r) => t + r.i.length, 0)} ifade`;
-  $('#kuralListe').innerHTML = l.slice(0, 200).map(r => `<div><b>${esc(r.i.join(', '))}</b> → ${adlar[r.k] || esc(r.k)}: ${esc(r.h)}${r.kaynak === 'benim' ? ' <span class="chip">benim</span>' : ''}</div>`).join('') || '<span class="bos">Eşleşen kural yok</span>';
+  $('#kuralListe').innerHTML = l.slice(0, 200).map(r => `<div><b>${esc(r.i.join(', '))}</b> → ${esc(adlar[r.k] || r.k)}:${esc(r.h)}${r.kaynak === 'benim' ? ' <span class="chip">benim</span>' : ''}</div>`).join('') || '<span class="bos">Eşleşen kural yok</span>';
 }
 $('#kuralBolum').addEventListener('toggle', () => { if ($('#kuralBolum').open) kuralListeYukle(); });
 $('#kuralAra').oninput = debounce(() => kuralListeYukle(), 200);
@@ -1404,7 +1421,7 @@ document.querySelectorAll('.istemGit').forEach(b => { b.onclick = tarifAc; });
 let hazirVeri = [], hazirSuz = 'Tümü';
 const PALET_YEDEK = {altin: ['#000000', '#ffce30'], beyaz: ['#000000', '#d6d6d0'], sari: ['#000000', '#ffdc00'], turuncu: ['#000000', '#ff8c00'], cyan: ['#000000', '#00e6ff'], magenta: ['#000000', '#ff00c8'], lime: ['#000000', '#82ff00']};
 function paletRenk(ad) {
-  const p = ((bilgi && bilgi.paletler) || []).find(x => x.ad === ad); const h = v => '#' + v.map(n => n.toString(16).padStart(2, '0')).join('');
+  const p = ((bilgi && bilgi.paletler) || []).find(x => x.ad === ad); const h = v => '#' + v.slice(0, 3).map(n => (Math.max(0, Math.min(255, Number(n) | 0))).toString(16).padStart(2, '0')).join('');
   if (p) return [h(p.zemin), h(p.yuz)];
   if (/^hex-[0-9a-f]{6}$/i.test(ad)) return ['#09090b', '#' + ad.slice(4)];
   return PALET_YEDEK[ad] || ['#000000', '#ffce30'];

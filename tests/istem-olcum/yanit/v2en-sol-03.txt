@@ -1,0 +1,1 @@
+{"surum":1,"ekran":"dikey","gorunum":"duz","sahneler":[{"metin":["BAYRAMINIZ","MÜBAREK","OLSUN"],"giris":"yavas-belir","cikis":"sondur","efekt":[],"palet":"altin-gece","font":"anton","sure":8,"malzeme":""},{"metin":["ÖRNEK","TERZİ"],"giris":"yavas-belir","cikis":"sondur","efekt":[],"palet":"altin-gece","font":"anton","sure":6,"malzeme":""}],"acilis":"fade","kapanis":"fade"}

@@ -77,6 +77,15 @@ Galeri: arama kutusu (Türkçe harf duyarsız), kategori çipleri (adetli), temb
 - `dalga3_kare_butcesi`: 112 kalemin 950x1800 kare çizimi (hazırlık hariç) ortalaması **26,3 ms** (hedef ≤ 45 ms karşılanıyor); 16 kalem tek başına 45 ms'yi aşıyor, en yavaşlar sahne-karli-isik 91, yazi-3b-derin 88, izgara-zemin 85, yazi-3b-don 79, isik-huzmesi ve altin-toz 73, yazi-yil 70, sivi-metal 70 ms. Maliyetin çoğu 3B ekstrüzyon (`kare3d`: bbox × (derinlik+1)); yeni kalemlerde derinlik 12 px. 120 ms üst sınırı testte zorunlu.
 - Örnek videolar (CLI, 25 fps): `tasarim/yenileme/ornek/kis-yilbasi.mp4` (36,4 sn, 910 kare, ~58 sn'de üretildi; `senaryolar/malzeme-kis-yilbasi.txt`) ve `3b-yazi.mp4` (34,4 sn, 860 kare, ~65 sn'de; `senaryolar/malzeme-3b-yazi.txt`); örnek kareler `*-kare.png`.
 
+### Dalga 4 düzeltmeleri (2026-11-26) [Claude#MAL-FIX Opus 5.5]
+- Görsel denetim: `kis-yilbasi.mp4`, `3b-yazi.mp4` ve 27 kış kaleminin tamamı (`tum-kis` senaryosu, t=2,5 sn) kontak sayfasıyla gözle incelendi; hepsi görünür ve 950x1800'de okunur.
+- `anim::kare3d`: ekstrüzyon izdüşümü 0,55 → 0,95 (derinlik ~2 kat okunur), yan yüz 4 kademeli ton (arka ×0,30 → ön ×0,85) + öne yakın açık kenar. Maliyet değişmedi (bbox × katman).
+- `malzeme_parca`: kıvılcım ~1,6×, hız ~1,3×, yarıçap +1,5 px; roket x konumları altın oran tabakalamasıyla yayılır (önceden ardışık roketler aynı yarıda toplanıyordu). `fisek-*` alanı y %20–46.
+- `yilbasi-geri-sayim`: eski rakam 0,18 sn'de çıkar, yeni rakam 0,12 sn gecikmeyle düşer (iki rakam üst üste binmez).
+- `kis-manzarasi`: 90 sabit yıldız (%20'si 0,5 Hz nabız). `kar-katmanli` varsayılan tane 160 → 240.
+- `dalga3_kare_butcesi`: kare başına en kısa süre + sınırı aşanı yeniden ölçme + göreli sınır (120 ms × yük katsayısı; yük = kayan-led ölçümü / 14 ms, en az 1).
+- Örnekler: `tasarim/yenileme/ornek/d4-fisek.mp4`, `d4-geri-sayim.mp4`, `d4-3b-yazi.mp4` (4 sn, 25 fps) + `*-kare.png`.
+
 ## Testler
 - `cargo test --release --lib malzeme` (katalog kuralları, ayrıştırma hataları, üretici temizliği, JSON, uçlar).
 - `cargo test --release --test malzeme_testleri` (her malzeme: senaryo üretir/ayrıştırılır, 950x1800 render, boş/tek renk değil, deterministik; parametre sınırları; bozuk istek 400; küçük PNG; eski senaryolar; `node tests/malzeme_test.js`).

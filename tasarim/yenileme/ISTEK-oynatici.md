@@ -69,3 +69,15 @@ Köprü kurulmazsa `POST /oynatici/cikis` 503 "pencere yok" döner; çıkış sa
 
 ## 5. web/index.html
 Menüye "Oynatıcı" girişi: `location.href = '/oynatici'` (aynı pencere; kontrol sayfasında "Ana sayfaya dön" bağlantısı var).
+
+## 6. Dalga 4 sahne pişirme denemesi (yazan: [Claude#MAL-FIX Opus 5.5, yenileme-1.0, 2026-11-25]; yalnız ekleme, oynatıcı koduna dokunulmadı)
+Uçtan uca HTTP denemesi (release exe, `--arayuz --tarayici-yok`, `LED_CIKTI` geçici klasör, ffmpeg 9.0.2): oturum çerezi + `X-LED: 1` ile
+`POST /oynatici/sahne` (gövde: `malzeme cam-agaci sure=3` + `malzeme fisek-kalp sure=3`) → 200, `calisiyor:true`; ~25 sn sonra
+`GET /oynatici/sahne` → `{"calisiyor":false,"kare":150,"toplam":150,"mesaj":"hazır"}`, `oynatici-sahne-<zaman>.mp4` (950x1800, 150 kare, 7,4 MB) çıktı klasöründe.
+Seçili katmana ekleme (web/oynatici.js `klipEkle`) tarayıcıda DENENMEDİ.
+
+Bulgu (oynatıcı/UI ajanına öneri): pencere yok kipinde (`--tarayici-yok`) src/arayuz.rs boşta kapanma bekçisi yalnız ana üretimi
+(`durum.calisiyor`) sayıyor; sahne pişirme sürerken 90 sn nabız gelmezse süreç `exit(0)` ile kapanıyor. İlk denemede bu yüzden klip
+0,6 sn'de (15 kare) yarım kaldı ve durum hiç "hazır"a dönmedi. Gömülü pencere kipinde bekçi yok (normal kullanıcı etkilenmez), ama
+test/sunucu kipinde bekçi pişirme sürerken de beklemeli (ör. `oynatici_http` bir `sahne_calisiyor()` döndürsün ve bekçi onu da sorsun).
+Ayrıca ilk ~10 sn boyunca `kare:0, toplam:0` kalıyor (hazırlık aşaması); arayüzde "hazırlanıyor" yazılması önerilir.

@@ -10,6 +10,7 @@
 //!   POST /donustur/klasor          → çıktı klasörünü açar
 //! Hata gövdesi: {"tamam":false,"hata":"Türkçe mesaj"}.
 //! Sahip Yusuf; yazan [Claude#Dönüştürücü Opus 5.5, yenileme-1.0, 2026-11-25]; yalnız yazan yapay zekâ ya da Yusuf'un izniyle değişir; silme yok.
+//! Dalga 4 [Claude#SEC-FIX Opus 5.5, yenileme-1.0, 2026-11-25]: önizleme sırası doluysa 503.
 use crate::donustur as d;
 use std::path::Path;
 
@@ -131,6 +132,8 @@ pub fn isle(yontem: &str, yol: &str, govde: &str, klasor: &Path) -> (u16, &'stat
                 let kucuk = alan.iter().any(|(k, v)| k == "kucuk" && v == "true");
                 match d::onizle(&a, &p, t, kucuk) {
                     Ok(png) => (200, JSON, format!("{{\"tamam\":true,\"png\":\"data:image/png;base64,{}\"}}", base64(&png))),
+                    // Dalga 4 [Claude#SEC-FIX]: sıra dolu (aynı anda tek önizleme) → 503; zaman aşımı ve ffmpeg hatası → 500
+                    Err(e) if e == d::MESGUL => hata(503, &e),
                     Err(e) => hata(500, &e),
                 }
             }

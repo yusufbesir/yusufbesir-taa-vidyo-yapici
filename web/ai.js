@@ -3,6 +3,7 @@
  *   adım göstergesi, Hazırla metin kutusunun hemen altında, Geri al (önceki senaryoya dön), 35 sn YZ bütçesi + Durdur (AbortController → anında yerel sonuç),
  *   geçici önizleme (TaaApp.geciciOnizle), kapalı "Diğer araçlar" (İstemi göster, Kuraldan çöz, Panodaki tarifi uygula, Kural listesi/ekle, + Site),
  *   işletme adı ayarı ('taa-isletme', kapatılabilir), "Kaydet ve aç" onayı kalıcı kapatmaz ("Her seferinde sor", varsayılan açık).
+ * Dalga 4 [Claude#AI Opus 5.5, yenileme-1.0, 2026-11-25]: site düğmelerinde doğru Türkçe ek ("DeepSeek'te aç", TaaApp.bulunmaEki), anlaşılmayan sözcüklere görünür uyarı.
  * Yalnız yazan yapay zekâ ya da Yusuf'un izniyle değişir; silme yok.
  * Arayüz: window.TaaAI = { mount(el, app) }. app = window.TaaApp (UI ajanı sağlar): senaryoMetni(), senaryoDegistir(m), geciciOnizle(m) | onizle(m).
  * Uçlar: docs/TARIF-API.md (POST /tarif/hazirla, /tarif/iptal, /tarif/istem, /tarif/uygula, /tarif/kural-coz, /tarif/kural-ekle, /tarif/site-ekle, /tarif/ac,
@@ -67,6 +68,17 @@
   }
   /** /tarif/istem gövdesi (işletme ayarı varsa JSON, yoksa düz metin: eski sunucularla uyumlu). */
   function istemGovdesi(metin, isletme) { return typeof isletme === 'string' ? JSON.stringify({ metin: String(metin || '').slice(0, 4000), isletme }) : String(metin || ''); }
+  /** Türkçe bulunma eki ("DeepSeek'te", "Claude'da", "ChatGPT'de"). TaaApp.bulunmaEki yoksa aynı kuralla yerelde hesaplanır.
+   *  Dalga 4 [Claude#AI Opus 5.5, yenileme-1.0, 2026-11-25]: Fable bulgusu (5) — düğmeler hep "’de aç" yazıyordu. */
+  const EK_OZEL = { deepseek: "'te", claude: "'da", chatgpt: "'de", gemini: "'de" };
+  function bulunmaEki(ad, app) {
+    if (app && typeof app.bulunmaEki === 'function') { try { const e = app.bulunmaEki(ad); if (typeof e === 'string' && e.length <= 4) return e; } catch (e) { /* yerel kurala düş */ } }
+    const k = String(ad || '').trim().toLowerCase();
+    if (EK_OZEL[k]) return EK_OZEL[k];
+    const unlu = (k.match(/[aıoueiöü](?=[^aıoueiöü]*$)/) || ['e'])[0];
+    const ince = 'eiöü'.includes(unlu), sert = /[fstkçşhp]$/.test(k);
+    return "'" + (sert ? 't' : 'd') + (ince ? 'e' : 'a');
+  }
   /** Bir sahnenin satırları (yeni "satirlar" dizisi ya da eski "metin" alanı). */
   function sahneSatirlari(s) { return Array.isArray(s.satirlar) ? s.satirlar : String(s.metin || '').split(' / ').filter(x => x !== ''); }
 
@@ -273,7 +285,8 @@
         sahneler,
         liste('Varsayımlarım:', j.varsayimlar, 'taai-uyari'),
         liste('Not:', j.notlar),
-        j.anlasilmayan && j.anlasilmayan.length ? h(belge, 'small', { text: 'Kullanmadığım sözcükler: ' + j.anlasilmayan.join(', ') }) : null,
+        // dalga 4: anlaşılmayan sözcük varsa görünür uyarı (küçük gri yazı gözden kaçıyordu)
+        j.anlasilmayan && j.anlasilmayan.length ? h(belge, 'p', { class: 'taai-uyari taai-anlasilmayan', role: 'note', text: 'Uyarı: şu sözcükleri anlayamadım, videoya koymadım: ' + j.anlasilmayan.join(', ') + '. Ekranda aynen görünmesini istiyorsanız tırnak içinde yazın.' }) : null,
         onayKutu,
         h(belge, 'div', { class: 'taai-sira' }, [
           h(belge, 'button', { type: 'button', class: 'taai-ana', id: 'taai-uygula', text: 'Uygula', on: { click: () => uygula(j) } }),
@@ -393,7 +406,7 @@
         .catch(e => { yaz(hataMetni(e)); return false; });
     }
     function sitelerYukle() {
-      return api('/tarif/siteler').then(r => r.json()).then(l => { temizle(siteSira); l.forEach(ad => siteSira.appendChild(h(belge, 'button', { type: 'button', text: ad + '’de aç', on: { click: () => siteAc(ad) } }))); }).catch(() => {});
+      return api('/tarif/siteler').then(r => r.json()).then(l => { temizle(siteSira); l.forEach(ad => siteSira.appendChild(h(belge, 'button', { type: 'button', text: ad + bulunmaEki(ad, app) + ' aç', on: { click: () => siteAc(ad) } }))); }).catch(() => {});
     }
     function siteEkle() {
       const g = { ad: siteAd.value.trim(), adres: siteAdres.value.trim() };
@@ -443,7 +456,7 @@
     return { hazirla, durdur, uygula, geriAl, onizle, goster, yanitUygula, panodanUygula, kuraldanCoz, istemKopyala, istemGoster, kurallariYukle, kuralEkle, siteAc, siteEkle, isletmeKaydet, el: kokEl, durum, alan };
   }
 
-  const TaaAI = { mount, _ic: { kaynakAdi, adimOzeti, hataMetni, istekGovdesi, istemGovdesi, isletmeAyari, sahneSatirlari, ORNEKLER, ADIMLAR, YZ_BUTCE_MS } };
+  const TaaAI = { mount, _ic: { kaynakAdi, adimOzeti, hataMetni, istekGovdesi, istemGovdesi, isletmeAyari, sahneSatirlari, bulunmaEki, ORNEKLER, ADIMLAR, YZ_BUTCE_MS } };
   kok.TaaAI = TaaAI;
   if (typeof module !== 'undefined' && module.exports) module.exports = TaaAI;
 })(typeof window !== 'undefined' ? window : globalThis);

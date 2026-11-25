@@ -3,9 +3,17 @@
 // (başlat/durum/iptal), HTTP uçları ve web/donustur.js Node testi.
 // Çalıştırma: tasarim/yenileme/kilitli-cargo.sh test --release --test donustur_testleri -- --nocapture --test-threads=1
 // Sahip Yusuf; yazan [Claude#Dönüştürücü Opus 5.5, yenileme-1.0, 2026-11-25]; yalnız yazan yapay zekâ ya da Yusuf'un izniyle değişir; silme yok.
+// Dalga 4 [Claude#SEC-FIX Opus 5.5, yenileme-1.0, 2026-11-25]: m3u8 içerikli .mp4 reddi, önizleme tekliği ve zaman aşımı, eşzamanlı/arka
+// plan iş yalıtımı. Kırık testlerin sebebi: donustur_esz arka plan işinin ortak IPTAL/COCUK kaydını paylaşıyordu; paralel koşuda
+// ilerlemeli_is testindeki iptal ornek_donusumler'in ffmpeg'ini öldürüyordu. Kod düzeltildi; d::iptal() çağıran testler ayrıca sıralı.
 use std::path::{Path, PathBuf};
+use std::sync::{Mutex, MutexGuard};
 use std::time::{Duration, Instant};
 use taa_vidyo_yapici::{donustur as d, donustur_http as h, ffmpeg};
+
+static ARKA: Mutex<()> = Mutex::new(());
+/// Ortak arka plan işini (baslat/iptal) kullanan testler aynı anda koşmaz.
+fn arka_sirasi() -> MutexGuard<'static, ()> { ARKA.lock().unwrap_or_else(|p| p.into_inner()) }
 
 fn kok() -> PathBuf { PathBuf::from(env!("CARGO_MANIFEST_DIR")) }
 fn ornek() -> PathBuf { kok().join("tasarim/yenileme/ornek") }
@@ -90,6 +98,7 @@ fn ornek_donusumler_uretilir() {
 #[test]
 fn ilerlemeli_is_baslat_durum_iptal() {
     if !hazir() { return; }
+    let _s = arka_sirasi();
     let k = std::env::temp_dir().join(format!("taa-donustur-is-{}", std::process::id()));
     std::fs::create_dir_all(&k).unwrap();
     let kaynak_kopya = k.join("kaynak.mp4");
@@ -142,6 +151,65 @@ fn http_kaynak_guvenligi() {
     }
     // sunucu kaydı yoksa oynat 404
     let _ = d::durum();
+}
+
+// ---- Dalga 4 [Claude#SEC-FIX Opus 5.5, yenileme-1.0, 2026-11-25]: güvenlik bulguları ----
+
+/// (1) Uzantıdan biçim zorlanır: .mp4 adlı m3u8/HLS listesi (uzak ya da yerel bölüm adresli) açılmaz.
+#[test]
+fn m3u8_icerikli_mp4_okunmaz() {
+    if ffmpeg::bul().is_none() { eprintln!("ffmpeg yok: atlandı"); return; }
+    let k = std::env::temp_dir().join(format!("taa-donustur-hls-{}", std::process::id()));
+    std::fs::create_dir_all(&k).unwrap();
+    let yerel = if kaynak().is_file() { format!("file:{}", kaynak().display()) } else { "file:C:/Windows/win.ini".into() };
+    for (ad, bolum) in [("uzak.mp4", "http://127.0.0.1:9/x.ts".to_string()), ("yerel.mp4", yerel), ("yerel.webm", "x.ts".into())] {
+        let p = k.join(ad);
+        std::fs::write(&p, format!("#EXTM3U\n#EXT-X-TARGETDURATION:10\n#EXTINF:10,\n{bolum}\n#EXT-X-ENDLIST\n")).unwrap();
+        let a = d::ayar_coz(&al(&[("tur", "cizgifilm")])).unwrap();
+        let r = d::onizle(&a, &p, 0.0, true);
+        assert!(r.is_err(), "{ad}: m3u8 içerikli dosya okunmamalı");
+        // HTTP yolunda da 500 (okunamadı), içerik sızmaz
+        let g = format!("{{\"kaynak\":\"{}\",\"tur\":\"cizgifilm\",\"kucuk\":true}}", h::jk(&p.display().to_string()));
+        let (kod, _, j) = h::isle("POST", "onizle", &g, &k);
+        assert_eq!(kod, 500, "{ad}: {j}");
+        assert!(!j.contains("png"), "{ad}");
+    }
+}
+
+/// (2) Önizleme aynı anda tek ffmpeg; 25 sn sınırı aşılırsa süreç öldürülür (burada sınır 1 ms ile sınanır).
+#[test]
+fn onizleme_tek_ve_zaman_asimli() {
+    if !hazir() { return; }
+    let a = d::ayar_coz(&al(&[("tur", "boyama")])).unwrap();
+    let bas = Instant::now();
+    let r = d::onizle_sinirli(&a, &kaynak(), 1.0, false, Duration::from_millis(1));
+    let e = r.expect_err("1 ms'de önizleme bitmemeli");
+    assert!(e.contains("zaman aşımı"), "{e}");
+    assert!(bas.elapsed() < Duration::from_secs(10), "zaman aşımında süreç beklenmeden öldürülmeli");
+    assert_eq!(d::ONIZLE_SURE, Duration::from_secs(25));
+    let ipler: Vec<_> = (0..4).map(|i| std::thread::spawn(move || {
+        let a = d::ayar_coz(&al(&[("tur", "cizgifilm")])).unwrap();
+        d::onizle(&a, &kaynak(), i as f32 * 0.5, true)
+    })).collect();
+    for ip in ipler { let png = ip.join().unwrap().expect("sıradaki önizleme de üretilmeli"); assert_eq!(png_boyut(&png), (d::KUCUK_W, d::KUCUK_H)); }
+    assert_eq!(d::onizle_en_cok_esz(), 1, "aynı anda birden çok önizleme ffmpeg'i çalıştı");
+}
+
+/// Fable: eşzamanlı dönüştürme ile arka plan işi birbirini iptal etmez (paralel koşudaki "cizgifilm: iptal edildi").
+#[test]
+fn eszamanli_donusum_arka_iptalinden_etkilenmez() {
+    if !hazir() { return; }
+    let ff = ffmpeg::bul().unwrap();
+    let k = std::env::temp_dir().join(format!("taa-donustur-yalitim-{}", std::process::id()));
+    std::fs::create_dir_all(&k).unwrap();
+    let a = d::ayar_coz(&al(&[("tur", "karakalem"), ("sure", "1"), ("fps", "10")])).unwrap();
+    let _s = arka_sirasi(); // d::iptal() ortak arka plan işini de iptal eder: ilerlemeli_is testiyle aynı anda koşmasın
+    let k2 = k.clone();
+    let ip = std::thread::spawn(move || d::donustur_esz(&ff, &a, &kaynak(), false, 1.0, &k2.join("esz.mp4")));
+    // arka plan işi yokken bile iptal çağrıları eşzamanlı dönüşümü durdurmamalı
+    for _ in 0..20 { d::iptal(); std::thread::sleep(Duration::from_millis(50)); }
+    let m = ip.join().unwrap().expect("eşzamanlı dönüşüm iptal edilmemeli");
+    assert!(m.starts_with("Hazır") && k.join("esz.mp4").is_file(), "{m}");
 }
 
 #[test]
