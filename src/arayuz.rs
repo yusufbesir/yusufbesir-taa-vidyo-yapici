@@ -9,6 +9,16 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 const SAYFA: &str = include_str!("../web/index.html");
+/// TAA ortak giriş ekranı (taa-paket araclar/js/taa-giris-ekrani.js kopyası) ve açılış betiği; sayfaya gömülür.
+const GIRIS_EKRANI: &str = include_str!("../web/taa/taa-giris-ekrani.js");
+const GIRIS_BASLAT: &str = include_str!("../web/taa-giris-baslat.js");
+/// Sunucudaki program yetkisi adı (program.toml `ad`).
+pub const PROGRAM: &str = "taa-vidyo-yapici";
+
+fn sayfa() -> &'static str {
+    static S: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+    S.get_or_init(|| SAYFA.replacen("</body>", &format!("<script>{GIRIS_EKRANI}</script>\n<script>{GIRIS_BASLAT}</script>\n</body>"), 1))
+}
 const LOGO: &str = include_str!("../logo/logo.svg");
 const YZ_DAR: &[u8] = include_bytes!("../fonts/BarlowCondensed-Black.ttf");
 const YZ_RAF: &[u8] = include_bytes!("../fonts/Audiowide-Regular.ttf");
@@ -167,7 +177,12 @@ fn isle(mut s: TcpStream, o: Arc<Ortak>) {
     if yontem == "POST" && !bas.iter().any(|(a, v)| a == "x-led" && v == "1") { return yanit(&mut s, 403, "text/plain; charset=utf-8", b"yasak"); }
     let metin = "text/plain; charset=utf-8";
     match (yontem.as_str(), yolu.as_str()) {
-        ("GET", "/") => yanit(&mut s, 200, "text/html; charset=utf-8", SAYFA.as_bytes()),
+        ("GET", "/") => yanit(&mut s, 200, "text/html; charset=utf-8", sayfa().as_bytes()),
+        // TAA ortak giriş: POST zaten yalnız 127.0.0.1 + X-LED başlığıyla gelir (yukarıdaki denetim).
+        ("POST", y) if y.starts_with("/api/giris/") => match crate::taa_giris::yanitla(crate::taa_giris::kimlik_yolu, PROGRAM, &y[11..], &govde) {
+            Some(v) => yanit(&mut s, 200, "application/json; charset=utf-8", v.to_string().as_bytes()),
+            None => yanit(&mut s, 404, metin, b"yok"),
+        },
         ("GET", "/logo.svg") => yanit(&mut s, 200, "image/svg+xml", LOGO.as_bytes()),
         ("GET", "/yz/dar.ttf") => yanit(&mut s, 200, "font/ttf", YZ_DAR),
         ("GET", "/yz/raf.ttf") => yanit(&mut s, 200, "font/ttf", YZ_RAF),
@@ -344,6 +359,13 @@ mod t {
     fn url_cozme() { assert_eq!(url_coz("a%20b+c%C3%BC"), "a b cü"); assert_eq!(url_coz("%"), "%"); assert_eq!(url_coz("%4"), "%4"); }
     #[test]
     fn ornekler_ayristirilir() { for (a, m) in ORNEKLER { crate::senaryo::ayristir(m).unwrap_or_else(|e| panic!("{a}: {e}")); } }
+    #[test]
+    fn ortak_giris_sayfaya_gomulu() {
+        let s = sayfa();
+        assert!(s.contains("TaaGirisEkrani") && s.contains("'/api/giris/'"));
+        assert_eq!(s.matches("</body>").count(), 1);
+        assert!(s.find("TaaGirisEkrani").unwrap() < s.find("</body>").unwrap());
+    }
     #[test]
     fn sorgu_okur() { assert_eq!(sorgu("/x?t=2.5&dosya=a%20b", "dosya").as_deref(), Some("a b")); }
 }
