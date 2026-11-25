@@ -1,0 +1,7 @@
+# Açıklama: Malzeme kitaplığı örneği: Yutkun labirent + kovalamaca (950x1800 dikey). Sahip: Yusuf. Yazan: [Claude#Malzeme Opus 5.5, yenileme-1.0, 2026-11-18]. Silme yok.
+ekran 950x1800
+fps 25
+acilis fade
+kapanis fade
+malzeme yutkun-labirent sure=12 renk=gok-mavisi hiz=1 deger=4 metin="YUTKUN"
+malzeme yutkun-kovalamaca sure=8 renk=gok-mavisi hiz=1 deger=3 metin="KOVALAMACA"

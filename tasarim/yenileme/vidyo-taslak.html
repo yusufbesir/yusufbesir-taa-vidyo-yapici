@@ -1,0 +1,297 @@
+<title>Vidyo Yapıcı Taslakları</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600;700;800&family=Atkinson+Hyperlegible+Next:wght@400;600;700&family=Archivo:wght@400;600;800&family=Nunito:wght@400;600;800&display=swap">
+<style>
+/* Sayfa: üstte 6 tema kartı, ortada seçilen temanın canlı pencere taslağı (çekmece açılıp kapanır), altta seçilen logo. Sayfanın kendi çerçevesi nötr. */
+:root{--pg:#EEEDEA;--pgtx:#1C1B19;--pgmut:#5C5A55;--pgline:#CFCCC5;--pgcard:#FFFFFF;--ui:"Inter","Segoe UI Variable","Segoe UI",system-ui,sans-serif}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--pg:#151514;--pgtx:#EEEDEA;--pgmut:#A7A49C;--pgline:#34332F;--pgcard:#1F1E1C;color-scheme:dark}}
+:root[data-theme="dark"]{--pg:#151514;--pgtx:#EEEDEA;--pgmut:#A7A49C;--pgline:#34332F;--pgcard:#1F1E1C;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--pg);color:var(--pgtx);font:15px/1.55 var(--ui);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 48px}
+.sar{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:26px}
+h1{font:600 26px/1.2 var(--ui);margin:0;text-wrap:balance}
+h2{font:600 19px/1.3 var(--ui);margin:0 0 4px}
+.alt{color:var(--pgmut);margin:4px 0 0;max-width:72ch}
+.etk{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--pgmut)}
+.secici{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.tk{all:unset;cursor:pointer;background:var(--pgcard);border:1px solid var(--pgline);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.tk:focus-visible{outline:2px solid var(--pgtx);outline-offset:2px}
+.tk[aria-pressed="true"]{border-color:var(--pgtx);box-shadow:0 0 0 1px var(--pgtx) inset}
+.tk .ust{display:flex;align-items:center;gap:10px}
+.tk .aa{width:44px;height:44px;border-radius:8px;display:grid;place-items:center;font-size:20px;font-weight:700;flex:none}
+.tk b{font-size:16px}.tk small{color:var(--pgmut);font-size:13px;line-height:1.4}
+.yeni{font-size:11px;font-weight:600;padding:2px 7px;border-radius:999px;border:1px solid var(--pgline);color:var(--pgmut);margin-left:6px;vertical-align:2px}
+.nok{display:flex;gap:5px}.nok i{width:14px;height:14px;border-radius:50%;border:1px solid rgba(0,0,0,.15)}
+.sahnebar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.sahnebar button{all:unset;cursor:pointer;padding:7px 12px;border:1px solid var(--pgline);border-radius:999px;font-size:13px;background:var(--pgcard)}
+.sahnebar button:focus-visible{outline:2px solid var(--pgtx)}
+.cerceve{overflow-x:auto;border-radius:14px;border:1px solid var(--pgline)}
+.not{background:var(--pgcard);border:1px solid var(--pgline);border-radius:12px;padding:14px 16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px 24px;font-size:13.5px}
+.not div b{display:block;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--pgmut);font-weight:600;margin-bottom:2px}
+
+/* ---------- Uygulama penceresi ---------- */
+.app{width:1180px;height:680px;display:grid;grid-template-rows:48px auto 1fr 72px;grid-template-areas:"ust" "sek" "orta" "eyl";background:var(--bg);color:var(--tx);font:15px/1.45 var(--fb);position:relative;overflow:hidden}
+.app button{font:inherit;color:inherit;cursor:pointer}
+.app[data-t=vitrin]{--bg:#F1F0EC;--panel:#FFFFFF;--panel2:#E6E4DE;--line:#7C776E;--tx:#1D1B1A;--mut:#5A564F;--ac:#9A1B3C;--onac:#FFFFFF;--ok:#1E6B3A;--uy:#8A4B00;--fb:"Segoe UI Variable","Segoe UI","Inter",sans-serif;--r:16px;--rb:999px}
+.app[data-t=vurus]{--bg:#191826;--panel:#232234;--panel2:#2D2B42;--line:#807C9E;--tx:#F0EEF8;--mut:#B7B2CE;--ac:#C2DC55;--onac:#1A2006;--ok:#7FDCC4;--uy:#F7B466;--fb:"Bahnschrift","Inter",sans-serif;--r:2px;--rb:2px}
+.app[data-t=cephe]{--bg:#112B34;--panel:#193A45;--panel2:#224854;--line:#7FA5B1;--tx:#F4EEE3;--mut:#B7CAD0;--ac:#FFA58C;--onac:#3A1108;--ok:#8FE0B0;--uy:#FFD166;--fb:"Space Grotesk","Inter",sans-serif;--r:10px;--rb:10px}
+.app[data-t=kadraj]{--bg:#EAF2FA;--panel:#FFFFFF;--panel2:#D9E7F4;--line:#60758A;--tx:#122C43;--mut:#41566A;--ac:#174BD1;--onac:#FFFFFF;--ok:#24613D;--uy:#795000;--fb:"Atkinson Hyperlegible Next","Inter",sans-serif;--r:4px;--rb:4px}
+.app[data-t=manset]{--bg:#F5DC72;--panel:#FFF9E5;--panel2:#E9CD61;--line:#7A6C2E;--tx:#24221B;--mut:#514927;--ac:#173C58;--onac:#FFFFFF;--ok:#205D3D;--uy:#754800;--fb:"Archivo","Inter",sans-serif;--r:0px;--rb:0px}
+.app[data-t=eslik]{--bg:#351D2A;--panel:#452A39;--panel2:#57384A;--line:#B08CA2;--tx:#FFF3F9;--mut:#D8BFCD;--ac:#F4C3DA;--onac:#3A1428;--ok:#B8DFC7;--uy:#F4D198;--fb:"Nunito","Inter",sans-serif;--r:24px;--rb:12px}
+.ustc{grid-area:ust;display:flex;align-items:center;gap:10px;padding:0 14px 0 6px}
+.cek{width:44px;height:44px;border:0;background:none;border-radius:var(--rb);display:grid;place-items:center;color:var(--tx)}
+.cek:hover{background:var(--panel2)}
+.cek svg{width:20px;height:20px}
+.app:not([data-cekmece=acik]) .cek{background:var(--panel2)}
+.logo{width:26px;height:26px;flex:none}
+.ustc .ad{font-weight:700;font-size:16px}.ustc .sur{color:var(--mut);font-size:13px}
+.ustc .bos{flex:1}.ustc .lk{background:none;border:0;color:var(--mut);padding:8px 10px;border-radius:var(--rb);font-size:14px}
+.sekme{grid-area:sek}
+.orta{grid-area:orta;display:flex;min-height:0;gap:var(--ara,0px)}
+.cekmece{width:var(--cw,400px);flex:none;display:flex;min-height:0;transition:width .18s ease,opacity .18s;overflow:hidden}
+.app:not([data-cekmece=acik]) .cekmece{width:0;opacity:0}
+.app[data-yan=sag] .cekmece{order:2}
+.panel{flex:1;min-width:0;background:var(--panel);overflow:auto;padding:18px;display:flex;flex-direction:column;gap:14px}
+.phead{display:flex;align-items:center;gap:8px}
+.phead h3{margin:0;font-weight:700;font-size:18px;flex:1}
+.kapat{border:0;background:none;color:var(--mut);font-size:13px;padding:6px 8px;border-radius:var(--rb);white-space:nowrap}
+.panel .mut{color:var(--mut);font-size:13px;margin:0}
+.metin{background:var(--bg);border:1px solid var(--line);border-radius:min(var(--r),12px);padding:12px;font-size:20px;font-weight:700;line-height:1.35;min-height:118px}
+.serit{display:flex;gap:6px;flex-wrap:wrap}
+.cip{border:1px solid var(--line);border-radius:var(--rb);padding:6px 12px;font-size:13px;background:transparent}
+.senaryolar{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sen{background:var(--panel2);border-radius:min(var(--r),10px);padding:10px;display:flex;gap:10px;align-items:center;font-size:13.5px;border:1px solid transparent}
+.sen .mini{width:22px;height:40px;background:#000;border-radius:2px;display:grid;place-items:center;color:#FFD34D;font:800 6.5px "Inter";flex:none}
+.sen.sec{border-color:var(--ac)}
+.kipler{display:flex;gap:4px}
+.kip{background:none;border:0;display:flex;align-items:center;gap:8px;color:var(--mut);padding:10px 14px;min-height:44px;border-radius:var(--rb);font-size:15px;white-space:nowrap}
+.kip svg{width:20px;height:20px;flex:none}
+.kip.sec{color:var(--tx)}
+.sahne{flex:1;display:flex;flex-direction:column;min-width:0;padding:12px 18px 0}
+.sarac{display:flex;gap:6px;flex-wrap:wrap}
+.grup{display:flex;border:1px solid var(--line);border-radius:var(--rb);overflow:hidden}
+.grup span{padding:6px 11px;font-size:13px;color:var(--mut)}
+.grup span.sec{background:var(--ac);color:var(--onac)}
+.ekranlar{flex:1;display:flex;justify-content:center;gap:28px;align-items:center;padding:12px 0;min-height:0}
+.ek{display:flex;flex-direction:column;align-items:center;gap:6px;height:100%}
+.ek .ekr{height:calc(100% - 26px);aspect-ratio:950/1800;background:#000;border:6px solid #15171A;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6%;overflow:hidden;position:relative}
+.ek .ekr span{font:800 clamp(12px,2vw,28px)/1 "Inter",sans-serif;color:#F7C843;letter-spacing:.04em;text-shadow:0 2px 0 #8a6a10}
+.ek .ekr.led::after{content:"";position:absolute;inset:0;background:radial-gradient(circle,transparent 45%,#000 62%) 0 0/4px 4px}
+.ek small{color:var(--mut);font-size:12.5px}
+.aktar{display:flex;align-items:center;gap:12px;height:52px}
+.oynat{width:40px;height:40px;border-radius:var(--rb);border:1px solid var(--line);background:none;display:grid;place-items:center}
+.cubuk{flex:1;height:4px;background:var(--panel2);border-radius:2px;position:relative}
+.cubuk::before{content:"";position:absolute;inset:0 76% 0 0;background:var(--ac);border-radius:2px}
+.sure{font:13px "IBM Plex Mono",monospace;color:var(--mut)}
+.durum{display:flex;align-items:center;gap:6px;font-size:13px;padding:5px 10px;border-radius:999px;background:color-mix(in srgb,var(--ok) 18%,transparent)}
+.durum i{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+.eylem{grid-area:eyl;display:flex;align-items:center;gap:8px;padding:0 16px}
+.eylem .bos{flex:1}
+.ik{background:transparent;border:1px solid var(--line);border-radius:var(--rb);padding:0 16px;min-height:48px;font-size:14.5px}
+.yap{background:var(--ac);color:var(--onac)!important;border:0;border-radius:var(--rb);min-height:56px;padding:0 28px;font-weight:800;font-size:17px;display:flex;align-items:center;gap:10px}
+.yap svg{width:20px;height:20px}
+
+/* Vitrin: adalar, alt yüzen kip çubuğu, sol çekmece */
+.app[data-t=vitrin]{padding:0 12px;--ara:12px}
+.app[data-t=vitrin] .panel,.app[data-t=vitrin] .sahne{border-radius:var(--r);box-shadow:0 1px 3px rgba(29,27,26,.10);border:1px solid var(--panel2)}
+.app[data-t=vitrin] .sahne{background:var(--panel)}
+.app[data-t=vitrin] .eylem .kipler{background:var(--panel);border-radius:999px;padding:4px;border:1px solid var(--panel2);box-shadow:0 1px 3px rgba(29,27,26,.10)}
+.app[data-t=vitrin] .kip.sec{background:var(--ac);color:var(--onac)}
+.app[data-t=vitrin] .eylem{padding:0}
+/* Vuruş: ton kapsayıcıları, üst sekme, sağ çekmece */
+.app[data-t=vurus] .sekme .kipler{background:var(--panel);padding:0 10px;gap:0}
+.app[data-t=vurus] .kip{border-radius:0;border-bottom:3px solid transparent}
+.app[data-t=vurus] .kip.sec{border-bottom-color:var(--ac)}
+.app[data-t=vurus] .eylem{background:var(--panel)}
+.app[data-t=vurus] .panel{background:var(--panel2)}
+.app[data-t=vurus] .phead h3{text-transform:uppercase;letter-spacing:.08em;font-size:14px}
+/* Cephe: çekmece içinde 76px ray + panel */
+.app[data-t=cephe]{--cw:456px}
+.app[data-t=cephe] .cekmece .kipler{flex-direction:column;width:76px;flex:none;padding:6px;background:var(--panel)}
+.app[data-t=cephe] .kip{flex-direction:column;gap:3px;padding:10px 2px;font-size:11.5px;white-space:normal;text-align:center;position:relative;line-height:1.2}
+.app[data-t=cephe] .kip.sec{background:var(--panel2)}
+.app[data-t=cephe] .kip.sec::before,.app[data-t=cephe] .kip.sec::after{content:"";position:absolute;left:3px;top:30%;width:2px;height:40%;background:var(--ac)}
+.app[data-t=cephe] .kip.sec::after{left:7px}
+.app[data-t=cephe] .panel{background:var(--panel2);border-radius:var(--r);margin:8px 0 8px 8px}
+.app[data-t=cephe] .metin{border-width:2px}
+.app[data-t=cephe] .sen{background:var(--panel)}
+/* Kadraj: sağ çekmece, panel başında 5 bölmeli seçici, köşe işaretleri */
+.app[data-t=kadraj] .panel{border-left:1px solid var(--panel2)}
+.app[data-t=kadraj] .cekmece{flex-direction:column;background:var(--panel)}
+.app[data-t=kadraj] .cekmece .kipler{display:grid;grid-template-columns:repeat(5,1fr);gap:0;margin:12px 12px 0;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.app[data-t=kadraj] .cekmece .kip{flex-direction:column;gap:2px;font-size:11.5px;padding:8px 2px;border-radius:0;white-space:normal;text-align:center;line-height:1.15}
+.app[data-t=kadraj] .kip.sec{background:var(--ac);color:var(--onac)}
+.app[data-t=kadraj] .ek .ekr{outline:2px solid transparent}
+.app[data-t=kadraj] .ek .ekr::before{content:"";position:absolute;inset:6px;z-index:2;background:linear-gradient(var(--ac),var(--ac)) 0 0/14px 2px no-repeat,linear-gradient(var(--ac),var(--ac)) 0 0/2px 14px no-repeat,linear-gradient(var(--ac),var(--ac)) 100% 0/14px 2px no-repeat,linear-gradient(var(--ac),var(--ac)) 100% 0/2px 14px no-repeat,linear-gradient(var(--ac),var(--ac)) 0 100%/14px 2px no-repeat,linear-gradient(var(--ac),var(--ac)) 0 100%/2px 14px no-repeat,linear-gradient(var(--ac),var(--ac)) 100% 100%/14px 2px no-repeat,linear-gradient(var(--ac),var(--ac)) 100% 100%/2px 14px no-repeat}
+/* Manşet: sarı alan, 0 köşe, sol çekmece dikey akordeon */
+.app[data-t=manset] .cekmece{flex-direction:column;background:var(--panel);border-right:2px solid var(--tx)}
+.app[data-t=manset] .cekmece .kipler{flex-direction:column;gap:0}
+.app[data-t=manset] .kip{border-radius:0;border-bottom:1px solid var(--line);font-weight:800;text-transform:uppercase;letter-spacing:.04em;font-size:14px;padding:12px 16px}
+.app[data-t=manset] .kip.sec{background:var(--tx);color:var(--panel)}
+.app[data-t=manset] .panel{flex:1}
+.app[data-t=manset] .ustc .ad{font-weight:800;text-transform:uppercase;letter-spacing:.03em}
+.app[data-t=manset] .ik{border-width:2px;border-color:var(--tx)}
+.app[data-t=manset] .durum{border-radius:0}
+/* Eşlik: üst çubuğun ortasında hap kip grubu, büyük yumuşak kapsayıcılar, sol çekmece */
+.app[data-t=eslik]{--ara:12px;padding:0 12px}
+.app[data-t=eslik] .ustc .kipler{background:var(--panel);border-radius:999px;padding:3px;margin:0 auto}
+.app[data-t=eslik] .ustc .kip{border-radius:999px;min-height:38px;padding:6px 14px;font-size:14px}
+.app[data-t=eslik] .ustc .kip.sec{background:var(--ac);color:var(--onac)}
+.app[data-t=eslik] .ustc .bos{display:none}
+.app[data-t=eslik] .panel,.app[data-t=eslik] .sahne{border-radius:var(--r)}
+.app[data-t=eslik] .sahne{background:var(--panel)}
+.app[data-t=eslik] .eylem{padding:0}
+.app[data-t=eslik] .yap,.app[data-t=eslik] .ik{border-radius:999px}
+
+/* Yükleme */
+.yuk{position:absolute;inset:0;background:var(--bg);display:grid;place-items:center;z-index:5}
+.yuk[hidden]{display:none}
+.yuk .ic{display:flex;flex-direction:column;align-items:center;gap:16px}
+.yuk svg{width:120px;height:120px}
+.yuk .yad{font-weight:700;font-size:26px}
+.yuk .ydur{font:13px "IBM Plex Mono",monospace;color:var(--mut)}
+.yuk .p1{animation:sol 1.4s ease-in-out infinite alternate}.yuk .p2{animation:sag 1.4s ease-in-out infinite alternate}
+@keyframes sol{from{transform:translateX(6px)}to{transform:translateX(-10px)}}@keyframes sag{from{transform:translateX(-6px)}to{transform:translateX(10px)}}
+.app[data-t=cephe] .yuk .p1,.app[data-t=cephe] .yuk .p2{animation:yuks 1.6s ease-out infinite;transform-origin:50% 100%}
+@keyframes yuks{from{transform:scaleY(.1)}to{transform:scaleY(1)}}
+.app[data-t=vurus] .yuk .p1,.app[data-t=vurus] .yuk .p2,.app[data-t=eslik] .yuk .p1,.app[data-t=eslik] .yuk .p2,.app[data-t=manset] .yuk .p1,.app[data-t=manset] .yuk .p2,.app[data-t=kadraj] .yuk .p1,.app[data-t=kadraj] .yuk .p2{animation:belir 1.4s ease-in-out infinite alternate}
+@keyframes belir{from{opacity:.25}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.yuk *{animation:none!important}.cekmece{transition:opacity .12s!important}}
+
+/* Logo */
+.logolar{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.lgk{border-radius:12px;padding:16px 10px;display:flex;flex-direction:column;align-items:center;gap:10px;border:1px solid var(--pgline)}
+.lgk .b{width:64px;height:64px}
+.lgk .k{display:flex;gap:8px;align-items:center}
+.lgk span{font-size:13px;font-weight:600}
+.lgyatay{display:flex;flex-wrap:wrap;gap:10px}
+.lgyatay div{display:flex;align-items:center;gap:10px;padding:12px 18px;border-radius:10px;font-weight:700;font-size:18px}
+.lgyatay svg{width:34px;height:34px}
+@media (max-width:760px){.secici{grid-template-columns:1fr}}
+</style>
+
+<div class="sar">
+  <header>
+    <div class="etk">TAA Vidyo Yapıcı · arayüz yenileme · taslak 2</div>
+    <h1>Altı tema, kapanır çekmece ve İkiz Pile logosu</h1>
+    <p class="alt">İlk üç tema elden geçti (Vitrin'de krem ve serif çıktı, Vuruş'un vurgusu tokladı, Cephe'nin rayı 132 px'ten 76 px'e indi). Üç yeni tema eklendi: Kadraj, Manşet, Eşlik. Panel her temada kapanır bir çekmece: sol üstteki düğme ya da Ctrl+B. Kapanınca hiçbir şerit kalmaz, sahne genişler, seçim hatırlanır. Bu bir taslaktır; program henüz değişmedi.</p>
+  </header>
+
+  <section aria-label="Tema seçimi"><div class="secici" id="secici"></div></section>
+
+  <section style="display:flex;flex-direction:column;gap:10px">
+    <div class="sahnebar">
+      <span class="etk" id="secAd"></span>
+      <button id="cekBtn" type="button">Çekmeceyi kapat</button>
+      <button id="kipBtn" type="button">Hazır kipine geç</button>
+      <button id="yukBtn" type="button">Yükleme ekranını göster</button>
+    </div>
+    <div class="cerceve">
+      <div class="app" id="app" data-t="vitrin" data-cekmece="acik">
+        <div class="ustc" id="ustc">
+          <button class="cek" id="cek" aria-label="Paneli aç ya da kapat (Ctrl+B)" title="Paneli aç/kapat (Ctrl+B)"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2.5" y="3.5" width="15" height="13" rx="2"/><path d="M8 3.5 V16.5"/></svg></button>
+          <span id="lgUst"></span>
+          <span class="ad">TAA Vidyo Yapıcı</span><span class="sur">1.0 taslak</span>
+          <span class="bos"></span>
+          <button class="lk">Rehber</button><button class="lk">Ayarlar</button>
+        </div>
+        <div class="sekme" id="sekme"></div>
+        <div class="orta">
+          <aside class="cekmece" id="cekmece"><div class="panel" id="panel"></div></aside>
+          <div class="sahne">
+            <div class="sarac">
+              <div class="grup"><span class="sec">Düz</span><span>Bina karşıdan</span></div>
+              <div class="grup"><span class="sec">Gündüz</span><span>Akşam</span></div>
+              <div class="grup"><span class="sec">3 m</span><span>15 m</span></div>
+              <div class="grup"><span>Güvenli alan</span></div>
+            </div>
+            <div class="ekranlar">
+              <div class="ek"><div class="ekr"><span>HOŞ</span><span>GELDİNİZ</span></div><small>Tasarım</small></div>
+              <div class="ek"><div class="ekr led"><span>HOŞ</span><span>GELDİNİZ</span></div><small>Ekranda nasıl görünür · 3 m</small></div>
+            </div>
+            <div class="aktar">
+              <button class="oynat" aria-label="Duraklat"><svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="2" y="1" width="3.5" height="12"/><rect x="8.5" y="1" width="3.5" height="12"/></svg></button>
+              <div class="cubuk"></div><span class="sure">00:02.4 / 00:10.2</span>
+              <span class="durum"><i></i>Okunabilirlik uygun</span>
+            </div>
+          </div>
+        </div>
+        <div class="eylem" id="eylem">
+          <span id="altKip"></span>
+          <button class="ik">Son videoyu oynat</button><button class="ik">Klasörü aç</button><button class="ik">Yeni video</button>
+          <span class="bos"></span>
+          <button class="yap"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M5 3 L17 10 L5 17 Z"/></svg>Videoyu yap</button>
+        </div>
+        <div class="yuk" id="yuk" hidden><div class="ic"><span id="lgYuk"></span><div class="yad">TAA Vidyo Yapıcı</div><div class="ydur">Yazı tipleri hazırlanıyor…</div></div></div>
+      </div>
+    </div>
+    <div class="not" id="not"></div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:10px">
+    <div><h2>Logo: İkiz Pile</h2><p class="alt">Seçtiğiniz işaret. Birbirine bakan iki pile: terzilik ve cephenin iki yanındaki eş ekranlar. Her temada o temanın renkleriyle; 64, 32 ve 24 px. Dolu vurgu yüzeyinde iki pile de zıt renge döner.</p></div>
+    <div class="logolar" id="logolar"></div>
+    <div class="lgyatay" id="lgyatay"></div>
+  </section>
+</div>
+
+<script>
+const P1="M8 8 H20 L28 32 L20 56 H8 L16 32 Z",P2="M44 8 H56 L48 32 L56 56 H44 L36 32 Z";
+const T={
+ vitrin:{ad:"Vitrin",tip:"Açık · varsayılan",yan:"sol",kip:"alt",fikir:"Aydınlık mağaza vitrini: porselen beyazı zemin, birbirine değmeyen adalar, tek vişne vurgu.",j:["#F1F0EC","#FFFFFF","#9A1B3C","#1D1B1A"],aa:"'Segoe UI Variable','Inter',sans-serif",lg:["#9A1B3C","#9A1B3C"],
+  not:{"Ne değişti":"Krem yerine porselen beyazı, serif çıktı, bordo vişneye çekildi","Yazı":"Segoe UI Variable","Köşe ve yüzey":"16 px + hap düğmeler; tek ince gölge","Gezinme":"Altta yüzen kip çubuğu, solda çekmece","İmza hareket":"Perde, 200 ms","Yükleme":"İki pile perde gibi iki yana açılır"}},
+ vurus:{ad:"Vuruş",tip:"Koyu",yan:"sag",kip:"sekme",fikir:"Videonun ritmi: koyu patlıcan zemin, tok ıhlamur vurgu, tipografik duraklar.",j:["#191826","#2D2B42","#C2DC55","#F0EEF8"],aa:"Bahnschrift,'Inter',sans-serif",lg:["#F0EEF8","#C2DC55"],
+  not:{"Ne değişti":"Soluk limon tok ıhlamura döndü, çizgiler kalktı, ton kapsayıcıları geldi","Yazı":"Bahnschrift, sayılarda IBM Plex Mono","Köşe ve yüzey":"2 px, gölgesiz, iç içe tonlar","Gezinme":"Üstte sekme satırı, sağda çekmece","İmza hareket":"Sekme alt çizgisi vuruşu, 140 ms","Yükleme":"İki pile aynı anda belirir"}},
+ cephe:{ad:"Cephe",tip:"Renkli koyu",yan:"sol",kip:"ray",fikir:"Akşamüstü bina cephesi: petrol zemin, krem yazı, bakıra yakın mercan; binanın simetrisi.",j:["#112B34","#224854","#FFA58C","#F4EEE3"],aa:"'Space Grotesk',sans-serif",lg:["#FFA58C","#FFA58C"],
+  not:{"Ne değişti":"Ray 132 px'ten 76 px'e indi ve çekmecenin içine girdi","Yazı":"Space Grotesk","Köşe ve yüzey":"10 px, ton katmanı + 2 px çerçeve","Gezinme":"Sol çekmecede dar etiketli ray + panel","İmza hareket":"Yükseliş, 12 px / 180 ms","Yükleme":"Pileler alttan yukarı mercanla dolar"}},
+ kadraj:{ad:"Kadraj",tip:"Açık · yeni",yan:"sag",kip:"ici",fikir:"Videoyu temiz bir izleme penceresi olarak sunar; soğuk, sakin, en okunaklı tema.",j:["#EAF2FA","#FFFFFF","#174BD1","#122C43"],aa:"'Atkinson Hyperlegible Next',sans-serif",lg:["#174BD1","#174BD1"],
+  not:{"Kaynak":"GPT önerisi, Fable düzenledi","Yazı":"Atkinson Hyperlegible Next (okunurluk için tasarlanmış)","Köşe ve yüzey":"4 px; önizlemelerde köşe işaretleri","Gezinme":"Sağda çekmece, başında 5 bölmeli seçici","İmza hareket":"Köşe işaretleri içeri oturur, 140 ms","Yükleme":"İki boş pencerede köşeler oturur"}},
+ manset:{ad:"Manşet",tip:"Açık renkli · yeni",yan:"sol",kip:"akordeon",fikir:"Mağazanın cümlesini başrole alan tok, neşeli duyuru dili: sarı alan, mürekkep yazı, lacivert tek eylem.",j:["#F5DC72","#FFF9E5","#173C58","#24221B"],aa:"'Archivo',sans-serif",lg:["#24221B","#24221B"],
+  not:{"Kaynak":"GPT önerisi, Fable çizgiyi koyulaştırdı","Yazı":"Archivo","Köşe ve yüzey":"0 px, 2 px mürekkep çerçeve","Gezinme":"Sol çekmecede dikey akordeon","İmza hareket":"Satır açılması, 160 ms","Yükleme":"Sarı alanda mürekkep İkiz Pile"}},
+ eslik:{ad:"Eşlik",tip:"Koyu renkli · yeni",yan:"sol",kip:"ustHap",fikir:"Yazılan mesajla LED'deki karşılığını yan yana tutan sıcak gece arayüzü: erik zemin, pudra pembe vurgu.",j:["#351D2A","#57384A","#F4C3DA","#FFF3F9"],aa:"'Nunito',sans-serif",lg:["#F4C3DA","#FFF3F9"],
+  not:{"Kaynak":"GPT önerisi; alt bant reddedildi (önizlemeyi küçültüyordu)","Yazı":"Nunito","Köşe ve yüzey":"24 / 12 px, büyük yumuşak kapsayıcılar","Gezinme":"Üst çubuğun ortasında hap kip grubu, solda çekmece","İmza hareket":"Eşzamanlı belirme, 140 ms","Yükleme":"İki pile aynı anda belirir"}}
+};
+const KIP=[["Yaz",'<path d="M4 16 L4 13 L13 4 L16 7 L7 16 Z"/>'],["Hazır",'<rect x="3" y="3" width="6" height="6"/><rect x="11" y="3" width="6" height="6"/><rect x="3" y="11" width="6" height="6"/><rect x="11" y="11" width="6" height="6"/>'],["Yapay zekâ",'<path d="M3 4 H17 V13 H9 L5 16 V13 H3 Z"/>'],["Görünüm",'<circle cx="10" cy="10" r="7"/><circle cx="7" cy="8" r="1.2"/><circle cx="12" cy="7" r="1.2"/><circle cx="13" cy="11.5" r="1.2"/>'],["Ayrıntılar",'<path d="M3 6 H17 M3 14 H17"/><circle cx="7" cy="6" r="2"/><circle cx="13" cy="14" r="2"/>']];
+const $=s=>document.querySelector(s),app=$("#app");
+let tema="vitrin",kip=0,acik=true;
+try{const t=localStorage.getItem("vy-tema");if(T[t])tema=t;acik=localStorage.getItem("taa.cekmece")!=="kapali"}catch(e){}
+const lg=(a,b,w,c1,c2)=>`<svg ${w?`width="${w}" height="${w}"`:""} class="${c1||""}" viewBox="0 0 64 64"><path class="p1" fill="${a}" d="${P1}"/><path class="p2" fill="${b}" d="${P2}"/></svg>`;
+function kipHTML(){return `<nav class="kipler">${KIP.map(([a,s],i)=>`<button class="kip${i===kip?" sec":""}" data-i="${i}" title="Alt+${i+1}"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round">${s}</svg>${a}</button>`).join("")}</nav>`}
+function icerik(){
+ const bas=`<div class="phead"><h3>${kip===1?"Hazır senaryolar":KIP[kip][0]==="Yaz"?"Ne yazsın?":KIP[kip][0]}</h3><button class="kapat" data-kapat>Paneli kapat</button></div>`;
+ if(kip===1)return bas+`<p class="mut">Birine dokunun, sahnede hemen önizlenir.</p><div class="senaryolar">${["3 taksit","%30 indirim","Yeni sezon","Açılış","Bayram","Ürün tanıtımı","Damatlık","Son günler","Ücretsiz tadilat","Hafta sonu","Yılbaşı","Büyük cuma","Çalışma saatleri"].map((s,i)=>`<div class="sen${i===0?" sec":""}"><span class="mini">${s.split(" ")[0].toLocaleUpperCase("tr-TR")}</span>${s}</div>`).join("")}</div>`;
+ if(kip===0)return bas+`<div class="metin">HOŞ GELDİNİZ<br><br>PEŞİN FİYATINA<br>3 TAKSİT</div><p class="mut">Boş satır yeni mesaj başlatır. Yazdıkça sahnede görünür.</p><div class="serit">${["Taksit","İndirim","Açılış","Bayram","Saatler","Kendi şablonum"].map(s=>`<button class="cip">${s}</button>`).join("")}</div>`;
+ return bas+`<p class="mut">Bu kipin içeriği taslakta gösterilmiyor; programdaki bütün işlevler burada kalır.</p>`;
+}
+function ciz(){
+ const t=T[tema];app.dataset.t=tema;app.dataset.yan=t.yan;app.dataset.cekmece=acik?"acik":"kapali";
+ $("#secici").innerHTML=Object.entries(T).map(([k,x])=>`<button class="tk" type="button" data-k="${k}" aria-pressed="${k===tema}"><span class="ust"><span class="aa" style="background:${x.j[0]};color:${x.j[2]};font-family:${x.aa}">Aa</span><span><b>${x.ad}</b>${x.tip.includes("yeni")?'<span class="yeni">yeni</span>':""}<br><span class="etk">${x.tip.replace(" · yeni","")}</span></span></span><span class="nok">${x.j.map(r=>`<i style="background:${r}"></i>`).join("")}</span><small>${x.fikir}</small></button>`).join("");
+ document.querySelectorAll(".tk").forEach(b=>b.onclick=()=>{tema=b.dataset.k;try{localStorage.setItem("vy-tema",tema)}catch(e){}ciz()});
+ $("#secAd").textContent=t.ad+" · canlı taslak";
+ $("#lgUst").innerHTML=lg(t.lg[0],t.lg[1],0,"logo");$("#lgYuk").innerHTML=lg(t.lg[0],t.lg[1]);
+ document.querySelectorAll(".ustc .kipler").forEach(n=>n.remove());
+ $("#sekme").innerHTML="";$("#altKip").innerHTML="";
+ const ce=$("#cekmece");ce.innerHTML="";
+ if(t.kip==="alt")$("#altKip").innerHTML=kipHTML();
+ if(t.kip==="sekme")$("#sekme").innerHTML=kipHTML();
+ if(t.kip==="ustHap")$(".ustc .bos").insertAdjacentHTML("beforebegin",kipHTML());
+ if(t.kip==="ray"||t.kip==="ici")ce.insertAdjacentHTML("beforeend",kipHTML());
+ if(t.kip==="akordeon"){ce.insertAdjacentHTML("beforeend",kipHTML());const ks=ce.querySelectorAll(".kip");ks[kip].insertAdjacentHTML("afterend",`<div class="panel" id="panel">${icerik()}</div>`);}
+ else ce.insertAdjacentHTML("beforeend",`<div class="panel" id="panel">${icerik()}</div>`);
+ document.querySelectorAll(".kip").forEach(b=>b.onclick=()=>{kip=+b.dataset.i;acik=true;kaydet();ciz()});
+ document.querySelectorAll("[data-kapat]").forEach(b=>b.onclick=()=>{acik=false;kaydet();ciz()});
+ $("#cekBtn").textContent=acik?"Çekmeceyi kapat":"Çekmeceyi aç";
+ $("#kipBtn").textContent=kip===1?"Yaz kipine geç":"Hazır kipine geç";
+ $("#not").innerHTML=Object.entries(t.not).map(([k,v])=>`<div><b>${k}</b>${v}</div>`).join("");
+}
+function kaydet(){try{localStorage.setItem("taa.cekmece",acik?"acik":"kapali")}catch(e){}}
+const cevir=()=>{acik=!acik;kaydet();ciz()};
+$("#cek").onclick=cevir;$("#cekBtn").onclick=cevir;
+document.addEventListener("keydown",e=>{if(e.ctrlKey&&(e.key==="b"||e.key==="B")){e.preventDefault();cevir()}if(e.altKey&&/^[1-5]$/.test(e.key)){kip=+e.key-1;acik=true;kaydet();ciz()}});
+$("#kipBtn").onclick=()=>{kip=kip===1?0:1;acik=true;ciz()};
+$("#yukBtn").onclick=()=>{const y=$("#yuk");y.hidden=false;setTimeout(()=>y.hidden=true,3200)};
+$("#logolar").innerHTML=Object.values(T).map(x=>`<div class="lgk" style="background:${x.j[0]};color:${x.j[3]}">${lg(x.lg[0],x.lg[1],0,"b")}<div class="k">${lg(x.lg[0],x.lg[1],32)}${lg(x.lg[0],x.lg[1],24)}<span style="display:grid;place-items:center;width:40px;height:40px;border-radius:8px;background:${x.j[2]}">${lg(x===T.manset?"#FFFFFF":x.j[0]===T.vurus.j[0]?"#1A2006":x===T.eslik?"#3A1428":x===T.cephe?"#3A1108":"#FFFFFF",x===T.manset?"#FFFFFF":x===T.vurus?"#1A2006":x===T.eslik?"#3A1428":x===T.cephe?"#3A1108":"#FFFFFF",24)}</span></div><span>${x.ad}</span></div>`).join("");
+$("#lgyatay").innerHTML=["vitrin","vurus","manset"].map(k=>{const x=T[k];return `<div style="background:${x.j[0]};color:${x.j[3]}">${lg(x.lg[0],x.lg[1])}<span style="font-family:${x.aa}">TAA Vidyo Yapıcı</span></div>`}).join("");
+ciz();
+</script>

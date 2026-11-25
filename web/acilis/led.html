@@ -1,0 +1,60 @@
+<!doctype html>
+<!-- Açıklama: TAA Vidyo Yapıcı açılış animasyonu (tur 2, Opus led). Logo: logo.js (İkiz Kabartma, tek yer). Sahip: Yusuf. Yazan: [Claude#Sonnet-5.5]. Yalnız yazan yapay zekâ ya da Yusuf'un izniyle değişir; silme yok. --><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LED Uyanış</title>
+<style>
+html,body{margin:0;height:100%;background:#191826;overflow:hidden;font-family:"Segoe UI Variable","Segoe UI",system-ui,sans-serif;color:#F0EEF8}
+#sahne{position:fixed;inset:0}
+#izgara{position:absolute;inset:0}
+.n{position:absolute;width:var(--d);height:var(--d);margin:calc(var(--d)/-2) 0 0 calc(var(--d)/-2);border-radius:50%;background:#2C2A3D;opacity:0}
+.n.y{background:#D2486A}
+#logo{position:absolute;left:50%;top:44%;width:var(--S);height:var(--S);transform:translate(-50%,-50%);opacity:0}
+#logo svg{width:100%;height:100%;display:block}
+#yazi{position:absolute;left:0;right:0;top:calc(44% + var(--S)*.58);text-align:center}
+.kap{overflow:hidden}
+#ad{display:inline-block;font-size:clamp(30px,4.2vw,64px);font-weight:700;letter-spacing:-.01em;opacity:0}
+#cumle{display:inline-block;margin-top:.4em;font-size:clamp(16px,1.4vw,22px);color:#B7B2CE;opacity:0}
+button{position:fixed;min-height:48px;padding:0 20px;border-radius:999px;border:1px solid #4A4760;background:#232234;color:#F0EEF8;font:inherit;font-size:16px;cursor:pointer}
+button:focus-visible{outline:3px solid #D2486A;outline-offset:2px}
+#gec{top:20px;right:20px}#tekrar{bottom:20px;right:20px}
+</style><style>html.uyg #tekrar,html.uyg #rep{display:none!important}</style>
+<script>/* uygulama modu (?uygulama=1): Tekrar oynat gizli; tıklama/Esc/Geç ana sayfaya bildirilir */if(/[?&]uygulama=1/.test(location.search)){document.documentElement.classList.add("uyg");var g=function(){parent.postMessage("taa-acilis-gec","*")};addEventListener("click",g);addEventListener("keydown",function(e){if(e.key==="Escape")g()})}</script>
+</head><body>
+<div id="sahne"><div id="izgara"></div>
+<div id="logo"><svg viewBox="0 0 128 128"><g id="ls" data-ikiz="sol"></g><g id="lg" data-ikiz="sag"></g></svg></div>
+<div id="yazi"><div class="kap"><span id="ad">TAA Vidyo Yapıcı</span></div><div class="kap"><span id="cumle">Yaz, önizle, tek tıkla videoyu yap.</span></div></div></div>
+<button id="gec" type="button">Geç</button><button id="tekrar" type="button">Tekrar oynat</button>
+<script src="logo.js"></script>
+<script>
+// İkiz Pile çokgenleri (128 birim)
+const P=[[[16,16],[40,16],[56,64],[40,112],[16,112],[32,64]],[[112,16],[88,16],[72,64],[88,112],[112,112],[96,64]]];
+const ic=(x,y,p)=>{let c=false;for(let i=0,j=p.length-1;i<p.length;j=i++){const[xi,yi]=p[i],[xj,yj]=p[j];if((yi>y)!==(yj>y)&&x<(xj-xi)*(y-yi)/(yj-yi)+xi)c=!c}return c};
+const E={in:"cubic-bezier(0.1,0.9,0.2,1)",up:"cubic-bezier(0.05,0.7,0.1,1)"};
+let A=[];
+function kur(){
+ const W=innerWidth,H=innerHeight,S=Math.round(Math.min(H*.42,W*.3)),d=Math.max(5,Math.round(S/30)),g=d*1.6;
+ document.documentElement.style.setProperty("--S",S+"px");document.documentElement.style.setProperty("--d",d+"px");
+ const iz=document.getElementById("izgara");iz.innerHTML="";
+ const cx=W/2,cy=H*.44,cols=Math.ceil(W/g)+1,rows=Math.ceil(H/g)+1,ox=(cx%g),oy=(cy%g),frag=document.createDocumentFragment(),L=[];
+ for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const x=ox+c*g,y=oy+r*g,lx=(x-cx)/S*128+64,ly=(y-cy)/S*128+64;
+  const yan=ic(lx,ly,P[0])||ic(lx,ly,P[1]);const e=document.createElement("i");e.className="n"+(yan?" y":"");e.style.left=x+"px";e.style.top=y+"px";frag.appendChild(e);L.push({e,yan,uz:Math.hypot(x-cx,y-cy),capraz:(lx+ly)})}
+ iz.appendChild(frag);return L}
+function oynat(){
+ A.forEach(a=>a.cancel());A=[];const L=kur();const an=(el,kf,o)=>{const a=el.animate(kf,{fill:"both",easing:E.in,...o});A.push(a);return a};
+ const logo=document.getElementById("logo"),ad=document.getElementById("ad"),cu=document.getElementById("cumle");
+ if(matchMedia("(prefers-reduced-motion: reduce)").matches){L.forEach(o=>o.e.style.opacity=0);[logo,ad,cu].forEach(e=>an(e,[{opacity:0},{opacity:1}],{duration:120}));return}
+ const maxU=Math.max(...L.map(o=>o.uz));
+ L.forEach(o=>{
+  if(!o.yan){ // sönük panel noktaları: merkezden dışa yayılarak belirir, sonra söner
+   an(o.e,[{opacity:0},{opacity:.9,offset:.35},{opacity:.9,offset:.7},{opacity:0}],{duration:2300,delay:o.uz/maxU*500,easing:"linear"});
+  }else{ // logo noktaları: çapraz dalgayla yanar, sonra katı logoya devreder
+   const t=600+(o.capraz/256)*700;
+   an(o.e,[{opacity:0,transform:"scale(.3)"},{opacity:.35,transform:"scale(.6)",offset:.2},{opacity:1,transform:"scale(1.15)",offset:.45},{opacity:1,transform:"scale(1)",offset:.8},{opacity:0,transform:"scale(1)"}],{duration:1500,delay:t-300,easing:"linear"});
+  }});
+ an(logo,[{opacity:0,transform:"translate(-50%,-50%) scale(1.06)"},{opacity:1,transform:"translate(-50%,-50%) scale(1)"}],{duration:500,delay:1750});
+ an(ad,[{opacity:0,transform:"translateY(100%)"},{opacity:1,transform:"none"}],{duration:500,delay:2200,easing:E.up});
+ an(cu,[{opacity:0,transform:"translateY(100%)"},{opacity:1,transform:"none"}],{duration:500,delay:2450,easing:E.up});
+}
+document.getElementById("gec").onclick=()=>A.forEach(a=>a.finish());
+document.getElementById("tekrar").onclick=oynat;
+let zt;addEventListener("resize",()=>{clearTimeout(zt);zt=setTimeout(()=>{oynat();A.forEach(a=>a.finish())},200)});
+oynat();
+</script></body></html>

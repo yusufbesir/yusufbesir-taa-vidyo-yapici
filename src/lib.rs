@@ -12,7 +12,23 @@ pub mod sablon;
 pub mod ffmpeg;
 pub mod png;
 pub mod uret;
+pub mod tarif;
+pub mod tarif_http;
+pub mod malzeme_http;
+pub mod malzeme;
+pub mod malzeme_ciz;
+pub mod malzeme_parca;
+pub mod malzeme_kis;
+pub mod malzeme_sahne;
+pub mod malzeme_ek;
+pub mod llm;
+pub mod ayar;
 pub mod arayuz;
+pub mod oynatici_http;
+pub mod oynatici_medya;
+pub mod oynatici_pencere;
+pub mod donustur;
+pub mod donustur_http;
 pub mod taa_giris;
 /// Bir satırın yüksekliği (kare() ile aynı formül).
 pub fn satir_yuksekligi(font: &FontRef, harf_px: f32) -> f32 { font.as_scaled(PxScale::from(harf_px)).height() * 1.15 }

@@ -1,0 +1,77 @@
+<!doctype html>
+<!-- Açıklama: TAA Vidyo Yapıcı açılış animasyonu, tur 2, konsept "Zaman çizelgesi". Tek bağımsız dosya. Sahip: Yusuf. Yazan: [Claude#Sonnet-5.5 alt ajan, 2026-11-17]. Yalnız yazan yapay zekâ ya da Yusuf'un izniyle değişir; silme yok. Kurallar: BRIF.md -->
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TAA Vidyo Yapıcı - Zaman çizelgesi</title>
+<style>
+:root{--v:#9A1B3C;--vl:#D2486A;--vd:#5A0C20;--bg:#191826;--tx:#F1F0EC}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font-family:"Segoe UI Variable","Segoe UI",system-ui,sans-serif}
+#st{position:absolute;left:0;top:0;width:1600px;height:900px;overflow:hidden;transform-origin:0 0;background:var(--bg)}
+#st>*,#ui>*{position:absolute}
+#ui,#mg{left:0;top:0;width:1600px;height:900px}
+#tr div{left:120px;width:1360px;height:72px;border-radius:8px;background:rgba(241,240,236,.06)}
+#rl{left:120px;top:236px;width:1360px;height:22px;border-top:2px solid rgba(241,240,236,.5);background:repeating-linear-gradient(90deg,rgba(241,240,236,.5) 0 2px,transparent 2px 34px) top/100% 12px no-repeat;transform-origin:0 0}
+#ph{left:0;top:222px;width:3px;height:462px;background:var(--tx);margin-left:-1px}
+#ph::before{content:"";position:absolute;left:-9px;top:-2px;width:21px;height:18px;background:var(--tx);clip-path:polygon(0 0,100% 0,50% 100%)}
+.cp{border-radius:6px}
+#lg{left:544px;top:98px;width:512px;height:512px;background:var(--v)}
+#lk{left:544px;top:98px;width:512px;height:512px;overflow:visible}
+#tt,#tg{left:0;width:1600px;text-align:center}
+#tt{top:650px;font-size:68px;font-weight:700;letter-spacing:.5px}
+#tg{top:742px;font-size:28px;opacity:.8}
+.b{position:fixed;z-index:9;font:600 15px/1 "Segoe UI Variable","Segoe UI",system-ui,sans-serif;color:var(--tx);background:rgba(25,24,38,.6);border:1px solid rgba(241,240,236,.4);padding:11px 20px;border-radius:999px;cursor:pointer}
+.b:hover{background:rgba(241,240,236,.14)}.b:focus-visible{outline:2px solid var(--vl);outline-offset:2px}
+#skip{top:20px;right:24px}#rep{bottom:20px;right:24px}
+</style><style>html.uyg #tekrar,html.uyg #rep{display:none!important}</style>
+<script>/* uygulama modu (?uygulama=1): Tekrar oynat gizli; tıklama/Esc/Geç ana sayfaya bildirilir */if(/[?&]uygulama=1/.test(location.search)){document.documentElement.classList.add("uyg");var g=function(){parent.postMessage("taa-acilis-gec","*")};addEventListener("click",g);addEventListener("keydown",function(e){if(e.key==="Escape")g()})}</script>
+</head><body>
+<div id="st">
+ <div id="ui"><div id="tr"></div><div id="rl"></div><div id="ph"></div></div>
+ <div id="mg"></div>
+ <div id="lg"></div>
+ <svg id="lk" viewBox="0 0 128 128" aria-hidden="true"><g data-ikiz="sol"></g><g data-ikiz="sag"></g></svg>
+ <div id="tt">TAA Vidyo Yapıcı</div><div id="tg">Yaz, önizle, tek tıkla videoyu yap.</div>
+</div>
+<button class="b" id="skip">Geç</button><button class="b" id="rep">Tekrar oynat</button>
+<script src="logo.js"></script>
+<script>
+const $=s=>document.querySelector(s),E='cubic-bezier(.65,0,.35,1)',EO='cubic-bezier(.2,.7,.2,1)';let L=[];
+const A=(e,k,d,t=0,o={})=>{const x=(typeof e=='string'?$(e):e).animate(k,{duration:d*1e3,delay:t*1e3,fill:'both',easing:E,...o});L.push(x);return x};
+const fit=()=>{const s=Math.min(innerWidth/1600,innerHeight/900);$('#st').style.transform=`translate(${(innerWidth-1600*s)/2}px,${(innerHeight-900*s)/2}px) scale(${s})`};
+// pile geometrisi (128 kutusu)
+const PL=[[16,16],[40,16],[56,64],[40,112],[16,112],[32,64]],PR=[[112,16],[88,16],[72,64],[88,112],[112,112],[96,64]];
+const poly=a=>a.map((p,i)=>(i?'L':'M')+p[0]+','+p[1]).join('')+'Z';
+const pc=(ox,oy,k)=>"path('"+[PL,PR].map(P=>poly(P.map(p=>[ox+p[0]*k,oy+p[1]*k]))).join('')+"')";
+const rc=(...a)=>"path('"+a.map(poly).join('')+"')";
+// klipler: [satır, x, genişlik, ton]
+const sh=['#D2486A','#9A1B3C','#5A0C20','#B02A50'],C=[];let n=0;
+for(let r=0;r<4;r++){let x=120+[0,60,20,90][r];for(;;){const w=[170,230,120,280,150][(n*3+r)%5];if(x+w>1480)break;C.push([r,x,w,sh[n%4]]);x+=w+14;n++}}
+const ty=r=>300+r*92;
+for(let r=0;r<4;r++){const d=document.createElement('div');d.style.top=ty(r)+'px';$('#tr').append(d)}
+const cl=C.map(c=>{const d=document.createElement('div');d.className='cp';d.style.cssText=`position:absolute;left:${c[1]}px;top:${ty(c[0])+8}px;width:${c[2]}px;height:56px;background:${c[3]}`;$('#mg').append(d);return d});
+$('#lg').style.clipPath=pc(0,0,4);
+function build(){
+ const T=.35,D=1.4,M=2.2,MD=.75,bh=512/C.length;
+ A('#tr',[{opacity:0},{opacity:1}],.5);
+ A('#rl',[{transform:'scaleX(0)'},{transform:'none'}],.7,0,{easing:EO});
+ A('#ph',[{transform:'translateX(120px)'},{transform:'translateX(1480px)'}],D,T,{easing:'linear'});
+ A('#ph',[{opacity:0},{opacity:1}],.2,T-.05);
+ A('#ui',[{opacity:1},{opacity:0}],.35,M);
+ C.forEach((c,i)=>{
+  A(cl[i],[{opacity:0,transform:'translateY(-30px)'},{opacity:1,transform:'none'}],.3,T+(c[1]-120)/1360*D,{easing:EO});
+  A(cl[i],[{left:c[1]+'px',top:ty(c[0])+8+'px',width:c[2]+'px',height:'56px',borderRadius:'6px'},
+           {left:'544px',top:98+i*bh+'px',width:'512px',height:bh+'px',borderRadius:'0px'}],MD,M,{easing:'cubic-bezier(.7,0,.2,1)'});
+ });
+ // blokların toplandığı alan iki pileye daralır
+ A('#mg',[{clipPath:rc([[100,270],[800,270],[800,450],[800,680],[100,680],[100,450]],[[1500,270],[800,270],[800,450],[800,680],[1500,680],[1500,450]])},{clipPath:pc(544,98,4)}],MD,M,{easing:'cubic-bezier(.7,0,.2,1)'});
+ A('#mg',[{opacity:1},{opacity:0}],.3,M+MD+.05);
+ A('#lg',[{opacity:0},{opacity:1}],.3,M+MD);
+ A('#lk',[{opacity:0},{opacity:1}],.3,M+MD);
+ A('#tt',[{opacity:0,transform:'translateY(18px)'},{opacity:1,transform:'none'}],.5,3,{easing:EO});
+ A('#tg',[{opacity:0,transform:'translateY(14px)'},{opacity:.8,transform:'none'}],.5,3.2,{easing:EO});
+}
+function play(){L.forEach(x=>x.cancel());L=[];build();
+ if(matchMedia('(prefers-reduced-motion: reduce)').matches){L.forEach(x=>x.finish());A('#st',[{opacity:0},{opacity:1}],.12,0,{easing:'linear'})}}
+$('#skip').onclick=()=>L.forEach(x=>x.finish());$('#rep').onclick=play;
+addEventListener('resize',fit);fit();play();
+</script></body></html>

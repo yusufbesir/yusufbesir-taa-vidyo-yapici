@@ -1,5 +1,8 @@
 //! Yerel arayüz: 127.0.0.1 üzerinde küçük bir HTTP sunucusu; sayfa tarayıcıda açılır.
 //! Dış bağımlılık yok. Yalnız bu bilgisayardan erişilir (Host ve X-LED denetimi).
+//! 1.0 (yenileme-1.0, 2026-11-18) [Claude#UI Opus 5.5]: web/ai.js, web/malzeme.js ve web/yazi/*.woff2 gömülü uç noktaları eklendi. Sahip: Yusuf; değişiklik yalnız UI ajanı ya da Yusuf'un izniyle.
+//! Dalga 3 (2026-11-25) [Claude#UI Opus 5.5]: /oynatici, /oynatici.js, /oynatici.css, /cikis, /donustur.js gömülü; /oynatici/ ve /donustur/ modül yuvaları.
+//! Dalga 4 (2026-11-25) [Claude#SEC-FIX Opus 5.5]: ana sayfada CSP + nosniff (tüm yanıtlarda nosniff), son video kabuksuz açılır (explorer).
 use crate::{png, uret};
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
@@ -59,6 +62,44 @@ fn sayfa() -> &'static str {
     S.get_or_init(|| SAYFA.replacen("</body>", &format!("<script>{GIRIS_EKRANI}</script>\n<script>{GIRIS_BASLAT}</script>\n</body>"), 1))
 }
 const LOGO: &str = include_str!("../logo/logo.svg");
+// 1.0 modül yuvaları [Claude#UI Opus 5.5, yenileme-1.0, 2026-11-18]: web/ai.js (AI ajanı) ve web/malzeme.js (Malzeme ajanı) gömülü sunulur;
+// dosya yer tutucu yorumsa sayfa mevcut panelleri gösterir.
+const AI_JS: &str = include_str!("../web/ai.js");
+const MALZEME_JS: &str = include_str!("../web/malzeme.js");
+// Dalga 3 yuvaları [Claude#UI Opus 5.5, yenileme-1.0, 2026-11-25]: Oynatıcı (/oynatici, /cikis) ve Dönüştürücü (/donustur.js) sayfaları gömülü;
+// dosyaların içeriği Oynatıcı ve Dönüştürücü ajanlarınındır (yer tutucuyken sayfa "henüz yüklü değil" gösterir).
+const OYNATICI_HTML: &str = include_str!("../web/oynatici.html");
+const OYNATICI_JS: &str = include_str!("../web/oynatici.js");
+const OYNATICI_CSS: &str = include_str!("../web/oynatici.css");
+const CIKIS_HTML: &str = include_str!("../web/cikis.html");
+const DONUSTUR_JS: &str = include_str!("../web/donustur.js");
+/// Temaların gömülü yazı tipleri (SIL OFL 1.1; lisanslar web/yazi/OFL-*.txt). İnternetten yükleme yok.
+const YAZILAR: &[(&str, &[u8])] = &[
+    ("spacegrotesk.woff2", include_bytes!("../web/yazi/spacegrotesk.woff2")),
+    ("archivo.woff2", include_bytes!("../web/yazi/archivo.woff2")),
+    ("nunito.woff2", include_bytes!("../web/yazi/nunito.woff2")),
+    ("atkinsonhyperlegible-regular.woff2", include_bytes!("../web/yazi/atkinsonhyperlegible-regular.woff2")),
+    ("atkinsonhyperlegible-bold.woff2", include_bytes!("../web/yazi/atkinsonhyperlegible-bold.woff2")),
+    ("ibmplexmono-regular.woff2", include_bytes!("../web/yazi/ibmplexmono-regular.woff2")),
+];
+/// Açılış animasyonları (web/acilis): ana sayfa her açılışta rastgele birini iframe'de oynatır. Logo tek yerde: logo.js (İkiz Kabartma).
+const ACILIS: &[(&str, &str)] = &[
+    ("zaman", include_str!("../web/acilis/zaman.html")),
+    ("gece", include_str!("../web/acilis/gece.html")),
+    ("kalibrasyon", include_str!("../web/acilis/kalibrasyon.html")),
+    ("dikis", include_str!("../web/acilis/dikis.html")),
+    ("katlama", include_str!("../web/acilis/katlama.html")),
+    ("led", include_str!("../web/acilis/led.html")),
+    ("perde", include_str!("../web/acilis/perde.html")),
+    ("kurgu", include_str!("../web/acilis/kurgu.html")),
+    ("iki-ekran", include_str!("../web/acilis/iki-ekran.html")),
+    ("isik", include_str!("../web/acilis/isik.html")),
+    ("odak", include_str!("../web/acilis/odak.html")),
+    ("zaman-sol", include_str!("../web/acilis/zaman-sol.html")),
+    ("gece-terra", include_str!("../web/acilis/gece-terra.html")),
+    ("kalibrasyon-luna", include_str!("../web/acilis/kalibrasyon-luna.html")),
+];
+const ACILIS_LOGO_JS: &str = include_str!("../web/acilis/logo.js");
 const YZ_DAR: &[u8] = include_bytes!("../fonts/BarlowCondensed-Black.ttf");
 const YZ_RAF: &[u8] = include_bytes!("../fonts/Audiowide-Regular.ttf");
 pub const SURUM: &str = env!("CARGO_PKG_VERSION");
@@ -91,6 +132,7 @@ struct Ortak {
     klip: Mutex<()>,
     son_nabiz: Mutex<Instant>,
     port: u16,
+    jeton: String,
 }
 
 fn json_kacis(s: &str) -> String {
@@ -150,9 +192,36 @@ fn url_coz(s: &str) -> String {
     String::from_utf8_lossy(&o).into_owned()
 }
 
+/// Oturum jetonu: her açılışta rastgele (işletim sistemi rastgeleliği, getrandom); yalnız bu süreçte yaşar.
+fn rastgele_jeton() -> String {
+    let mut b = [0u8; 32];
+    getrandom::fill(&mut b).expect("işletim sistemi rastgeleliği alınamadı");
+    b.iter().map(|x| format!("{x:02x}")).collect()
+}
+/// Cookie başlığında `taa-oturum=<jeton>` var mı (sabit sürede karşılaştırır).
+fn cerez_jeton_var(cerez: &str, jeton: &str) -> bool {
+    cerez.split(';').filter_map(|p| p.trim().strip_prefix("taa-oturum=")).any(|v| v.len() == jeton.len() && v.bytes().zip(jeton.bytes()).fold(0u8, |a, (x, y)| a | (x ^ y)) == 0)
+}
+/// Dalga 4 [Claude#SEC-FIX Opus 5.5, yenileme-1.0, 2026-11-25]: ana sayfa içerik güvenlik ilkesi. Dış kaynak yok; satır içi betik/stil
+/// sayfanın kendi yapısı gereği açık; resim/medya için data: ve blob: (dönüştürücü PNG'leri, klip önizlemesi); açılış iframe'leri 'self'.
+pub const SAYFA_CSP: &str = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; connect-src 'self'; frame-src 'self'; base-uri 'none'; form-action 'none'";
+
+fn yanit_cerezli(s: &mut TcpStream, tur: &str, govde: &[u8], jeton: &str) {
+    let b = format!("HTTP/1.1 200 OK\r\nContent-Type: {tur}\r\nContent-Length: {}\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nContent-Security-Policy: {SAYFA_CSP}\r\nReferrer-Policy: no-referrer\r\nSet-Cookie: taa-oturum={jeton}; HttpOnly; SameSite=Strict; Path=/\r\nConnection: close\r\n\r\n", govde.len());
+    let _ = s.write_all(b.as_bytes());
+    let _ = s.write_all(govde);
+}
+
+/// Ana sayfa (çerezsiz yeniden yükleme): CSP + nosniff.
+fn yanit_sayfa(s: &mut TcpStream, govde: &[u8]) {
+    let b = format!("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: {}\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nContent-Security-Policy: {SAYFA_CSP}\r\nReferrer-Policy: no-referrer\r\nConnection: close\r\n\r\n", govde.len());
+    let _ = s.write_all(b.as_bytes());
+    let _ = s.write_all(govde);
+}
+
 fn yanit(s: &mut TcpStream, kod: u16, tur: &str, govde: &[u8]) {
-    let ad = match kod { 200 => "OK", 400 => "Bad Request", 401 => "Unauthorized", 403 => "Forbidden", 404 => "Not Found", 409 => "Conflict", _ => "Error" };
-    let b = format!("HTTP/1.1 {kod} {ad}\r\nContent-Type: {tur}\r\nContent-Length: {}\r\nCache-Control: no-store\r\nConnection: close\r\n\r\n", govde.len());
+    let ad = match kod { 200 => "OK", 400 => "Bad Request", 401 => "Unauthorized", 403 => "Forbidden", 404 => "Not Found", 409 => "Conflict", 503 => "Service Unavailable", _ => "Error" };
+    let b = format!("HTTP/1.1 {kod} {ad}\r\nContent-Type: {tur}\r\nContent-Length: {}\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nConnection: close\r\n\r\n", govde.len());
     let _ = s.write_all(b.as_bytes());
     let _ = s.write_all(govde);
 }
@@ -196,13 +265,9 @@ fn son_video_yolu(dosya: &str) -> Option<PathBuf> {
     let kok = cikti_klasoru();
     if tam.parent().map(|x| x == kok.as_path()).unwrap_or(false) && tam.is_file() { Some(tam) } else { None }
 }
-#[cfg(windows)]
-fn son_video_ac(p: &std::path::Path) {
-    use std::os::windows::process::CommandExt;
-    let _ = std::process::Command::new("cmd").args(["/c", "start", "", &p.display().to_string()]).creation_flags(0x0800_0000).spawn();
-}
-#[cfg(not(windows))]
-fn son_video_ac(p: &std::path::Path) { let _ = std::process::Command::new("xdg-open").arg(p).spawn(); }
+/// Son videoyu varsayılan oynatıcıda açar. Dalga 4 [Claude#SEC-FIX]: kabuk (`cmd /c start`) yok; explorer'a tek argüman
+/// (donustur::sistemde_ac ile aynı yol), dosya adındaki `&`, `^`, `%` gibi karakterler komut olarak yorumlanamaz.
+fn son_video_ac(p: &std::path::Path) { crate::donustur::sistemde_ac(p); }
 
 fn klasor_ac(k: &std::path::Path) {
     #[cfg(windows)]
@@ -215,6 +280,12 @@ fn isle(mut s: TcpStream, o: Arc<Ortak>) {
     let Some((yontem, yol, bas, govde)) = oku(&mut s) else { return };
     let ana = bas.iter().find(|(a, _)| a == "host").map(|(_, v)| v.as_str()).unwrap_or("");
     if ana != format!("127.0.0.1:{}", o.port) && ana != format!("localhost:{}", o.port) { return yanit(&mut s, 403, "text/plain; charset=utf-8", b"yasak"); }
+    let cerez = bas.iter().find(|(a, _)| a == "cookie").map(|(_, v)| v.as_str()).unwrap_or("");
+    let yetkili = cerez_jeton_var(cerez, &o.jeton);
+    if yontem == "GET" && yol.split('?').next() == Some("/") && sorgu(&yol, "t").as_deref() == Some(o.jeton.as_str()) {
+        return yanit_cerezli(&mut s, "text/html; charset=utf-8", sayfa().as_bytes(), &o.jeton);
+    }
+    if !yetkili { return yanit(&mut s, 401, "text/plain; charset=utf-8", b"oturum gerekli"); }
     let yazi = String::from_utf8_lossy(&govde).into_owned();
     let yolu = yol.split('?').next().unwrap_or("/").to_string();
     if yontem == "POST" && !bas.iter().any(|(a, v)| a == "x-led" && v == "1") { return yanit(&mut s, 403, "text/plain; charset=utf-8", b"yasak"); }
@@ -224,8 +295,13 @@ fn isle(mut s: TcpStream, o: Arc<Ortak>) {
             return yanit(&mut s, 401, "application/json; charset=utf-8", r#"{"hata":"oturum_gerekli","ileti":"Oturum yok ya da süresi doldu. Giriş yapın."}"#.as_bytes());
         }
     }
+    // Oynatıcı (ISTEK-oynatici.md 1): /cikis, /oynatici, /oynatici.*, /oynatici/... akışa kendisi yazar (Range, CSP); yetki denetiminden SONRA
+    if crate::oynatici_http::bu_yol_mu(&yolu) {
+        let uretim = || o.durum.lock().map(|d| d.calisiyor).unwrap_or(false);
+        return crate::oynatici_http::isle_akis(&mut s, &yontem, &yol, &bas, &govde, &uretim);
+    }
     match (yontem.as_str(), yolu.as_str()) {
-        ("GET", "/") => yanit(&mut s, 200, "text/html; charset=utf-8", sayfa().as_bytes()),
+        ("GET", "/") => yanit_sayfa(&mut s, sayfa().as_bytes()),
         // TAA ortak giriş: POST zaten yalnız 127.0.0.1 + X-LED başlığıyla gelir (yukarıdaki denetim).
         ("POST", y) if y.starts_with("/api/giris/") => {
             // Giriş/çıkış: önbellek işlemden önce ve sonra unutulur, sonraki işlem yeniden denetlenir.
@@ -237,7 +313,28 @@ fn isle(mut s: TcpStream, o: Arc<Ortak>) {
                 None => yanit(&mut s, 404, metin, b"yok"),
             }
         }
+        ("GET", "/ayar") => yanit(&mut s, 200, "application/json; charset=utf-8", crate::ayar::json_yaz(&crate::ayar::oku(&crate::ayar::varsayilan_yol())).as_bytes()),
+        ("POST", "/ayar") => match crate::ayar::istek_coz(&yazi) {
+            Some((k, v)) => match crate::ayar::degistir(&crate::ayar::varsayilan_yol(), &k, v.as_deref()) { Ok(()) => yanit(&mut s, 200, metin, b"ok"), Err(e) => yanit(&mut s, 400, metin, e.as_bytes()) },
+            None => yanit(&mut s, 400, metin, b"gecersiz istek"),
+        },
+        ("GET", "/acilis/logo.js") => yanit(&mut s, 200, "text/javascript; charset=utf-8", ACILIS_LOGO_JS.as_bytes()),
+        ("GET", y) if y.starts_with("/acilis/") && y.ends_with(".html") => match ACILIS.iter().find(|(a, _)| *a == &y[8..y.len() - 5]) {
+            Some((_, m)) => yanit(&mut s, 200, "text/html; charset=utf-8", m.as_bytes()),
+            None => yanit(&mut s, 404, "text/plain; charset=utf-8", b"yok"),
+        },
         ("GET", "/logo.svg") => yanit(&mut s, 200, "image/svg+xml", LOGO.as_bytes()),
+        ("GET", "/ai.js") => yanit(&mut s, 200, "text/javascript; charset=utf-8", AI_JS.as_bytes()),
+        ("GET", "/malzeme.js") => yanit(&mut s, 200, "text/javascript; charset=utf-8", MALZEME_JS.as_bytes()),
+        ("GET", "/oynatici") => yanit(&mut s, 200, "text/html; charset=utf-8", OYNATICI_HTML.as_bytes()),
+        ("GET", "/oynatici.js") => yanit(&mut s, 200, "text/javascript; charset=utf-8", OYNATICI_JS.as_bytes()),
+        ("GET", "/oynatici.css") => yanit(&mut s, 200, "text/css; charset=utf-8", OYNATICI_CSS.as_bytes()),
+        ("GET", "/cikis") => yanit(&mut s, 200, "text/html; charset=utf-8", CIKIS_HTML.as_bytes()),
+        ("GET", "/donustur.js") => yanit(&mut s, 200, "text/javascript; charset=utf-8", DONUSTUR_JS.as_bytes()),
+        ("GET", y) if y.starts_with("/yazi/") => match YAZILAR.iter().find(|(a, _)| *a == &y[6..]) {
+            Some((_, b)) => yanit(&mut s, 200, "font/woff2", b),
+            None => yanit(&mut s, 404, "text/plain; charset=utf-8", b"yok"),
+        },
         ("GET", "/yz/dar.ttf") => yanit(&mut s, 200, "font/ttf", YZ_DAR),
         ("GET", "/yz/raf.ttf") => yanit(&mut s, 200, "font/ttf", YZ_RAF),
         ("GET", "/bilgi") => {
@@ -354,47 +451,138 @@ fn isle(mut s: TcpStream, o: Arc<Ortak>) {
         }
         ("POST", "/klasor") => { klasor_ac(&cikti_klasoru()); yanit(&mut s, 200, metin, b"ok") }
         ("POST", "/kapat") => { yanit(&mut s, 200, metin, b"ok"); std::process::exit(0) }
+        // "Tarif et": istem üretme, kural motoru, yanıt doğrulama (hepsi yalnız metin işler; dış adres yalnız listedeki adla açılır)
+        (m, y) if y.starts_with("/malzeme/") => { let (kod, tur, g) = crate::malzeme_http::isle(m, &y[9..], &yazi); yanit(&mut s, kod, tur, g.as_bytes()) }
+        (m, y) if y.starts_with("/tarif/") => { let (kod, tur, g) = crate::tarif_http::isle(m, &y[7..], &yazi, &cikti_klasoru()); yanit(&mut s, kod, tur, g.as_bytes()) }
+        // OYNATICI-YUVA: /oynatici/ yukarıda oynatici_http::isle_akis'e gider; bu kol yalnız emniyettir (yedek JSON girişi, ISTEK-oynatici.md 2).
+        (m, y) if y.starts_with("/oynatici/") => { let (kod, tur, g) = crate::oynatici_http::isle(m, &y[10..], &yazi, &cikti_klasoru()); yanit(&mut s, kod, tur, g.as_bytes()) }
+        // DONUSTUR-YUVA (ISTEK-donusturucu.md)
+        (m, y) if y.starts_with("/donustur/") => { let (kod, tur, g) = crate::donustur_http::isle(m, &y[10..], &yazi, &cikti_klasoru()); yanit(&mut s, kod, tur, g.as_bytes()) }
         _ => yanit(&mut s, 404, metin, b"yok"),
     }
 }
 
 /// Sunucuyu başlatır ve (isteğe bağlı) tarayıcıyı açar. `port` 0 ise boş bir port seçilir. Dönmez.
-pub fn calistir(tarayici_ac: bool, port: u16) -> ! {
-    let dinle = match TcpListener::bind(("127.0.0.1", port)) { Ok(d) => d, Err(e) => { eprintln!("HATA: arayüz portu açılamadı: {e}"); std::process::exit(1) } };
+/// pencere_ac=false: yalnız hizmet (test/geliştirme); true: gömülü WebView2 penceresi. Varsayılan tarayıcı HİÇ açılmaz.
+pub fn calistir(pencere_ac: bool, port: u16) -> ! {
+    // Tek örnek: yalnız 127.0.0.1'deki sabit kilit portu; doluysa başka örnek çalışıyordur.
+    let _kilit = if pencere_ac { match TcpListener::bind(("127.0.0.1", 47893)) { Ok(k) => Some(k), Err(_) => { hata_goster("TAA Vidyo Yapıcı zaten açık."); std::process::exit(0) } } } else { None };
+    // Port dolu/çakışıyorsa en çok 5 kez yeniden dener; sonra sistemin verdiği boş portla (0) açar. Yalnız 127.0.0.1.
+    let dinle = { let mut son = None; if port == 0 { for pt in 47894u16..=47913 { if let Ok(d) = TcpListener::bind(("127.0.0.1", pt)) { son = Some(d); break } } } /* sabit tercih: localStorage ve çerezler çoğu zaman korunur */ let mut p = port; for _ in 0..(if son.is_some() { 0 } else { 6 }) { match TcpListener::bind(("127.0.0.1", p)) { Ok(d) => { son = Some(d); break } Err(e) => { eprintln!("uyarı: port {p} açılamadı ({e}), yeniden deneniyor"); p = 0; std::thread::sleep(Duration::from_millis(150)); } } } match son { Some(d) => d, None => { eprintln!("HATA: arayüz portu açılamadı"); std::process::exit(1) } } };
     let port = dinle.local_addr().unwrap().port();
-    let adres = format!("http://127.0.0.1:{port}/");
+    let jeton = rastgele_jeton();
+    let adres = format!("http://127.0.0.1:{port}/?t={jeton}");
     println!("TAA Vidyo Yapıcı arayüzü: {adres}");
-    let o = Arc::new(Ortak { oturum: Mutex::new(OturumOnbellek::default()), kimlik: crate::taa_giris::kimlik_yolu, durum: Mutex::new(Durum::default()), iptal: AtomicBool::new(false), onizleme: Mutex::new(()), klip: Mutex::new(()), son_nabiz: Mutex::new(Instant::now()), port });
-    if tarayici_ac {
-        #[cfg(windows)]
-        { use std::os::windows::process::CommandExt; let _ = std::process::Command::new("cmd").args(["/c", "start", "", &adres]).creation_flags(0x0800_0000).spawn(); }
-        #[cfg(not(windows))]
-        { let _ = std::process::Command::new("xdg-open").arg(&adres).spawn(); }
-    }
-    // Sekme kapatılıp 90 sn nabız gelmezse ve iş yoksa programı kapat (konsol gizli olduğu için)
-    let o2 = o.clone();
-    std::thread::spawn(move || loop {
-        std::thread::sleep(Duration::from_secs(5));
-        let bos = !o2.durum.lock().unwrap().calisiyor;
-        if bos && o2.son_nabiz.lock().unwrap().elapsed() > Duration::from_secs(90) { std::process::exit(0); }
+    let o = Arc::new(Ortak { oturum: Mutex::new(OturumOnbellek::default()), kimlik: crate::taa_giris::kimlik_yolu, durum: Mutex::new(Durum::default()), iptal: AtomicBool::new(false), onizleme: Mutex::new(()), klip: Mutex::new(()), son_nabiz: Mutex::new(Instant::now()), port, jeton });
+    let o_hizmet = o.clone();
+    std::thread::spawn(move || {
+        for ak in dinle.incoming().flatten() { let o = o_hizmet.clone(); std::thread::spawn(move || isle(ak, o)); }
     });
-    for ak in dinle.incoming().flatten() {
-        let o = o.clone();
-        std::thread::spawn(move || isle(ak, o));
+    if pencere_ac {
+        #[cfg(windows)]
+        { pencere(&adres); }
+        #[cfg(not(windows))]
+        { eprintln!("Gömülü pencere yalnız Windows'ta; --tarayici-yok ile hizmet çalışıyor: {adres}"); }
+    } else {
+        // Pencere yoksa (test): sekme/istemci kapanıp 90 sn nabız gelmezse ve iş yoksa kapan
+        let o2 = o.clone();
+        std::thread::spawn(move || loop {
+            std::thread::sleep(Duration::from_secs(5));
+            let bos = !o2.durum.lock().unwrap().calisiyor;
+            if bos && o2.son_nabiz.lock().unwrap().elapsed() > Duration::from_secs(90) { std::process::exit(0); }
+        });
     }
-    std::process::exit(0)
+    loop { std::thread::sleep(Duration::from_secs(3600)); }
+}
+
+/// Windows'ta kullanıcıya hata göstermek için (konsol gizli olduğundan): küçük PowerShell iletişim kutusu.
+#[cfg(windows)]
+fn hata_goster(metin: &str) {
+    use std::os::windows::process::CommandExt;
+    // WScript.Shell.Popup: 8 sn sonra kendiliğinden kapanır (gözetimsiz çalışmada takılmaz)
+    let kod = format!("(New-Object -ComObject WScript.Shell).Popup('{}', 8, 'TAA Vidyo Yapıcı', 48) | Out-Null", metin.replace('\'', ""));
+    let _ = std::process::Command::new("powershell").args(["-NoProfile", "-WindowStyle", "Hidden", "-Command", &kod]).creation_flags(0x0800_0000).status();
+}
+#[cfg(not(windows))]
+fn hata_goster(metin: &str) { eprintln!("{metin}"); }
+
+/// Gömülü pencere (tao + wry/WebView2). Pencere kapanınca süreç ve hizmet ANINDA sonlanır. WebView2 yoksa açık bir hata iletişim kutusu gösterilir.
+#[cfg(windows)]
+fn pencere(adres: &str) {
+    use tao::event::{Event, WindowEvent};
+    use tao::event_loop::{ControlFlow, EventLoopBuilder};
+    use tao::window::WindowBuilder;
+    use wry::WebViewBuilder;
+    // Oynatıcı çıkış penceresi köprüsü (ISTEK-oynatici.md 4): kullanıcı olayı ile ikinci pencere aynı olay döngüsünde açılır/kapanır
+    let el = EventLoopBuilder::<crate::oynatici_pencere::Olay>::with_user_event().build();
+    crate::oynatici_pencere::kopru_kur(el.create_proxy());
+    let mut cikis = crate::oynatici_pencere::Cikis::default();
+    let kok = adres.split('?').next().unwrap_or(adres).trim_end_matches('/').to_string();
+    let pencere = match WindowBuilder::new().with_title("TAA Vidyo Yapıcı").with_inner_size(tao::dpi::LogicalSize::new(1280.0, 860.0)).with_min_inner_size(tao::dpi::LogicalSize::new(900.0, 600.0)).build(&el) {
+        Ok(p) => p,
+        Err(e) => { hata_goster(&format!("Pencere açılamadı: {e}")); std::process::exit(2) }
+    };
+    // WebView2 profil/çerez/önbellek verisi kurulum klasörüne yazılmasın: kullanıcının yerel uygulama verisi klasörüne gider
+    let veri = std::env::var("LOCALAPPDATA").map(|p| std::path::PathBuf::from(p).join("TAA Vidyo Yapici").join("WebView2")).unwrap_or_else(|_| std::env::temp_dir().join("TAA-Vidyo-Yapici-WebView2"));
+    let mut baglam = wry::WebContext::new(Some(veri));
+    let _gorunum = match WebViewBuilder::new_with_web_context(&mut baglam).with_url(adres).build(&pencere) {
+        Ok(g) => g,
+        Err(e) => { hata_goster(&format!("WebView2 çalışma zamanı bulunamadı veya başlatılamadı. Microsoft Edge WebView2 Runtime kurun (aka.ms/webview2). Ayrıntı: {e}")); std::process::exit(3) }
+    };
+    el.run(move |olay, hedef, akis| {
+        *akis = ControlFlow::Wait;
+        match olay {
+            Event::UserEvent(o) => crate::oynatici_pencere::isle(o, hedef, &mut baglam, &kok, &mut cikis),
+            // çıkış penceresi kapanırsa yalnız o kapanır; ana pencere kapanınca süreç biter
+            Event::WindowEvent { window_id, event: WindowEvent::CloseRequested, .. } => {
+                if crate::oynatici_pencere::pencere_mi(&cikis, window_id) { crate::oynatici_pencere::kapat(&mut cikis); } else { std::process::exit(0); }
+            }
+            _ => {}
+        }
+    });
 }
 
 #[cfg(test)]
 mod t {
     use super::*;
     #[test]
+    fn jeton_rastgele_ve_dogrulanir() {
+        let a = rastgele_jeton(); let b = rastgele_jeton();
+        assert_eq!(a.len(), 64); assert!(a.chars().all(|c| c.is_ascii_hexdigit())); assert_ne!(a, b);
+        assert!(cerez_jeton_var(&format!("x=1; taa-oturum={a}"), &a));
+        assert!(!cerez_jeton_var(&format!("taa-oturum={b}"), &a));
+        assert!(!cerez_jeton_var("", &a)); assert!(!cerez_jeton_var("taa-oturum=", &a));
+    }
+    #[test]
     fn bina_onizleme_varsayilanlari_kilitli() {
         // Yusuf'un bildirdiği bina ölçüleri (11-15/16): değişiklik bilinçli olmalı, bu test onu yakalar.
         assert!(SAYFA.contains("const BINA_VARSAYILAN = {gen: 31, yuk: 35, ew: 10, eh: 30, ealt: 3, logo: 6, logoy: 18, orta: 8, kat: 5.5, yuz: 'alt'};"));
         assert!(SAYFA.contains("taa-bina4") && SAYFA.contains("taa-gorunum"));
-        assert!(SAYFA.contains("data-g=\"karsi\"") && SAYFA.contains("data-g=\"ust\"") && SAYFA.contains("id=\"binaFig\""));
+        assert!(SAYFA.contains("data-g=\"karsi\"") && SAYFA.contains("id=\"isikSeg\"") && !SAYFA.contains("data-g=\"ust\"") && !SAYFA.contains("bina-foto") && SAYFA.contains("id=\"binaFig\""));
         assert!(SAYFA.contains("UYARI: ekran üstü"));
+    }
+    #[test]
+    fn acilislar_gomulu_ve_sayfa_listesiyle_uyumlu() {
+        // index.html'deki ACILISLAR listesi ile sunucudaki tablo aynı adları içermeli; her açılış logo.js'i kullanmalı, uygulama modunda Tekrar oynat gizlenmeli.
+        for (ad, m) in ACILIS {
+            assert!(SAYFA.contains(&format!("'{ad}'")), "{ad} sayfa listesinde yok");
+            assert!(m.contains("src=\"logo.js\"") && m.contains("data-ikiz"), "{ad}: logo.js/İkiz Kabartma yok");
+            assert!(m.contains("uygulama=1") && m.contains("taa-acilis-gec"), "{ad}: uygulama modu yok");
+            assert!(m.contains("Yaz, önizle, tek tıkla videoyu yap."), "{ad}: slogan yok");
+        }
+        assert!(ACILIS.len() >= 14);
+        assert!(ACILIS_LOGO_JS.contains("#C9566F") && ACILIS_LOGO_JS.contains("#560D20"));
+        assert!(SAYFA.contains("id=\"ikiz-kabartma\"") && SAYFA.contains("taa-acilis-torba") && SAYFA.contains("taa-acilis-ayar") && !SAYFA.contains("Tekrar oynat"));
+    }
+    #[test]
+    fn acilis_torbasi_node_testi() {
+        // Karıştırılmış torba mantığı (web/index.html TORBA bloğu) tests/torba_test.js ile denenir; node yoksa atlanır.
+        assert!(SAYFA.contains("// TORBA-BASLA") && SAYFA.contains("// TORBA-BITIS") && SAYFA.contains("KALICI-AYAR-BASLA") && SAYFA.contains("'/ayar'") && SAYFA.contains("id=\"acilisTam\"") && SAYFA.contains("id=\"acilisListe\""));
+        let betik = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/torba_test.js");
+        match std::process::Command::new("node").arg(betik).output() {
+            Ok(o) => assert!(o.status.success(), "torba_test.js başarısız: {}{}", String::from_utf8_lossy(&o.stdout), String::from_utf8_lossy(&o.stderr)),
+            Err(_) => eprintln!("node bulunamadı, torba testi atlandı"),
+        }
     }
     #[test]
     fn son_video_yolu_yalniz_cikti_klasorunden() {
@@ -421,7 +609,7 @@ mod t {
         assert!(s.find("TaaGirisEkrani").unwrap() < s.find("</body>").unwrap());
     }
     fn ortak(kimlik: crate::taa_giris::KimlikBulucu) -> Ortak {
-        Ortak { oturum: Mutex::new(OturumOnbellek::default()), kimlik, durum: Mutex::new(Durum::default()), iptal: AtomicBool::new(false), onizleme: Mutex::new(()), klip: Mutex::new(()), son_nabiz: Mutex::new(Instant::now()), port: 0 }
+        Ortak { oturum: Mutex::new(OturumOnbellek::default()), kimlik, durum: Mutex::new(Durum::default()), iptal: AtomicBool::new(false), onizleme: Mutex::new(()), klip: Mutex::new(()), son_nabiz: Mutex::new(Instant::now()), port: 0, jeton: "test".into() }
     }
     fn arac_yok() -> Option<std::path::PathBuf> { None }
     fn bozuk_arac() -> Option<std::path::PathBuf> { Some(std::env::temp_dir().join("taa-kimlik-olmayan-arac-vidyo")) }

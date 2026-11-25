@@ -1,0 +1,1 @@
+{"surum":1,"ekran":"dikey","gorunum":"duz","sahneler":[{"metin":["SEVGİLİLER","GÜNÜNE","ÖZEL"],"giris":"belir","cikis":"sondur","efekt":[],"palet":"pembe-altin","font":"anton","sure":8,"malzeme":"kalp-atisi"},{"metin":["ÖRNEK","TERZİ"],"giris":"belir","cikis":"sondur","efekt":[],"palet":"pembe-altin","font":"anton","sure":6,"malzeme":""}],"acilis":"fade","kapanis":"fade"}

@@ -1,0 +1,106 @@
+<!doctype html>
+<!-- Oynatıcı kontrol sayfası (kumanda). Oynatma çıkış sayfasında (/cikis) çalışır; bu sayfa küçültülse de ekran akar.
+     Sahip Yusuf; yer tutucu [Claude#UI Opus 5.5]; içerik yazan [Claude#Oynatici Opus 5.5, yenileme-1.0, 2026-11-25]; yalnız yazan yapay zekâ ya da Yusuf'un izniyle değişir; silme yok.
+     Satır içi betik/stil yok (CSP). Metinler yalnız textContent ile basılır. -->
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>TAA Oynatıcı</title>
+<link rel="stylesheet" href="/oynatici/dosya/oynatici.css"></head>
+<body class="kontrol">
+<header class="ust">
+  <a class="dug ikincil" id="anaSayfa" href="/">Ana sayfa</a>
+  <h1>Oynatıcı</h1>
+  <div class="hap" id="cikisDurum" role="status">Çıkış bekleniyor</div>
+  <div class="ust-eylem">
+    <label class="alan-satir"><span class="gizli-etiket">Kompozisyon</span>
+      <select id="kompozisyon" aria-label="Kompozisyon">
+        <option value="2">İki ekran 1900x1800</option>
+        <option value="1">Tek ekran 950x1800</option>
+      </select></label>
+    <button class="dug" id="hepsiBtn" type="button">Hepsini duraklat</button>
+    <button class="dug" id="karartBtn" type="button" aria-pressed="false">Karart</button>
+    <button class="dug ana" id="cikisBtn" type="button">Çıkışı aç</button>
+    <button class="dug kare" id="yardimBtn" type="button" aria-label="Kısayollar" title="Kısayollar (?)">?</button>
+  </div>
+</header>
+<main class="izgara">
+  <section class="panel katmanlar" aria-labelledby="katmanBaslik">
+    <div class="bas"><h2 id="katmanBaslik">Katmanlar</h2><button class="dug" id="katmanEkle" type="button">Yeni katman</button></div>
+    <p class="ipucu">Üstteki katman ekranda öndedir.</p>
+    <ol id="katmanListe" class="liste" aria-label="Katman listesi"></ol>
+    <p class="uyari" id="yukUyari" hidden></p>
+  </section>
+
+  <section class="panel ayrinti" aria-labelledby="seciliBaslik">
+    <div class="bas">
+      <h2 id="seciliBaslik" class="gizli-etiket">Seçili katman</h2>
+      <label class="ad-alan"><span class="gizli-etiket">Katman adı</span><input id="katmanAd" maxlength="200" autocomplete="off"></label>
+      <div class="dugmeler">
+        <button class="dug kare" id="katYukari" type="button" aria-label="Katmanı öne al" title="Öne al (Ctrl+Yukarı)">▲</button>
+        <button class="dug kare" id="katAsagi" type="button" aria-label="Katmanı arkaya al" title="Arkaya al (Ctrl+Aşağı)">▼</button>
+        <button class="dug" id="katCogalt" type="button">Çoğalt</button>
+        <button class="dug" id="katSil" type="button">Listeden çıkar</button>
+      </div>
+    </div>
+    <div class="sahne-satir">
+      <div class="onizleme" id="onizleme" aria-label="Etkin klip"><span class="bos-yazi">Klip yok</span></div>
+      <div class="oynatma">
+        <div class="etkin-ad" id="etkinAd">Klip seçilmedi</div>
+        <div class="konum-satir"><span id="konumYazi">0:00</span>
+          <input type="range" id="konum" min="0" max="1000" value="0" aria-label="Klip içinde konum">
+          <span id="sureYazi">0:00</span></div>
+        <div class="tasima" role="group" aria-label="Taşıma">
+          <button class="dug kare" id="oncekiBtn" type="button" aria-label="Önceki klip" title="Önceki (Sol ok)">⏮</button>
+          <button class="dug kare" id="geriBtn" type="button" aria-label="5 saniye geri" title="5 sn geri (Shift+Sol)">−5</button>
+          <button class="dug ana genis" id="oynatBtn" type="button">Duraklat</button>
+          <button class="dug kare" id="ileriBtn" type="button" aria-label="5 saniye ileri" title="5 sn ileri (Shift+Sağ)">+5</button>
+          <button class="dug kare" id="sonrakiBtn" type="button" aria-label="Sonraki klip" title="Sonraki (Sağ ok)">⏭</button>
+          <button class="dug" id="basaBtn" type="button" title="Listeyi başa al (Home)">Başa al</button>
+        </div>
+        <div class="canli-bilgi" id="canliBilgi"></div>
+      </div>
+    </div>
+    <div class="ayarlar">
+      <label>Oynatma<select id="kip"><option value="sirali">Sıralı</option><option value="dongu">Döngü (aynı klip)</option><option value="rastgele">Rastgele</option></select></label>
+      <label>Liste bitince<select id="bitince"><option value="basa">Son klipten başa</option><option value="dur">Son karede dur</option><option value="kapat">Katmanı kapat</option></select></label>
+      <label>Hız<select id="hiz"></select></label>
+      <label>Karışım<select id="karisim"><option value="normal">Normal</option><option value="ekle">Ekle (aydınlat)</option><option value="carp">Çarp (koyulaştır)</option></select></label>
+      <label>Hedef ekran<select id="hedef"><option value="ikisi">İki ekran (eşlenik)</option><option value="sol">Sol ekran</option><option value="sag">Sağ ekran</option><option value="yayili">İkisine yayılı</option></select></label>
+      <label>Sığdırma<select id="sigdir"><option value="doldur">Doldur (kırp)</option><option value="sigdir">Sığdır (boşluklu)</option><option value="esnet">Esnet</option></select></label>
+      <label>Geçiş <output id="gecisYazi">0 ms</output><input type="range" id="gecis" min="0" max="2000" step="100"></label>
+      <label>Opaklık <output id="opaklikYazi">100</output><input type="range" id="opaklik" min="0" max="100" step="1"></label>
+      <label>Ses <output id="sesYazi">100</output><input type="range" id="ses" min="0" max="100" step="1"></label>
+      <label class="onay"><input type="checkbox" id="sessiz"> Sessiz</label>
+    </div>
+    <div class="bas ikinci"><h3>Klipler</h3><span class="ipucu">Medyadan sürükleyin ya da “Ekle”ye basın. Tıklayınca klip oynar.</span></div>
+    <ol id="klipListe" class="liste klipler" aria-label="Klip listesi"></ol>
+  </section>
+
+  <section class="panel kitaplik" aria-labelledby="medyaBaslik">
+    <div class="bas"><h2 id="medyaBaslik">Medya</h2><button class="dug" id="medyaYenile" type="button">Yenile</button></div>
+    <label class="ara"><span class="gizli-etiket">Medyada ara</span><input id="ara" type="search" placeholder="Ara" autocomplete="off"></label>
+    <ul id="medyaListe" class="liste medya" aria-label="Çıktı klasöründeki dosyalar"></ul>
+    <details class="kat">
+      <summary>Sahneyi klip yap</summary>
+      <label>Senaryo<textarea id="sahneMetin" rows="5" spellcheck="false"></textarea></label>
+      <div class="dugmeler"><button class="dug" id="sahneBtn" type="button">Sahneyi klip yap</button><button class="dug" id="sahneIptal" type="button" hidden>İptal</button></div>
+      <p class="ipucu" id="sahneDurum" role="status"></p>
+    </details>
+    <details class="kat">
+      <summary>Çıkış ayarı</summary>
+      <label>Monitör<select id="monitor"><option value="0">Birinci monitör</option></select></label>
+      <div class="iki"><label>X kaydırma<input type="number" id="cikisX" step="1"></label><label>Y kaydırma<input type="number" id="cikisY" step="1"></label></div>
+      <label class="onay"><input type="checkbox" id="acilistaAc"> Program açılınca çıkışı aç</label>
+      <p class="ipucu">Çıkış açıkken ana pencere kapatılırsa program kapanır ve ekran kararır.</p>
+      <p class="ipucu" id="pencereNot">Çıkış penceresi kenarlıksız, en üstte ve 1:1 pikseldir. Acil kapatma: çıkışta Ctrl+Shift+Q.</p>
+      <a class="dug ikincil" id="buPencere" href="/cikis">Çıkışı bu pencerede dene</a>
+    </details>
+  </section>
+</main>
+<div class="bildirim" id="bildirim" role="status" aria-live="polite" hidden><span id="bildirimYazi"></span><button class="dug" id="geriAl" type="button" hidden>Geri al</button></div>
+<dialog id="yardim" aria-labelledby="yardimBaslik">
+  <h2 id="yardimBaslik">Kısayollar</h2>
+  <table class="kisayol"><tbody id="kisayolListe"></tbody></table>
+  <button class="dug ana" id="yardimKapat" type="button">Kapat</button>
+</dialog>
+<script src="/oynatici/dosya/oynatici-motor.js"></script>
+<script src="/oynatici/dosya/oynatici.js"></script>
+</body></html>

@@ -51,14 +51,14 @@ fn main() {
     taa_hata::kur_varsayilan("taa-video", env!("CARGO_PKG_VERSION"));
     let a: Vec<String> = std::env::args().collect();
     if a.len() == 1 || a.iter().any(|x| x == "--arayuz") {
-        // Çift tıklayınca arayüz açılır (konsol gizlenir); --port N ve --tarayici-yok test içindir.
+        // Çift tıklayınca gömülü pencere (WebView2) açılır, konsol gizlenir; --port N ve --tarayici-yok (pencere yok) test içindir.
         let port: u16 = arg(&a, "--port", "0").parse().unwrap_or(0);
         if !a.iter().any(|x| x == "--tarayici-yok") { konsolu_gizle(); }
         arayuz::calistir(!a.iter().any(|x| x == "--tarayici-yok"), port);
     }
     if a.iter().any(|x| x == "--surum") { println!("taa-vidyo-yapici {}", arayuz::SURUM); return; }
     if a.iter().any(|x| x == "--yardim") {
-        println!("taa-vidyo-yapici --yazi \"SATIR1|SATIR2\" [--palet sari|beyaz|turuncu|cyan|magenta|lime] [--mod sabit|kayan]\n  [--genislik 980 --yukseklik 1800 (dikey 9:16) --fps 25 --sure 8 --harf 120 --font yol.otf --cikis cikti.mp4 --kodek mp4|hap]\n  --onizleme dosya.ppm : yalnız tek kare yazar\n  --senaryo dosya.txt [--cikis v.mp4] : senaryodan video\n  --arayuz : tarayıcı arayüzü (argümansız çalıştırınca da açılır)\nffmpeg: LED_FFMPEG, programın yanı veya PATH");
+        println!("taa-vidyo-yapici --yazi \"SATIR1|SATIR2\" [--palet sari|beyaz|turuncu|cyan|magenta|lime] [--mod sabit|kayan]\n  [--genislik 980 --yukseklik 1800 (dikey 9:16) --fps 25 --sure 8 --harf 120 --font yol.otf --cikis cikti.mp4 --kodek mp4|hap]\n  --onizleme dosya.ppm : yalnız tek kare yazar\n  --senaryo dosya.txt [--cikis v.mp4] : senaryodan video\n  --arayuz : gömülü pencere arayüzü (argümansız çalıştırınca da açılır; varsayılan tarayıcı hiç açılmaz; --tarayici-yok yalnız hizmeti başlatır, test içindir)\nffmpeg: LED_FFMPEG, programın yanı veya PATH");
         return;
     }
     let w: u32 = arg(&a, "--genislik", "980").parse().unwrap();

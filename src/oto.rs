@@ -1,4 +1,5 @@
 //! Otomatik mod: yalnız yazıdan senaryo kurar; öneri/denetim motoru (kural tabanlı, yapay zekâ gerekmez).
+//! Dalga 3 eki [Claude#Malzeme Opus 5.5, yenileme-1.0, 2026-11-25]: malzeme sahnelerinde "8-10 harf" önerisi çıkmaz. Sahip Yusuf; silme yok.
 use crate::efekt::hash;
 use crate::senaryo::{Hazir, Senaryo};
 
@@ -88,7 +89,8 @@ pub fn denetle(s: &Senaryo, hz: &[Hazir]) -> Vec<(&'static str, String)> {
             if m < 0.05 { v.push(("uyari", format!("Sahne {no}: en küçük harf ekran yüksekliğinin %{:.1}'i; en az %5 (~{} px) olmalı. Metni kısaltın veya satırlara bölün.", m * 100.0, (sh_h * 0.05) as u32))); }
             else if kucuk.iter().cloned().fold(0.0, f32::max) < 0.07 { v.push(("oneri", format!("Sahne {no}: ana mesaj satırları %7-9 aralığında olmalı (şu an en büyüğü %{:.1}). Daha az kelime daha okunur.", kucuk.iter().cloned().fold(0.0, f32::max) * 100.0))); }
         }
-        if sh.metin.split('|').any(|l| l.trim().chars().count() > 10 && !l.starts_with('@')) { v.push(("oneri", format!("Sahne {no}: satır başına en çok 8-10 harf okunur; uzun satırı bölün."))); }
+        // malzeme sahneleri (kayan yazı, rozet...) kendi yerleşimini yapar: "8-10 harf" önerisi yalnız düz yazı sahnelerine (Fable bulgusu, 2026-11-25)
+        if sh.malzeme.is_none() && sh.metin.split('|').any(|l| l.trim().chars().count() > 10 && !l.starts_with('@')) { v.push(("oneri", format!("Sahne {no}: satır başına en çok 8-10 harf okunur; uzun satırı bölün."))); }
         if sh.sure < 5.0 { v.push(("uyari", format!("Sahne {no}: {} sn kısa; her mesaj en az 5-8 sn ekranda kalmalı.", sh.sure))); }
         if crate::kontrast(z.yuz, z.zemin) < 7.0 { v.push(("uyari", format!("Sahne {no}: yazı/zemin kontrastı 7:1'in altında."))); }
         for a in [&sh.giris, &sh.cikis] { if a.starts_with("yildirim") || a.starts_with("hizli-") || a == "titre" || a.contains("flas") { v.push(("uyari", format!("Sahne {no}: '{a}' sert/hızlı hareket; LED'de göz yorabilir, seyrek kullanın."))); break; } }
@@ -127,5 +129,12 @@ mod t {
         let n = denetle(&s, &hz);
         assert!(n.iter().any(|x| x.1.contains("%5")), "{n:?}");
         assert!(n.iter().any(|x| x.1.contains("kısa")));
+    }
+    #[test]
+    fn malzeme_sahnesine_harf_onerisi_yok() {
+        let f = crate::uret::font();
+        let s = crate::senaryo::ayristir("ekran 950x1800\nmalzeme kayan-led metin=\"BUGÜNE ÖZEL BÜYÜK KAMPANYA\"\n").unwrap();
+        let hz = crate::senaryo::hazirla(&f, &s);
+        assert!(!denetle(&s, &hz).iter().any(|x| x.1.contains("8-10 harf")));
     }
 }

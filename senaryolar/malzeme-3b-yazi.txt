@@ -1,0 +1,12 @@
+# Açıklama: Dalga 3 3B/2B yazı animasyonları örneği (950x1800 dikey): dönen 3B, uzun gölge, ağır süpürme, yansıma, harf dalgası, kinetik tipografi, dikiş. Sahip: Yusuf. Yazan: [Claude#Malzeme Opus 5.5, yenileme-1.0, 2026-11-25]. Silme yok.
+ekran 950x1800
+fps 25
+acilis fade
+kapanis fade
+malzeme yazi-3b-don sure=6 renk=altin-gece hiz=1 metin="TAA"
+malzeme yazi-uzun-golge sure=4 renk=gun-batimi hiz=1 metin="YENİ SEZON"
+malzeme yazi-supurme sure=4 renk=altin-gece hiz=1 metin="PREMİUM"
+malzeme yazi-yansima sure=4 renk=buz-cyan hiz=1 metin="YENİ"
+malzeme harf-dalga sure=5 renk=okyanus hiz=1 metin="KAMPANYA"
+malzeme kinetik-yazi sure=4 renk=limon hiz=1 metin="BUGÜN|BÜYÜK|İNDİRİM|BAŞLADI"
+malzeme dikis-yazi sure=5 renk=mor-altin hiz=1 metin="BUTİK"

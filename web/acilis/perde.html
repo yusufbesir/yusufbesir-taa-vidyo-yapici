@@ -1,0 +1,49 @@
+<!doctype html>
+<!-- Açıklama: TAA Vidyo Yapıcı açılış animasyonu (tur 2, Opus perde). Logo: logo.js (İkiz Kabartma, tek yer). Sahip: Yusuf. Yazan: [Claude#Sonnet-5.5]. Yalnız yazan yapay zekâ ya da Yusuf'un izniyle değişir; silme yok. --><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kumaş Perde</title>
+<style>
+html,body{margin:0;height:100%;background:#F1F0EC;overflow:hidden;font-family:"Segoe UI Variable","Segoe UI",system-ui,sans-serif;color:#1D1B1A}
+:root{--S:min(42vh,30vw)}
+.perde{position:fixed;top:0;bottom:0;width:50.5vw;z-index:2;
+ background:repeating-linear-gradient(90deg,#7C1430 0,#9A1B3C 1.6vw,#B8294D 2.6vw,#9A1B3C 3.6vw,#6A0F26 5.2vw);box-shadow:0 0 40px rgba(42,6,16,.35)}
+#ps{left:0;transform-origin:0 50%}#pg{right:0;transform-origin:100% 50%}
+.perde::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(0,0,0,.18))}
+#logo{position:fixed;left:50%;top:44%;width:var(--S);height:var(--S);transform:translate(-50%,-50%)}
+#logo svg{width:100%;height:100%;display:block;overflow:visible}
+#yazi{position:fixed;left:0;right:0;top:calc(44% + var(--S)*.58);text-align:center}
+.kap{overflow:hidden}
+#ad{display:inline-block;font-size:clamp(30px,4.2vw,64px);font-weight:700;letter-spacing:-.01em;color:#1D1B1A}
+#cumle{display:inline-block;margin-top:.4em;font-size:clamp(16px,1.4vw,22px);color:#5A564F}
+#golge{position:fixed;left:50%;top:calc(44% + var(--S)*.47);width:calc(var(--S)*.9);height:calc(var(--S)*.08);transform:translateX(-50%);border-radius:50%;background:radial-gradient(closest-side,rgba(42,6,16,.28),transparent)}
+button{position:fixed;z-index:3;min-height:48px;padding:0 20px;border-radius:999px;border:1px solid #CFCBC3;background:#fff;color:#1D1B1A;font:inherit;font-size:16px;cursor:pointer}
+button:focus-visible{outline:3px solid #9A1B3C;outline-offset:2px}
+#gec{top:20px;right:20px}#tekrar{bottom:20px;right:20px}
+</style><style>html.uyg #tekrar,html.uyg #rep{display:none!important}</style>
+<script>/* uygulama modu (?uygulama=1): Tekrar oynat gizli; tıklama/Esc/Geç ana sayfaya bildirilir */if(/[?&]uygulama=1/.test(location.search)){document.documentElement.classList.add("uyg");var g=function(){parent.postMessage("taa-acilis-gec","*")};addEventListener("click",g);addEventListener("keydown",function(e){if(e.key==="Escape")g()})}</script>
+</head><body>
+<div id="golge"></div>
+<div id="logo"><svg viewBox="0 0 128 128"><g id="ls" data-ikiz="sol"></g><g id="lg" data-ikiz="sag"></g></svg></div>
+<div id="yazi"><div class="kap"><span id="ad">TAA Vidyo Yapıcı</span></div><div class="kap"><span id="cumle">Yaz, önizle, tek tıkla videoyu yap.</span></div></div>
+<div class="perde" id="ps"></div><div class="perde" id="pg"></div>
+<button id="gec" type="button">Geç</button><button id="tekrar" type="button">Tekrar oynat</button>
+<script src="logo.js"></script>
+<script>
+const E={in:"cubic-bezier(0.1,0.9,0.2,1)",up:"cubic-bezier(0.05,0.7,0.1,1)",yumusak:"cubic-bezier(0.65,0,0.35,1)"};
+const $=id=>document.getElementById(id);let A=[];
+function oynat(){
+ A.forEach(a=>a.cancel());A=[];const an=(el,kf,o)=>{const a=el.animate(kf,{fill:"both",easing:E.in,...o});A.push(a);return a};
+ if(matchMedia("(prefers-reduced-motion: reduce)").matches){[$("ps"),$("pg")].forEach(e=>an(e,[{opacity:0},{opacity:0}],{duration:1}));[$("logo"),$("yazi"),$("golge")].forEach(e=>an(e,[{opacity:0},{opacity:1}],{duration:120}));return}
+ // 1) Perde kısa bir nefes alır, sonra kumaş toplanarak iki yana çekilir
+ an($("ps"),[{transform:"none"},{transform:"translateX(-1.5vw)",offset:.18},{transform:"scaleX(.1)",offset:.8},{transform:"translateX(-8vw) scaleX(.1)"}],{duration:1700,easing:E.yumusak});
+ an($("pg"),[{transform:"none"},{transform:"translateX(1.5vw)",offset:.18},{transform:"scaleX(.1)",offset:.8},{transform:"translateX(8vw) scaleX(.1)"}],{duration:1700,easing:E.yumusak});
+ // 2) Perdelerin iç kenarından iki pile kopar, merkeze süzülüp karşı karşıya oturur
+ an($("ls"),[{transform:"translateX(-60px) scaleX(.55)",opacity:0},{opacity:1,offset:.3},{transform:"none",opacity:1}],{duration:1000,delay:800});
+ an($("lg"),[{transform:"translateX(60px) scaleX(.55)",opacity:0},{opacity:1,offset:.3},{transform:"none",opacity:1}],{duration:1000,delay:800});
+ $("ls").style.transformOrigin="16px 64px";$("lg").style.transformOrigin="112px 64px";$("ls").style.transformBox=$("lg").style.transformBox="view-box";
+ an($("golge"),[{opacity:0,transform:"translateX(-50%) scaleX(.4)"},{opacity:1,transform:"translateX(-50%) scaleX(1)"}],{duration:800,delay:900});
+ an($("logo"),[{transform:"translate(-50%,-50%) scale(1)"},{transform:"translate(-50%,-50%) scale(1.03)",offset:.5},{transform:"translate(-50%,-50%) scale(1)"}],{duration:500,delay:1600,easing:E.yumusak});
+ // 3) Ad ve cümle satırından yükselir
+ an($("ad"),[{transform:"translateY(105%)"},{transform:"none"}],{duration:550,delay:1900,easing:E.up});
+ an($("cumle"),[{transform:"translateY(105%)",opacity:0},{transform:"none",opacity:1}],{duration:550,delay:2150,easing:E.up});
+}
+$("gec").onclick=()=>A.forEach(a=>a.finish());$("tekrar").onclick=oynat;oynat();
+</script></body></html>

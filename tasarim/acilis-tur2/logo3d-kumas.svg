@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+<!-- Ikiz Pile logosu, katli kumas pilesi. Sahip: TAA Vidyo Yapici. yazan: [Claude#Sonnet-5.5] -->
+<defs>
+<filter id="kum-golge" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3.2"/></filter>
+<path id="kum-sol" d="M16 16 H40 L56 64 L40 112 H16 L32 64 Z"/>
+<path id="kum-sag" d="M112 16 H88 L72 64 L88 112 H112 L96 64 Z"/>
+<linearGradient id="kum-kat-s" gradientUnits="userSpaceOnUse" x1="16" y1="0" x2="26" y2="0" spreadMethod="repeat">
+<stop offset="0" stop-color="#E56F89"/><stop offset=".3" stop-color="#C13A5D"/><stop offset=".7" stop-color="#8A1735"/><stop offset=".92" stop-color="#5A0C20"/><stop offset="1" stop-color="#6E1029"/></linearGradient>
+<linearGradient id="kum-kat-g" gradientUnits="userSpaceOnUse" x1="112" y1="0" x2="102" y2="0" spreadMethod="repeat">
+<stop offset="0" stop-color="#E56F89"/><stop offset=".3" stop-color="#C13A5D"/><stop offset=".7" stop-color="#8A1735"/><stop offset=".92" stop-color="#5A0C20"/><stop offset="1" stop-color="#6E1029"/></linearGradient>
+<linearGradient id="kum-isik" gradientUnits="userSpaceOnUse" x1="10" y1="10" x2="118" y2="118">
+<stop offset="0" stop-color="#FFE0E8" stop-opacity=".45"/><stop offset=".45" stop-color="#FFE0E8" stop-opacity="0"/><stop offset=".6" stop-color="#1A0409" stop-opacity="0"/><stop offset="1" stop-color="#1A0409" stop-opacity=".5"/></linearGradient>
+</defs>
+<g fill="#1A0409" opacity=".42" filter="url(#kum-golge)" transform="translate(5 6)"><use href="#kum-sol"/><use href="#kum-sag"/></g>
+<g fill="#4A0A1B">
+<use href="#kum-sol" transform="translate(3.2 3.2)"/><use href="#kum-sol" transform="translate(2.4 2.4)"/><use href="#kum-sol" transform="translate(1.6 1.6)"/><use href="#kum-sol" transform="translate(.8 .8)"/>
+<use href="#kum-sag" transform="translate(3.2 3.2)"/><use href="#kum-sag" transform="translate(2.4 2.4)"/><use href="#kum-sag" transform="translate(1.6 1.6)"/><use href="#kum-sag" transform="translate(.8 .8)"/>
+</g>
+<use href="#kum-sol" fill="url(#kum-kat-s)"/>
+<use href="#kum-sag" fill="url(#kum-kat-g)"/>
+<use href="#kum-sol" fill="url(#kum-isik)"/>
+<use href="#kum-sag" fill="url(#kum-isik)"/>
+<g fill="none" stroke-linejoin="round">
+<path d="M16 16 H40 L56 64" stroke="#F4A3B6" stroke-width="1.2" opacity=".7"/>
+<path d="M112 16 H88 L72 64" stroke="#F4A3B6" stroke-width="1.2" opacity=".6"/>
+<path d="M56 64 L40 112 H16" stroke="#3A0714" stroke-width="1.2" opacity=".55"/>
+<path d="M72 64 L88 112 H112" stroke="#3A0714" stroke-width="1.2" opacity=".55"/>
+</g>
+</svg>

@@ -4,3 +4,6 @@ target/
 *.ppm
 dist/
 kurulum/target/
+
+# örnek videolar (büyük); yerelde kalır
+tasarim/yenileme/ornek/*.mp4

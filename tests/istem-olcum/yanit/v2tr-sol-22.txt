@@ -1,0 +1,1 @@
+{"surum":1,"ekran":"dikey","gorunum":"duz","sahneler":[{"metin":["YILBAŞI","10"],"giris":"belir","cikis":"sondur","efekt":[],"palet":"altin-gece","font":"anton","sure":8,"malzeme":"yilbasi-geri-sayim"},{"metin":["ÖRNEK","TERZİ"],"giris":"belir","cikis":"sondur","efekt":[],"palet":"altin-gece","font":"anton","sure":5,"malzeme":""}],"acilis":"fade","kapanis":"fade"}

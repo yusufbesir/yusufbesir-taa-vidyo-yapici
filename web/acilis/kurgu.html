@@ -1,0 +1,48 @@
+<!doctype html>
+<!-- Açıklama: TAA Vidyo Yapıcı açılış animasyonu (tur 2, Opus kurgu). Logo: logo.js (İkiz Kabartma, tek yer). Sahip: Yusuf. Yazan: [Claude#Sonnet-5.5]. Yalnız yazan yapay zekâ ya da Yusuf'un izniyle değişir; silme yok. --><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kurgu Kesmesi</title>
+<style>
+html,body{margin:0;height:100%;background:#351D2A;overflow:hidden;font-family:"Segoe UI Variable","Segoe UI",system-ui,sans-serif;color:#FFF3F9}
+:root{--S:min(42vh,30vw)}
+#logo{position:fixed;left:50%;top:44%;width:var(--S);height:var(--S);transform:translate(-50%,-50%)}
+#logo svg{width:100%;height:100%;display:block;overflow:visible}
+#yazi{position:fixed;left:0;right:0;top:calc(44% + var(--S)*.58);text-align:center;z-index:2}
+.kap{overflow:hidden}
+#ad{display:inline-block;font-size:clamp(30px,4.2vw,64px);font-weight:700;letter-spacing:-.01em}
+#cumle{display:inline-block;margin-top:.4em;font-size:clamp(16px,1.4vw,22px);color:#D8BFCD}
+button{position:fixed;z-index:9;min-height:48px;padding:0 20px;border-radius:999px;border:1px solid #6E4D60;background:#452A39;color:#FFF3F9;font:inherit;font-size:16px;cursor:pointer}
+button:focus-visible{outline:3px solid #D2486A;outline-offset:2px}
+#gec{top:20px;right:20px}#tekrar{bottom:20px;right:20px}
+#kare{position:fixed;inset:0;display:grid;place-items:center;z-index:3;pointer-events:none}
+.cer{position:fixed;inset:6vh 6vw;border:2px solid rgba(244,195,218,.55);z-index:4}
+.cer::before,.cer::after{content:"";position:absolute;left:50%;top:50%;background:rgba(244,195,218,.55)}
+.cer::before{width:28px;height:2px;margin:-1px 0 0 -14px}.cer::after{width:2px;height:28px;margin:-14px 0 0 -1px}
+#zaman{position:fixed;left:6vw;bottom:calc(6vh - 26px);font:600 15px "Cascadia Mono",ui-monospace,monospace;color:#F4C3DA;z-index:4}
+</style><style>html.uyg #tekrar,html.uyg #rep{display:none!important}</style>
+<script>/* uygulama modu (?uygulama=1): Tekrar oynat gizli; tıklama/Esc/Geç ana sayfaya bildirilir */if(/[?&]uygulama=1/.test(location.search)){document.documentElement.classList.add("uyg");var g=function(){parent.postMessage("taa-acilis-gec","*")};addEventListener("click",g);addEventListener("keydown",function(e){if(e.key==="Escape")g()})}</script>
+</head><body>
+<div class="cer gizle" id="cer"></div><div id="zaman" class="gizle">00:00:00:00</div>
+<div id="logo"><svg viewBox="0 0 128 128"><g id="ls" data-ikiz="sol"></g><g id="lg" data-ikiz="sag"></g></svg></div>
+<div id="yazi"><div class="kap"><span id="ad">TAA Vidyo Yapıcı</span></div><div class="kap"><span id="cumle">Yaz, önizle, tek tıkla videoyu yap.</span></div></div>
+<button id="gec" type="button">Geç</button><button id="tekrar" type="button">Tekrar oynat</button>
+<script src="logo.js"></script>
+<script>
+const E={in:"cubic-bezier(0.1,0.9,0.2,1)",up:"cubic-bezier(0.05,0.7,0.1,1)",yumusak:"cubic-bezier(0.65,0,0.35,1)"};
+const $=id=>document.getElementById(id);let A=[];
+const L="translate(-50%,-50%)";
+function metin(d,an){an($("ad"),[{transform:"translateY(105%)"},{transform:"none"}],{duration:550,delay:d,easing:E.up});an($("cumle"),[{transform:"translateY(105%)",opacity:0},{transform:"none",opacity:1}],{duration:550,delay:d+250,easing:E.up})}
+function oynat(){
+ A.forEach(a=>a.cancel());A=[];const an=(el,kf,o)=>{const a=el.animate(kf,{fill:"both",easing:E.in,...o});A.push(a);return a};
+ if(matchMedia("(prefers-reduced-motion: reduce)").matches){document.querySelectorAll(".gizle").forEach(e=>an(e,[{opacity:0},{opacity:0}],{duration:1}));[$("logo"),$("yazi")].forEach(e=>an(e,[{opacity:0},{opacity:1}],{duration:120}));return}
+
+ // Logo önce çok yakın planlarda sert kesmelerle görünür (kurgu masası hissi)
+ const K=[["translate(-50%,-50%) translate(55%,40%) scale(4.2)",0],["translate(-50%,-50%) translate(-60%,-30%) scale(3.4) ",240],["translate(-50%,-50%) translate(0%,-55%) scale(2.6)",480],["translate(-50%,-50%) scale(1.7)",720]];
+ const kf=[];K.forEach(([t,ms],i)=>{kf.push({transform:t,offset:ms/1500,easing:"steps(1,end)"})});
+ kf.push({transform:"translate(-50%,-50%) scale(1.7)",offset:960/1500,easing:E.in});kf.push({transform:L+" scale(1)"});
+ an($("logo"),kf,{duration:1500,easing:"linear"});
+ an($("cer"),[{opacity:1},{opacity:1,offset:.6},{opacity:0,transform:"scale(1.04)"}],{duration:1700,easing:"linear"});
+ an($("zaman"),[{opacity:1},{opacity:1,offset:.6},{opacity:0}],{duration:1700,easing:"linear"});
+ let f=0;const z=$("zaman"),t0=performance.now();(function sayac(){const ms=Math.min(performance.now()-t0,1500);const kare=Math.floor(ms/40);z.textContent="00:00:"+String(Math.floor(kare/25)).padStart(2,"0")+":"+String(kare%25).padStart(2,"0");if(ms<1500&&A.length)requestAnimationFrame(sayac)})();
+ metin(1500,an);
+}
+$("gec").onclick=()=>A.forEach(a=>a.finish());$("tekrar").onclick=oynat;oynat();
+</script></body></html>

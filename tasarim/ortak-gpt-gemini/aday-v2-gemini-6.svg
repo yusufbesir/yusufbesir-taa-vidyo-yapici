@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="14" fill="#18181B"/>
+  <!-- Viz├Âr K├Â┼şeleri (Frame Guides) -->
+  <path d="M15 23v-7a1 1 0 0 1 1-1h7M49 23v-7a1 1 0 0 0-1-1h-7M15 41v7a1 1 0 0 0 1 1h7M49 41v7a1 1 0 0 1-1 1h-7" 
+        stroke="#FAFAFA" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Merkez Video Play Butonu -->
+  <path d="M27 24.5v15l14-7.5-14-7.5z" fill="#93C5FD"/>
+  <!-- ├£st Sa─ş "REC" Kay─▒t Noktas─▒ -->
+  <circle cx="45" cy="19" r="2" fill="#93C5FD"/>
+</svg>

@@ -1,0 +1,290 @@
+<!doctype html>
+<!-- Açıklama: TAA Vidyo Yapıcı açılış animasyonu (tur 2, kalibrasyon, gpt-6-luna; Codex çıktısı, logo İkiz Kabartma ile değiştirildi). Logo: logo.js (tek yer). Sahip: Yusuf. Yazan: [Codex; düzenleyen Claude#Sonnet-5.5]. Yalnız yazan yapay zekâ ya da Yusuf'un izniyle değişir; silme yok. -->
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TAA Vidyo Yapıcı</title>
+<style>
+  :root {
+    color-scheme: light;
+    --paper: #F1F0EC;
+    --ink: #191826;
+    --red: #9A1B3C;
+    --pale-red: #D2486A;
+    --dark-red: #5A0C20;
+    --rule: rgba(25, 24, 38, .18);
+  }
+  * { box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; margin: 0; }
+  body {
+    overflow: hidden;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  }
+  .stage {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    min-height: 420px;
+    isolation: isolate;
+  }
+  .stage::before {
+    content: "";
+    position: absolute;
+    inset: 5.5%;
+    border: 1px solid var(--rule);
+    pointer-events: none;
+  }
+  .corner {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    border-color: var(--red);
+    border-style: solid;
+    opacity: .72;
+  }
+  .corner.tl { top: 5.5%; left: 5.5%; border-width: 1px 0 0 1px; }
+  .corner.tr { top: 5.5%; right: 5.5%; border-width: 1px 1px 0 0; }
+  .corner.bl { bottom: 5.5%; left: 5.5%; border-width: 0 0 1px 1px; }
+  .corner.br { bottom: 5.5%; right: 5.5%; border-width: 0 1px 1px 0; }
+
+  .calibration {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+  }
+  .panels {
+    display: flex;
+    align-items: center;
+    gap: clamp(24px, 5vw, 80px);
+  }
+  .screen {
+    position: relative;
+    width: min(24vw, 280px);
+    height: min(64vh, 530px);
+    min-width: 150px;
+    min-height: 280px;
+    overflow: hidden;
+    border: 1px solid rgba(154, 27, 60, .55);
+    background: rgba(255, 255, 255, .23);
+  }
+  .screen::before, .screen::after {
+    content: "";
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: var(--rule);
+  }
+  .screen::before { top: 12%; }
+  .screen::after { bottom: 12%; }
+  .screen-label {
+    position: absolute;
+    top: 4%;
+    left: 0;
+    right: 0;
+    color: var(--dark-red);
+    font-size: clamp(10px, 1vw, 13px);
+    font-weight: 650;
+    letter-spacing: .18em;
+    text-align: center;
+  }
+  .screen-mark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 52%;
+    aspect-ratio: 1;
+    border: 1px solid rgba(154, 27, 60, .28);
+    transform: translate(-50%, -50%);
+  }
+  .screen-mark::before, .screen-mark::after {
+    content: "";
+    position: absolute;
+    background: var(--pale-red);
+    opacity: .7;
+  }
+  .screen-mark::before { width: 1px; height: 140%; top: -20%; left: 50%; }
+  .screen-mark::after { height: 1px; width: 140%; left: -20%; top: 50%; }
+  .sweep {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(transparent 49.8%, rgba(154, 27, 60, .28) 50%, transparent 50.2%);
+    opacity: 0;
+  }
+  .brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(12px, 2.2vh, 22px);
+    width: min(90vw, 1000px);
+    text-align: center;
+    opacity: 0;
+    transform: translateY(28px) scale(.94);
+  }
+  .logo {
+    display: block;
+    width: clamp(112px, 17vh, 164px);
+    height: auto;
+    overflow: visible;
+  }
+  h1 {
+    margin: 0;
+    color: var(--ink);
+    font-size: clamp(38px, 5.4vw, 76px);
+    font-weight: 680;
+    letter-spacing: -.055em;
+    line-height: 1;
+  }
+  .tagline {
+    margin: 0;
+    color: rgba(25, 24, 38, .68);
+    font-size: clamp(15px, 1.65vw, 21px);
+    font-weight: 430;
+    letter-spacing: .01em;
+  }
+  .skip, .replay {
+    position: absolute;
+    z-index: 2;
+    border: 1px solid rgba(25, 24, 38, .25);
+    border-radius: 999px;
+    background: rgba(241, 240, 236, .94);
+    color: var(--ink);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .skip { top: 8%; right: 8%; padding: 10px 17px; }
+  .replay { right: 8%; bottom: 8%; padding: 10px 17px; }
+  .skip:hover, .replay:hover { border-color: var(--red); color: var(--red); }
+  button:focus-visible { outline: 3px solid var(--pale-red); outline-offset: 3px; }
+
+  .final .calibration { opacity: 0; transform: scale(.98); }
+  .final .brand { opacity: 1; transform: none; }
+
+  @media (max-width: 700px) {
+    .screen { width: 30vw; min-width: 120px; height: 54vh; min-height: 240px; }
+    .panels { gap: 18px; }
+    .stage::before { inset: 4%; }
+    .corner.tl { top: 4%; left: 4%; }
+    .corner.tr { top: 4%; right: 4%; }
+    .corner.bl { bottom: 4%; left: 4%; }
+    .corner.br { bottom: 4%; right: 4%; }
+    .skip { top: 7%; right: 7%; }
+    .replay { right: 7%; bottom: 7%; }
+  }
+</style>
+<style>html.uyg #tekrar,html.uyg #rep,html.uyg #replay,html.uyg .replay,html.uyg .tekrar{display:none!important}</style>
+<script>/* uygulama modu (?uygulama=1): Tekrar oynat gizli; tıklama/Esc/Geç ana sayfaya bildirilir */if(/[?&]uygulama=1/.test(location.search)){document.documentElement.classList.add("uyg");var g=function(){parent.postMessage("taa-acilis-gec","*")};addEventListener("click",g);addEventListener("keydown",function(e){if(e.key==="Escape")g()})}</script>
+</head>
+<body>
+<main class="stage" id="stage" aria-label="TAA Vidyo Yapıcı tanıtımı">
+  <i class="corner tl"></i><i class="corner tr"></i>
+  <i class="corner bl"></i><i class="corner br"></i>
+
+  <div class="calibration" id="calibration" aria-hidden="true">
+    <div class="panels" id="panels">
+      <div class="screen">
+        <span class="screen-label">LED 01 · 950 × 1800</span>
+        <span class="screen-mark"></span><span class="sweep"></span>
+      </div>
+      <div class="screen">
+        <span class="screen-label">LED 02 · 950 × 1800</span>
+        <span class="screen-mark"></span><span class="sweep"></span>
+      </div>
+    </div>
+  </div>
+
+  <section class="brand" id="brand">
+    <svg class="logo" viewBox="0 0 128 128" role="img" aria-label="İkiz Pile logosu"><g data-ikiz="sol"></g><g data-ikiz="sag"></g></svg>
+    <h1>TAA Vidyo Yapıcı</h1>
+    <p class="tagline">Yaz, önizle, tek tıkla videoyu yap.</p>
+  </section>
+
+  <button class="skip" id="skip" type="button">Geç</button>
+  <button class="replay" id="replay" type="button">Tekrar oynat</button>
+</main>
+
+<script src="logo.js"></script>
+<script>
+(() => {
+  const stage = document.getElementById("stage");
+  const panels = document.getElementById("panels");
+  const calibration = document.getElementById("calibration");
+  const brand = document.getElementById("brand");
+  const skip = document.getElementById("skip");
+  const replay = document.getElementById("replay");
+  const sweeps = [...document.querySelectorAll(".sweep")];
+  let animations = [];
+  let timer;
+
+  function finish() {
+    clearTimeout(timer);
+    animations.forEach(animation => animation.cancel());
+    animations = [];
+    stage.classList.add("final");
+  }
+
+  function play() {
+    clearTimeout(timer);
+    animations.forEach(animation => animation.cancel());
+    animations = [];
+    stage.classList.remove("final");
+
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      animations.push(brand.animate(
+        [{ opacity: 0 }, { opacity: 1 }],
+        { duration: 120, easing: "ease-out", fill: "forwards" }
+      ));
+      timer = setTimeout(finish, 120);
+      return;
+    }
+
+    animations.push(panels.animate(
+      [
+        { opacity: 0, transform: "translateY(34px) scale(.96)" },
+        { opacity: 1, transform: "translateY(0) scale(1)" }
+      ],
+      { duration: 760, easing: "cubic-bezier(.2,.75,.25,1)", fill: "forwards" }
+    ));
+    sweeps.forEach((sweep, index) => {
+      animations.push(sweep.animate(
+        [
+          { opacity: 0, transform: "translateY(-55%)" },
+          { opacity: .85, transform: "translateY(0%)", offset: .5 },
+          { opacity: 0, transform: "translateY(55%)" }
+        ],
+        { duration: 900, delay: 560 + index * 180, easing: "ease-in-out", fill: "forwards" }
+      ));
+    });
+    animations.push(calibration.animate(
+      [
+        { opacity: 1, transform: "scale(1)" },
+        { opacity: 0, transform: "scale(.98)" }
+      ],
+      { duration: 620, delay: 1540, easing: "ease-in", fill: "forwards" }
+    ));
+    animations.push(brand.animate(
+      [
+        { opacity: 0, transform: "translateY(28px) scale(.94)" },
+        { opacity: 1, transform: "translateY(0) scale(1)" }
+      ],
+      { duration: 920, delay: 1660, easing: "cubic-bezier(.16,1,.3,1)", fill: "forwards" }
+    ));
+    timer = setTimeout(finish, 3600);
+  }
+
+  skip.addEventListener("click", finish);
+  replay.addEventListener("click", play);
+  play();
+})();
+</script>
+</body>
+</html>

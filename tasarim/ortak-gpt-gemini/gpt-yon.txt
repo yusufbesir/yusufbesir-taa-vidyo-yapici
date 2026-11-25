@@ -1,0 +1,442 @@
+﻿codex.exe : Reading additional input from stdin...
+At line:1 char:28
++ ...  $dir) "" | & $c exec -s read-only --skip-git-repo-check --ephemeral  ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Reading additional input from stdin...:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+2026-11-16T05:08:59.917019Z ERROR codex_core::session::session: failed to load skill C:\Users\TAA PF60V67C\.codex\plugi
+ns\cache\claude-cowork\twilio-developer-kit\0.2.0\skills\twilio\twilio-agent-connect\SKILL.md: missing YAML frontmatter
+ delimited by ---
+OpenAI Codex v0.167.0-alpha.4.1
+--------
+workdir: C:\Users\TAAPF6~1\AppData\Local\Temp
+model: gpt-6.1-sol
+provider: openai
+approval: never
+sandbox: read-only
+reasoning effort: high
+reasoning summaries: none
+session id: 01a1e2c2-1d3c-79b1-b776-d5679c96be7c
+--------
+user
+BRIF:
+
+# Proje
+'TAA Vidyo Yap─▒c─▒': Windows masa├╝st├╝ program─▒. Kullan─▒c─▒ (esnaf, terzi, ma─şaza sahibi; teknik de─şil) k─▒sa bir
+ yaz─▒ yazar ya da videoyu yaz─▒yla tarif eder; program bir LED ekran (bina cephesinde dikey ekran) i├ğin animasyonlu y
+az─▒ videosu (MP4) ├╝retir. Ana ekranda: 'Tarif et' (yaz─▒yla tarif, yapay zek├óya sor ya da kurallarla ├ğ├Âz), 'Ne yaz
+s─▒n?' (metin kutusu, haz─▒r ┼şablonlar), 'Nas─▒l g├Âr├╝ns├╝n?' (stil, renk), sa─şda 'Haz─▒r' ├Ânizleme (d├╝z ve bina c
+ephesi kar┼ş─▒dan/├╝stten), altta b├╝y├╝k 'Videoyu yap' d├╝─şmesi, Son videoyu oynat, Klas├Âr├╝ a├ğ, Yeni video. Ayr─▒n
+t─▒lar b├Âl├╝m├╝: animasyon, yaz─▒, ge├ği┼ş, ├ğer├ğeve, ├ğ─▒kt─▒, senaryo metni. Pencere g├Âm├╝l├╝ (taray─▒c─▒ sekmesi 
+de─şil), aray├╝z tek sayfal─▒k HTML/CSS/JS (CSS de─şi┼şkenleriyle tema).
+
+# Sorun
+┼Şimdiki g├Âr├╝n├╝m ┼şatafatl─▒: parlak amber vurgu, neon/gradyan, ├╝├ğ dekoratif tema (Amber St├╝dyo, Montaj Masas─▒, 
+Donan─▒m Raf─▒). Mevcut logo: koyu dikey dikd├Ârtgen i├ğinde amber 'L' ve LED noktalar─▒; kalabal─▒k ve program kimli─ş
+ini yans─▒tm─▒yor.
+
+# ─░stenen (Yusuf)
+Daha profesyonel, SADE, ┼şatafats─▒z bir i┼ş arac─▒ hissi ('├ğal─▒┼şma masas─▒'): bol bo┼şluk, az renk, tek vurgu rengi
+, d├╝z y├╝zeyler, ince ├ğizgiler, g├Âlge/gradyan/neon yok, tek aile tipografi, ├ğizgi (stroke) ikonlar. ─░┼şlevler kayb
+olmayacak. Kurallar: dokunma hedefi en az 48 px (ana eylem 56 px), yaz─▒ en az 16 px, kontrast en az 4,5:1, g├Âr├╝n├╝r 
+klavye oda─ş─▒, 'tek t─▒k' ilkesi (en s─▒k 3-5 i┼ş ana ekranda), kullan─▒c─▒ tema ve vurgu rengini de─şi┼ştirebilir (va
+rsay─▒lana d├Ân├╝┼ş var). Varsay─▒lan iki tema: koyu-n├Âtr ve a├ğ─▒k-n├Âtr.
+
+# Logo
+Programa uygun olsun: video / ge├ği┼ş / zaman ├ğizelgesi / kare kare fikri ya da LED ekran piksel ─▒zgaras─▒ + yaz─▒. D
+├╝z tek renk + en ├ğok bir vurgu rengi, g├Âlge ve gradyan yok. 16, 32 ve 256 px'te okunur kalmal─▒; kare ya da yuvarlat
+─▒lm─▒┼ş kare uygulama simgesi olarak ├ğal─▒┼şmal─▒; a├ğ─▒k ve koyu zeminde iyi g├Âr├╝nmeli. Marka ad─▒ 'TAA' (Terzi Ad
+em Altun) olabilir ama zorunlu de─şil.
+
+GOREV (GPT): ARAYUZ DENETIMI VE YON: 10-14 madde: sade profesyonel bir is araci arayuzu icin somut kurallar (bilgi mima
+risi: ana ekranda neler gorunur, neler 'Ayrintilar'a gider; Tarif et bolumunun yeri; ana eylem dugmesi; bos durum; hata
+/uyari gosterimi; erisilebilirlik), kacinilacak satafat ogeleri, tema basina renk jetonlari (hex) ve tipografi onerisi.
+ Ayrica logo icin 5 fikir (yalniz kelimeyle, SVG degil) ve hangi fikrin uygulama simgesi olarak en iyi calisacagi gerek
+cesiyle. Kisa ve somut Turkce yaz.
+warning: Exceeded skills context budget. All skill descriptions were removed and 282 additional skills were not include
+d in the model-visible skills list.
+hook: SessionStart
+hook: SessionStart
+hook: SessionStart
+hook: SessionStart
+hook: SessionStart Failed
+hook: SessionStart Failed
+hook: SessionStart Failed
+hook: SessionStart Failed
+hook: UserPromptSubmit
+hook: UserPromptSubmit Failed
+codex
+Brifi somut aray├╝z kurallar─▒na d├Ân├╝┼şt├╝rece─şim; ├Ânce ortak kurallar─▒ ve ilgili tasar─▒m y├Ânergesini okuyaca─ş─
+▒m.
+exec
+"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath 'D:\\YusufII\\HAFIZ
+AM1\\kasa\\agents.md'; Get-Content -LiteralPath 'D:\\YusufII\\HAFIZAM1\\kasa\\zihin\\ruh.md'; Get-Content -LiteralPath 
+'D:\\YusufII\\HAFIZAM1\\kasa\\ORTAK-AJAN-KURALLARI.md'" in C:\Users\TAAPF6~1\AppData\Local\Temp
+exec
+"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath 'C:\\Users\\TAA PF6
+0V67C\\.codex\\plugins\\cache\\claude-cowork\\design\\1.2.0\\skills\\design-critique\\SKILL.md'" in C:\Users\TAAPF6~1\A
+ppData\Local\Temp
+ exited 1 in 176ms:
+'C:\Users\TAAPF6~1\AppData\Local\Temp' yoluna eri´┐¢im reddedildi.
+At line:2 char:1
++ Get-Content -LiteralPath 'D:\YusufII\HAFIZAM1\kasa\agents.md'; Get-Co ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], UnauthorizedAccessException
+    + FullyQualifiedErrorId : System.UnauthorizedAccessException
+ 
+'C:\Users\TAAPF6~1\AppData\Local\Temp' yoluna eri´┐¢im reddedildi.
+At line:2 char:64
++ ... agents.md'; Get-Content -LiteralPath 'D:\YusufII\HAFIZAM1\kasa\zihin\ ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], UnauthorizedAccessException
+    + FullyQualifiedErrorId : System.UnauthorizedAccessException
+ 
+'C:\Users\TAAPF6~1\AppData\Local\Temp' yoluna eri´┐¢im reddedildi.
+At line:2 char:130
++ ... in\ruh.md'; Get-Content -LiteralPath 'D:\YusufII\HAFIZAM1\kasa\ORTAK- ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], UnauthorizedAccessException
+    + FullyQualifiedErrorId : System.UnauthorizedAccessException
+ 
+
+ exited 1 in 142ms:
+'C:\Users\TAAPF6~1\AppData\Local\Temp' yoluna eri´┐¢im reddedildi.
+At line:2 char:1
++ Get-Content -LiteralPath 'C:\Users\TAA PF60V67C\.codex\plugins\cache\ ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], UnauthorizedAccessException
+    + FullyQualifiedErrorId : System.UnauthorizedAccessException
+ 
+
+web search: 
+exec
+"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath 'C:\\Users\\TAA PF6
+0V67C\\.codex\\plugins\\cache\\claude-cowork\\design\\1.2.0\\skills\\design-critique\\SKILL.md'" in C:\
+exec
+"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath 'D:\\YusufII\\HAFIZ
+AM1\\kasa\\agents.md'; Get-Content -LiteralPath 'D:\\YusufII\\HAFIZAM1\\kasa\\zihin\\ruh.md'; Get-Content -LiteralPath 
+'D:\\YusufII\\HAFIZAM1\\kasa\\ORTAK-AJAN-KURALLARI.md'; & 'C:\\Users\\TAA PF60V67C\\AppData\\Local\\Programs\\Python\\P
+ython312\\python.exe' '-X' 'utf8' 'D:\\YusufII\\HAFIZAM1\\kasa\\araclar\\codex_hafiza.py' '--vault' 'D:\\YusufII\\HAFIZ
+AM1\\kasa' 'latest-session'" in C:\
+ succeeded in 99ms:
+---
+name: design-critique
+description: Get structured design feedback on usability, hierarchy, and consistency. Trigger with "review this design"
+, "critique this mockup", "what do you think of this screen?", or when sharing a Figma link or screenshot for feedback 
+at any stage from exploration to final polish.
+argument-hint: "<Figma URL, screenshot, or description>"
+---
+
+# /design-critique
+
+> If you see unfamiliar placeholders or need to check which tools are connected, see [CONNECTORS.md](../../CONNECTORS.m
+d).
+
+Get structured design feedback across multiple dimensions.
+
+## Usage
+
+```
+/design-critique $ARGUMENTS
+```
+
+Review the design: @$1
+
+If a Figma URL is provided, pull the design from Figma. If a file is referenced, read it. Otherwise, ask the user to de
+scribe or share their design.
+
+## What I Need From You
+
+- **The design**: Figma URL, screenshot, or detailed description
+- **Context**: What is this? Who is it for? What stage (exploration, refinement, final)?
+- **Focus** (optional): "Focus on mobile" or "Focus on the onboarding flow"
+
+## Critique Framework
+
+### 1. First Impression (2 seconds)
+- What draws the eye first? Is that correct?
+- What's the emotional reaction?
+- Is the purpose immediately clear?
+
+### 2. Usability
+- Can the user accomplish their goal?
+- Is the navigation intuitive?
+- Are interactive elements obvious?
+- Are there unnecessary steps?
+
+### 3. Visual Hierarchy
+- Is there a clear reading order?
+- Are the right elements emphasized?
+- Is whitespace used effectively?
+- Is typography creating the right hierarchy?
+
+### 4. Consistency
+- Does it follow the design system?
+- Are spacing, colors, and typography consistent?
+- Do similar elements behave similarly?
+
+### 5. Accessibility
+- Color contrast ratios
+- Touch target sizes
+- Text readability
+- Alternative text for images
+
+## How to Give Feedback
+
+- **Be specific**: "The CTA competes with the navigation" not "the layout is confusing"
+- **Explain why**: Connect feedback to design principles or user needs
+- **Suggest alternatives**: Don't just identify problems, propose solutions
+- **Acknowledge what works**: Good feedback includes positive observations
+- **Match the stage**: Early exploration gets different feedback than final polish
+
+## Output
+
+```markdown
+## Design Critique: [Design Name]
+
+### Overall Impression
+[1-2 sentence first reaction ´┐¢?" what works, what's the biggest opportunity]
+
+### Usability
+| Finding | Severity | Recommendation |
+|---------|----------|----------------|
+| [Issue] | ´┐¢Y"´┐¢ Critical / ´┐¢YY´┐¢ Moderate / ´┐¢YY´┐¢ Minor | [Fix] |
+
+### Visual Hierarchy
+- **What draws the eye first**: [Element] ´┐¢?" [Is this correct?]
+- **Reading flow**: [How does the eye move through the layout?]
+- **Emphasis**: [Are the right things emphasized?]
+
+### Consistency
+| Element | Issue | Recommendation |
+|---------|-------|----------------|
+| [Typography/spacing/color] | [Inconsistency] | [Fix] |
+
+### Accessibility
+- **Color contrast**: [Pass/fail for key text]
+- **Touch targets**: [Adequate size?]
+- **Text readability**: [Font size, line height]
+
+### What Works Well
+- [Positive observation 1]
+- [Positive observation 2]
+
+### Priority Recommendations
+1. **[Most impactful change]** ´┐¢?" [Why and how]
+2. **[Second priority]** ´┐¢?" [Why and how]
+3. **[Third priority]** ´┐¢?" [Why and how]
+```
+
+## If Connectors Available
+
+If **~~design tool** is connected:
+- Pull the design directly from Figma and inspect components, tokens, and layers
+- Compare against the existing design system for consistency
+
+If **~~user feedback** is connected:
+- Cross-reference design decisions with recent user feedback and support tickets
+
+## Tips
+
+1. **Share the context** ´┐¢?" "This is a checkout flow for a B2B SaaS" helps me give relevant feedback.
+2. **Specify your stage** ´┐¢?" Early exploration gets different feedback than final polish.
+3. **Ask me to focus** ´┐¢?" "Just look at the navigation" gives you more depth on one area.
+
+ exited 1 in 250ms:
+Get-Content : Eri´┐¢im engellendi
+At line:2 char:1
++ Get-Content -LiteralPath 'D:\YusufII\HAFIZAM1\kasa\agents.md'; Get-Co ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : PermissionDenied: (D:\YusufII\HAFIZAM1\kasa\agents.md:String) [Get-Content], Unauthorize 
+   dAccessException
+    + FullyQualifiedErrorId : ItemExistsUnauthorizedAccessError,Microsoft.PowerShell.Commands.GetContentCommand
+ 
+Get-Content : Cannot find path 'D:\YusufII\HAFIZAM1\kasa\agents.md' because it does not exist.
+At line:2 char:1
++ Get-Content -LiteralPath 'D:\YusufII\HAFIZAM1\kasa\agents.md'; Get-Co ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (D:\YusufII\HAFIZAM1\kasa\agents.md:String) [Get-Content], ItemNotFoundE 
+   xception
+    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.GetContentCommand
+ 
+Get-Content : Eri´┐¢im engellendi
+At line:2 char:64
++ ... agents.md'; Get-Content -LiteralPath 'D:\YusufII\HAFIZAM1\kasa\zihin\ ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : PermissionDenied: (D:\YusufII\HAFIZAM1\kasa\zihin\ruh.md:String) [Get-Content], Unauthor 
+   izedAccessException
+    + FullyQualifiedErrorId : ItemExistsUnauthorizedAccessError,Microsoft.PowerShell.Commands.GetContentCommand
+ 
+Get-Content : Cannot find path 'D:\YusufII\HAFIZAM1\kasa\zihin\ruh.md' because it does not exist.
+At line:2 char:64
++ ... agents.md'; Get-Content -LiteralPath 'D:\YusufII\HAFIZAM1\kasa\zihin\ ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (D:\YusufII\HAFIZAM1\kasa\zihin\ruh.md:String) [Get-Content], ItemNotFou 
+   ndException
+    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.GetContentCommand
+ 
+Get-Content : Eri´┐¢im engellendi
+At line:2 char:130
++ ... in\ruh.md'; Get-Content -LiteralPath 'D:\YusufII\HAFIZAM1\kasa\ORTAK- ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : PermissionDenied: (D:\YusufII\HAFI...AN-KURALLARI.md:String) [Get-Content], Unauthorized 
+   AccessException
+    + FullyQualifiedErrorId : ItemExistsUnauthorizedAccessError,Microsoft.PowerShell.Commands.GetContentCommand
+ 
+Get-Content : Cannot find path 'D:\YusufII\HAFIZAM1\kasa\ORTAK-AJAN-KURALLARI.md' because it does not exist.
+At line:2 char:130
++ ... in\ruh.md'; Get-Content -LiteralPath 'D:\YusufII\HAFIZAM1\kasa\ORTAK- ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (D:\YusufII\HAFI...AN-KURALLARI.md:String) [Get-Content], ItemNotFoundEx 
+   ception
+    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.GetContentCommand
+ 
+C:\Users\TAA PF60V67C\AppData\Local\Programs\Python\Python312\python.exe: can't open file 'D:\\YusufII\\HAFIZAM1\\kasa\
+\araclar\\codex_hafiza.py': [Errno 13] Permission denied
+
+web search: site.w3.org WAI WCAG 2.2 contrast minimum focus visible target size
+codex
+Tasar─▒m ele┼ştirisi becerisini kullan─▒yorum. Yerel kasa kurallar─▒na eri┼şim engellendi; de─şerlendirmeyi payla┼şt─▒─
+ş─▒n brief ├╝zerinden yap─▒yorum. Ana y├Ân: solda metin ve g├Âr├╝n├╝m, sa─şda s├╝rekli ├Ânizleme, altta tek belirgin ├╝
+retim d├╝─şmesi.
+codex
+├ûnerilen y├Ân: **n├Âtr bir ├ğal─▒┼şma masas─▒**. ├ûncelik metin, ├Ânizleme ve video ├╝retimi olsun. Bu de─şerlendirme 
+brief ├╝zerinden yap─▒lm─▒┼şt─▒r; mevcut ekran incelenmedi.
+
+1. **Ana d├╝zen:** Solda d├╝zenleme, sa─şda s├╝rekli ├Ânizleme; altta eylem ┼şeridi. Dar pencerede tek s├╝tuna ge├ğsin,
+ hi├ğbir kontrol kesilmesin.
+
+2. **ÔÇ£Tarif etÔÇØ ├╝stte olsun:** Sol s├╝tunun ba┼ş─▒nda, iste─şe ba─şl─▒ k─▒sa bir alan. ├ûrnek: ÔÇ£─░ndirim yaz─▒s─
+▒ yukar─▒dan gelsin.ÔÇØ ÔÇ£Tarifi uygulaÔÇØ ile metin ve stil doldurulsun. Yapay zek├ó/kurallar se├ğimi ÔÇ£Ayr─▒nt─▒lar
+ÔÇØda kals─▒n; uygulanan de─şi┼şiklik geri al─▒nabilsin.
+
+3. **ÔÇ£Ne yazs─▒n?ÔÇØ ana ├ğal─▒┼şma alan─▒ olsun:** B├╝y├╝k metin kutusu, hemen alt─▒nda ├╝├ğ haz─▒r ┼şablon ve ÔÇ£T├
+╝m ┼şablonlarÔÇØ. Alan etiketi s├╝rekli g├Âr├╝ns├╝n; ├Ârnek metin etiketin yerine ge├ğmesin.
+
+4. **ÔÇ£Nas─▒l g├Âr├╝ns├╝n?ÔÇØ k─▒sa kals─▒n:** Ana ekranda stil, yaz─▒ rengi ve zemin rengi bulunsun. ├ûnizleme, se├ği
+mlerle birlikte g├╝ncellensin.
+
+5. **Tek ÔÇ£Ayr─▒nt─▒larÔÇØ b├Âl├╝m├╝:** Ba┼şlang─▒├ğta kapal─▒; animasyon, yaz─▒ tipi/boyutu, ge├ği┼ş, ├ğer├ğeve, ├ğ─▒
+kt─▒ ve senaryo metnini i├ğersin. Kapal─▒yken ÔÇ£10 sn ┬À 1080├ù1920 ┬À MP4ÔÇØ gibi etkin ayar ├Âzeti g├Âr├╝ns├╝n.
+
+6. **├ûnizleme sade olsun:** Ba┼şl─▒k ÔÇ£├ûnizlemeÔÇØ; ÔÇ£Haz─▒rÔÇØ yaln─▒z ├╝retim tamamlan─▒nca kullan─▒ls─▒n. ÔÇ£D├╝
+z / Cephe kar┼ş─▒dan / Cephe ├╝sttenÔÇØ se├ğenekleri tek sat─▒rda bulunsun. Varsay─▒lan d├╝z g├Âr├╝n├╝m; cephe modeli n
+├Âtr ve dikkat da─ş─▒tmayan ├ğizimde olsun.
+
+7. **Tek g├╝├ğl├╝ ana eylem:** Altta en az **56 px** y├╝ksekli─şinde ÔÇ£Videoyu yapÔÇØ. ├£retimde a┼şama ve ger├ğek ile
+rleme g├Âsterilsin; ├Âl├ğ├╝lemeyen y├╝zde uydurulmas─▒n. Yinelenen ├╝retim engellensin, iptal eri┼şilebilir kals─▒n.
+
+8. **S─▒k i┼şler do─şrudan eri┼şilsin:** Metin yazma, ┼şablon se├ğme, stil de─şi┼ştirme, ├╝retme ve son videoyu oynatma
+ men├╝ arkas─▒na saklanmas─▒n. ÔÇ£Son videoyu oynatÔÇØ, ÔÇ£Klas├Âr├╝ a├ğÔÇØ, ÔÇ£Yeni videoÔÇØ ayn─▒ alt ┼şeritte ikinci
+l d├╝─şmeler olsun.
+
+9. **Bo┼ş durum yol g├Âstersin:** ÔÇ£─░lk videon i├ğin metin yaz veya bir ┼şablon se├ğ.ÔÇØ ├ûnizlemede a├ğ─▒k├ğa ÔÇ£├ûr
+nekÔÇØ etiketli bir i├ğerik g├Âsterilsin. Hen├╝z video yokken oynatma d├╝─şmesinin yan─▒nda nedeni yazs─▒n.
+
+10. **Hata d├╝zeltilebilir olsun:** Sorun ilgili alan─▒n alt─▒nda a├ğ─▒klans─▒n: ÔÇ£Metin ekle.ÔÇØ ├£retim hatas─▒nda g
+irilenler korunsun; ÔÇ£Tekrar deneÔÇØ sunulsun. Uyar─▒lar kal─▒c─▒ sat─▒rda g├Âsterilsin, yaln─▒z kaybolan bildirimlere
+ dayanmas─▒n.
+
+11. **G├Ârsel dil:** 8 px aral─▒k sistemi, b├Âl├╝mler aras─▒nda 24ÔÇô32 px bo┼şluk, 1 px ├ğizgiler, 6ÔÇô8 px k├Â┼şe yar
+─▒├ğap─▒. Neon, gradyan, g├Âlge, cam efekti, dekoratif LED noktalar─▒ ve b├╝y├╝k marka panosu kullan─▒lmas─▒n. ─░konlar
+ tek ├ğizgi ailesinden, yan─▒nda metinle kullan─▒ls─▒n.
+
+12. **Tipografi ve eri┼şilebilirlik:** Tek aile **Segoe UI**; g├Âvde/etiket en az 16 px, b├Âl├╝m ba┼şl─▒─ş─▒ 20 px, uyg
+ulama ba┼şl─▒─ş─▒ 24 px; a─ş─▒rl─▒klar 400/600. Hedefler en az **48├ù48 px** olsun. T├╝m metinlerde 4,5:1; gerekli kont
+rol s─▒n─▒rlar─▒nda 3:1 kontrast hedeflensin. Klavyeyle tam kullan─▒m, g├Âr├╝n├╝r 2 px odak ├ğizgisi ve azalt─▒lm─▒┼ş h
+areket deste─şi sa─şlans─▒n. [WCAG kontrast ve odak ├Âl├ğ├╝tleri](https://www.w3.org/TR/WCAG22/).
+
+13. **Tema ki┼şiselle┼ştirmesi:** Yaln─▒z ÔÇ£Koyu n├Âtr / A├ğ─▒k n├ÂtrÔÇØ ve vurgu rengi se├ğimi sunulsun. ÔÇ£Varsay─▒l
+ana d├ÂnÔÇØ g├Âr├╝n├╝r olsun. Se├ğilen vurguya g├Âre d├╝─şme yaz─▒s─▒ otomatik ayarlans─▒n; yetersiz kontrast sessizce 
+uygulanmas─▒n. Aray├╝z temas─▒, videonun renklerini de─şi┼ştirmesin.
+
+├ûnerilen CSS renk jetonlar─▒:
+
+| Jeton | Koyu n├Âtr | A├ğ─▒k n├Âtr |
+|---|---|---|
+| `--bg` | `#18181B` | `#F4F4F5` |
+| `--surface` | `#242427` | `#FFFFFF` |
+| `--text` | `#FAFAFA` | `#18181B` |
+| `--text-secondary` | `#B4B4BD` | `#52525B` |
+| `--control-border` | `#71717A` | `#71717A` |
+| `--divider` | `#3F3F46` | `#D4D4D8` |
+| `--accent` / `--focus` | `#93C5FD` | `#1D4ED8` |
+| `--on-accent` | `#172554` | `#FFFFFF` |
+| `--accent-hover` | `#BFDBFE` | `#1E40AF` |
+| `--error` | `#FCA5A5` | `#B91C1C` |
+| `--warning` | `#FCD34D` | `#854D0E` |
+
+Bu e┼şle┼şmelerde d├╝─şme yaz─▒s─▒ kontrast─▒ koyuda **8,15:1**, a├ğ─▒kta **6,70:1**. Ay─▒r─▒c─▒ ├ğizgileri kontrol s─▒
+n─▒r─▒ olarak kullanmay─▒n; hata/uyar─▒ renklerini yaln─▒z ilgili durumlarda kullan─▒n.
+
+Logo i├ğin be┼ş fikir:
+
+- **Kayan iki kare:** Hafif kayd─▒r─▒lm─▒┼ş iki video karesi; ├Ândeki karede tek kal─▒n metin ├ğizgisi. Hareketli yaz─▒
+ ├╝retimini anlat─▒r.
+- **Piksel T:** Az say─▒da iri kareyle olu┼şturulmu┼ş T; tek piksel vurgu renginde. LED ve TAA ili┼şkisini kurar.
+- **Dikey ekran ve yaz─▒:** Yuvarlat─▒lm─▒┼ş kare i├ğinde dikey ekran, i├ğinde iki kal─▒n yaz─▒ ├ğizgisi.
+- **├£├ğ karelik ge├ği┼ş:** Yan yana ├╝├ğ karede soldan sa─şa beliren ayn─▒ metin ├ğizgisi. Animasyon fikrini ta┼ş─▒r.
+- **Zaman ├ğizelgesi i┼şareti:** ─░ki kal─▒n klip blo─şu ve aralar─▒nda tek dikey oynatma ├ğizgisi.
+
+**Uygulama simgesi i├ğin en g├╝├ğl├╝ aday: kayan iki kare.** Harfe ba─ş─▒ml─▒ de─şildir, video ├╝retimini ├ğa─şr─▒┼şt─▒
+r─▒r ve az par├ğayla ay─▒rt edilir. 16 px s├╝r├╝mde i├ğ ├ğizgi kald─▒r─▒l─▒p iki kare korunabilir; 32 ve 256 px s├╝r├╝m
+lerde eklenebilir. D├╝z tek renk ├ğal─▒┼şmal─▒; vurgu yaln─▒z ├Ândeki karede kullan─▒lmal─▒. A├ğ─▒k/koyu zemin varyantl
+ar─▒ ve k├╝├ğ├╝k boyut okunurlu─şu ├ğizim a┼şamas─▒nda ayr─▒ca s─▒nanmal─▒.
+tokens used
+30.772
+├ûnerilen y├Ân: **n├Âtr bir ├ğal─▒┼şma masas─▒**. ├ûncelik metin, ├Ânizleme ve video ├╝retimi olsun. Bu de─şerlendirme brief ├╝zerinden yap─▒lm─▒┼şt─▒r; mevcut ekran incelenmedi.
+
+1. **Ana d├╝zen:** Solda d├╝zenleme, sa─şda s├╝rekli ├Ânizleme; altta eylem ┼şeridi. Dar pencerede tek s├╝tuna ge├ğsin, hi├ğbir kontrol kesilmesin.
+
+2. **ÔÇ£Tarif etÔÇØ ├╝stte olsun:** Sol s├╝tunun ba┼ş─▒nda, iste─şe ba─şl─▒ k─▒sa bir alan. ├ûrnek: ÔÇ£─░ndirim yaz─▒s─▒ yukar─▒dan gelsin.ÔÇØ ÔÇ£Tarifi uygulaÔÇØ ile metin ve stil doldurulsun. Yapay zek├ó/kurallar se├ğimi ÔÇ£Ayr─▒nt─▒larÔÇØda kals─▒n; uygulanan de─şi┼şiklik geri al─▒nabilsin.
+
+3. **ÔÇ£Ne yazs─▒n?ÔÇØ ana ├ğal─▒┼şma alan─▒ olsun:** B├╝y├╝k metin kutusu, hemen alt─▒nda ├╝├ğ haz─▒r ┼şablon ve ÔÇ£T├╝m ┼şablonlarÔÇØ. Alan etiketi s├╝rekli g├Âr├╝ns├╝n; ├Ârnek metin etiketin yerine ge├ğmesin.
+
+4. **ÔÇ£Nas─▒l g├Âr├╝ns├╝n?ÔÇØ k─▒sa kals─▒n:** Ana ekranda stil, yaz─▒ rengi ve zemin rengi bulunsun. ├ûnizleme, se├ğimlerle birlikte g├╝ncellensin.
+
+5. **Tek ÔÇ£Ayr─▒nt─▒larÔÇØ b├Âl├╝m├╝:** Ba┼şlang─▒├ğta kapal─▒; animasyon, yaz─▒ tipi/boyutu, ge├ği┼ş, ├ğer├ğeve, ├ğ─▒kt─▒ ve senaryo metnini i├ğersin. Kapal─▒yken ÔÇ£10 sn ┬À 1080├ù1920 ┬À MP4ÔÇØ gibi etkin ayar ├Âzeti g├Âr├╝ns├╝n.
+
+6. **├ûnizleme sade olsun:** Ba┼şl─▒k ÔÇ£├ûnizlemeÔÇØ; ÔÇ£Haz─▒rÔÇØ yaln─▒z ├╝retim tamamlan─▒nca kullan─▒ls─▒n. ÔÇ£D├╝z / Cephe kar┼ş─▒dan / Cephe ├╝sttenÔÇØ se├ğenekleri tek sat─▒rda bulunsun. Varsay─▒lan d├╝z g├Âr├╝n├╝m; cephe modeli n├Âtr ve dikkat da─ş─▒tmayan ├ğizimde olsun.
+
+7. **Tek g├╝├ğl├╝ ana eylem:** Altta en az **56 px** y├╝ksekli─şinde ÔÇ£Videoyu yapÔÇØ. ├£retimde a┼şama ve ger├ğek ilerleme g├Âsterilsin; ├Âl├ğ├╝lemeyen y├╝zde uydurulmas─▒n. Yinelenen ├╝retim engellensin, iptal eri┼şilebilir kals─▒n.
+
+8. **S─▒k i┼şler do─şrudan eri┼şilsin:** Metin yazma, ┼şablon se├ğme, stil de─şi┼ştirme, ├╝retme ve son videoyu oynatma men├╝ arkas─▒na saklanmas─▒n. ÔÇ£Son videoyu oynatÔÇØ, ÔÇ£Klas├Âr├╝ a├ğÔÇØ, ÔÇ£Yeni videoÔÇØ ayn─▒ alt ┼şeritte ikincil d├╝─şmeler olsun.
+
+9. **Bo┼ş durum yol g├Âstersin:** ÔÇ£─░lk videon i├ğin metin yaz veya bir ┼şablon se├ğ.ÔÇØ ├ûnizlemede a├ğ─▒k├ğa ÔÇ£├ûrnekÔÇØ etiketli bir i├ğerik g├Âsterilsin. Hen├╝z video yokken oynatma d├╝─şmesinin yan─▒nda nedeni yazs─▒n.
+
+10. **Hata d├╝zeltilebilir olsun:** Sorun ilgili alan─▒n alt─▒nda a├ğ─▒klans─▒n: ÔÇ£Metin ekle.ÔÇØ ├£retim hatas─▒nda girilenler korunsun; ÔÇ£Tekrar deneÔÇØ sunulsun. Uyar─▒lar kal─▒c─▒ sat─▒rda g├Âsterilsin, yaln─▒z kaybolan bildirimlere dayanmas─▒n.
+
+11. **G├Ârsel dil:** 8 px aral─▒k sistemi, b├Âl├╝mler aras─▒nda 24ÔÇô32 px bo┼şluk, 1 px ├ğizgiler, 6ÔÇô8 px k├Â┼şe yar─▒├ğap─▒. Neon, gradyan, g├Âlge, cam efekti, dekoratif LED noktalar─▒ ve b├╝y├╝k marka panosu kullan─▒lmas─▒n. ─░konlar tek ├ğizgi ailesinden, yan─▒nda metinle kullan─▒ls─▒n.
+
+12. **Tipografi ve eri┼şilebilirlik:** Tek aile **Segoe UI**; g├Âvde/etiket en az 16 px, b├Âl├╝m ba┼şl─▒─ş─▒ 20 px, uygulama ba┼şl─▒─ş─▒ 24 px; a─ş─▒rl─▒klar 400/600. Hedefler en az **48├ù48 px** olsun. T├╝m metinlerde 4,5:1; gerekli kontrol s─▒n─▒rlar─▒nda 3:1 kontrast hedeflensin. Klavyeyle tam kullan─▒m, g├Âr├╝n├╝r 2 px odak ├ğizgisi ve azalt─▒lm─▒┼ş hareket deste─şi sa─şlans─▒n. [WCAG kontrast ve odak ├Âl├ğ├╝tleri](https://www.w3.org/TR/WCAG22/).
+
+13. **Tema ki┼şiselle┼ştirmesi:** Yaln─▒z ÔÇ£Koyu n├Âtr / A├ğ─▒k n├ÂtrÔÇØ ve vurgu rengi se├ğimi sunulsun. ÔÇ£Varsay─▒lana d├ÂnÔÇØ g├Âr├╝n├╝r olsun. Se├ğilen vurguya g├Âre d├╝─şme yaz─▒s─▒ otomatik ayarlans─▒n; yetersiz kontrast sessizce uygulanmas─▒n. Aray├╝z temas─▒, videonun renklerini de─şi┼ştirmesin.
+
+├ûnerilen CSS renk jetonlar─▒:
+
+| Jeton | Koyu n├Âtr | A├ğ─▒k n├Âtr |
+|---|---|---|
+| `--bg` | `#18181B` | `#F4F4F5` |
+| `--surface` | `#242427` | `#FFFFFF` |
+| `--text` | `#FAFAFA` | `#18181B` |
+| `--text-secondary` | `#B4B4BD` | `#52525B` |
+| `--control-border` | `#71717A` | `#71717A` |
+| `--divider` | `#3F3F46` | `#D4D4D8` |
+| `--accent` / `--focus` | `#93C5FD` | `#1D4ED8` |
+| `--on-accent` | `#172554` | `#FFFFFF` |
+| `--accent-hover` | `#BFDBFE` | `#1E40AF` |
+| `--error` | `#FCA5A5` | `#B91C1C` |
+| `--warning` | `#FCD34D` | `#854D0E` |
+
+Bu e┼şle┼şmelerde d├╝─şme yaz─▒s─▒ kontrast─▒ koyuda **8,15:1**, a├ğ─▒kta **6,70:1**. Ay─▒r─▒c─▒ ├ğizgileri kontrol s─▒n─▒r─▒ olarak kullanmay─▒n; hata/uyar─▒ renklerini yaln─▒z ilgili durumlarda kullan─▒n.
+
+Logo i├ğin be┼ş fikir:
+
+- **Kayan iki kare:** Hafif kayd─▒r─▒lm─▒┼ş iki video karesi; ├Ândeki karede tek kal─▒n metin ├ğizgisi. Hareketli yaz─▒ ├╝retimini anlat─▒r.
+- **Piksel T:** Az say─▒da iri kareyle olu┼şturulmu┼ş T; tek piksel vurgu renginde. LED ve TAA ili┼şkisini kurar.
+- **Dikey ekran ve yaz─▒:** Yuvarlat─▒lm─▒┼ş kare i├ğinde dikey ekran, i├ğinde iki kal─▒n yaz─▒ ├ğizgisi.
+- **├£├ğ karelik ge├ği┼ş:** Yan yana ├╝├ğ karede soldan sa─şa beliren ayn─▒ metin ├ğizgisi. Animasyon fikrini ta┼ş─▒r.
+- **Zaman ├ğizelgesi i┼şareti:** ─░ki kal─▒n klip blo─şu ve aralar─▒nda tek dikey oynatma ├ğizgisi.
+
+**Uygulama simgesi i├ğin en g├╝├ğl├╝ aday: kayan iki kare.** Harfe ba─ş─▒ml─▒ de─şildir, video ├╝retimini ├ğa─şr─▒┼şt─▒r─▒r ve az par├ğayla ay─▒rt edilir. 16 px s├╝r├╝mde i├ğ ├ğizgi kald─▒r─▒l─▒p iki kare korunabilir; 32 ve 256 px s├╝r├╝mlerde eklenebilir. D├╝z tek renk ├ğal─▒┼şmal─▒; vurgu yaln─▒z ├Ândeki karede kullan─▒lmal─▒. A├ğ─▒k/koyu zemin varyantlar─▒ ve k├╝├ğ├╝k boyut okunurlu─şu ├ğizim a┼şamas─▒nda ayr─▒ca s─▒nanmal─▒.
